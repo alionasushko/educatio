@@ -1,0 +1,13 @@
+node_modules
+**/dist
+**/.next
+**/coverage
+**/build
+
+# Generated
+**/next-env.d.ts
+*.tsbuildinfo
+package-lock.json
+
+# Claude Code-managed (its own format conventions, may include local-only state)
+.claude/settings.local.json
