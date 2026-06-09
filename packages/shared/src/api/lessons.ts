@@ -1,0 +1,27 @@
+import { z } from "zod";
+
+export const createLessonSchema = z.object({
+  title: z.string().min(1).max(200),
+  studentName: z.string().max(120).optional(),
+  videoCallUrl: z.string().url().optional(),
+});
+export type CreateLessonInput = z.infer<typeof createLessonSchema>;
+
+export const updateLessonSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    studentName: z.string().max(120).optional(),
+    videoCallUrl: z.string().url().optional(),
+    status: z.enum(["scheduled", "active", "ended"]).optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, {
+    message: "At least one field must be provided",
+  });
+export type UpdateLessonInput = z.infer<typeof updateLessonSchema>;
+
+export const listLessonsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  status: z.enum(["all", "active", "ended"]).default("all"),
+});
+export type ListLessonsQuery = z.infer<typeof listLessonsQuerySchema>;
