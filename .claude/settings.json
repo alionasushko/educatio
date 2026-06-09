@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "NotebookEdit",
+
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npm --version)",
+      "Bash(npx *)",
+      "Bash(node *)",
+
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git fetch*)",
+      "Bash(git remote -v)",
+      "Bash(git config --get *)",
+
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh pr create*)",
+      "Bash(gh issue view*)",
+      "Bash(gh issue list*)",
+      "Bash(gh repo view*)",
+
+      "Bash(ls*)",
+      "Bash(pwd)",
+      "Bash(which *)",
+      "Bash(where *)"
+    ],
+    "deny": [
+      "Read(./**/*.pfx)",
+      "Read(./**/*.pem)",
+      "Read(./**/.env)",
+      "Read(./**/.env.local)",
+      "Read(./**/.env.*.local)",
+      "Read(./**/.env.development)",
+      "Read(./**/.env.production)",
+      "Read(./**/.env.test)",
+      "Read(./**/secrets/**)",
+      "Read(./**/.git-credentials)",
+
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(sftp *)",
+      "Bash(rsync *)",
+
+      "Bash(kubectl *)",
+      "Bash(helm *)",
+      "Bash(terraform apply*)",
+      "Bash(terraform destroy*)",
+
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -fd*)",
+      "Bash(git clean -fdx*)",
+      "Bash(git branch -D *)",
+      "Bash(git update-ref -d *)",
+
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)"
+    ]
+  }
+}

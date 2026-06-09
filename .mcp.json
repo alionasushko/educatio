@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "mongo": {
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server", "--readOnly"],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "${MONGODB_URI}"
+      }
+    }
+  }
+}
