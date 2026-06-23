@@ -76,7 +76,7 @@ Students join without an account: api mints a scoped JWT (`kind: 'student'`, `le
 
 ### Design tokens
 
-Brand tokens (`--bg`, `--surface`, `--accent-brand`, sticky palette, `--shadow-*`, etc.) are wired in [apps/web/src/app/globals.css](apps/web/src/app/globals.css) and mapped onto shadcn semantic tokens via `@theme inline`. Use tokens, not hard-coded hex. Fonts (`font-sans` Inter, `font-mono` JetBrains Mono, `font-hand` Caveat, `font-display` Fraunces) are loaded in [apps/web/src/app/layout.tsx](apps/web/src/app/layout.tsx) via `next/font/google`. Icons from `lucide-react`.
+Brand tokens (`--bg`, `--surface`, `--accent-brand`, sticky palette, `--shadow-*`, etc.) are wired in [apps/web/src/app/globals.css](apps/web/src/app/globals.css) and mapped onto shadcn semantic tokens via `@theme inline`. Use tokens, not hard-coded hex — and prefer the token-mapped Tailwind utility (`text-accent-brand`, `bg-surface`, `border-border-subtle`) over inline `style={{ color: "var(--accent-brand)" }}`. Reserve inline `var()` (or an arbitrary class like `shadow-[var(--shadow-medium)]`) for tokens with no mapped utility (e.g. shadows) or dynamic/computed values (e.g. a prop-driven `fontSize`). Fonts (`font-sans` Inter, `font-mono` JetBrains Mono, `font-hand` Caveat, `font-display` Fraunces) are loaded in [apps/web/src/app/layout.tsx](apps/web/src/app/layout.tsx) via `next/font/google`. UI icons come from `lucide-react` (use the `*Icon` named exports, e.g. `UsersIcon`, `ArrowRightIcon`); reserve inline `<svg>` for the brand mark and bespoke illustrations (the product-preview mock, the how-it-works step illos) that have no library equivalent — don't hand-author glyphs that lucide already provides.
 
 ### Next 16 specific
 
@@ -107,5 +107,7 @@ The Next file convention previously called `middleware.ts` is now `proxy.ts`. [a
 
 - Boundary discipline (above) — load-bearing, hard rule.
 - Server components by default in web; client only where interactive.
+- Components as an arrow `const` + `export default` (one per file); props typed as an `interface` (use `type` only for unions/intersections/mapped types); non-components (hooks, `cva` helpers, types) keep named exports.
+- File names are kebab-case (`faq-section.tsx`); the component identifier inside is PascalCase (`FaqSection`).
 - All web→api calls through `apps/web/src/lib/api-client.ts`.
 - All api validation via Zod schemas in `@educatio/shared/api/*`.

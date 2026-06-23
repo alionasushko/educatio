@@ -161,5 +161,5 @@ The api implements every endpoint listed in `docs/SPEC.md` §API routes; web has
 
 - **api hosting target** — Railway vs Fly vs Render. Decide before deploy task.
 - **Email-verification UX** — does the magic-link URL hit web or api directly? Recommendation: web (so it can set the cookie before redirecting to `/dashboard`), but api works too if the redirect can carry the JWT.
-- **Rate limiting** on api — `@nestjs/throttler` is the standard pick; add when auth lands.
+- **Rate limiting** on api — done: `@nestjs/throttler` (global 120/min via `APP_GUARD`, tighter per-route `@Throttle` on `auth/*`, `sessions/student`, `upload`) plus `@fastify/helmet` for security headers.
 - **OpenAPI** — Nest has `@nestjs/swagger` for free OpenAPI gen from Zod schemas via `nestjs-zod`. Worth adding once the api has 3+ endpoints so the web fetch client can be generated from it.
