@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import type { FastifyRequest } from "fastify";
 import "@fastify/multipart";
+import { Throttle } from "@nestjs/throttler";
 import { UploadService } from "./upload.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 
@@ -16,6 +17,7 @@ export class UploadController {
   constructor(private readonly upload: UploadService) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   async handle(@Req() req: FastifyRequest) {
     const file = await req.file();
     if (!file) {

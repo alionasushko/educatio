@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { JwtService } from "@nestjs/jwt";
@@ -9,11 +14,7 @@ import { User, UserDocument } from "../schemas/user.schema";
 import { MagicLink, MagicLinkDocument } from "../schemas/magic-link.schema";
 import { generateOpaqueToken } from "../common/ids";
 import type { Env } from "../config/env";
-import type {
-  PublicUser,
-  SessionClaims,
-  TutorSessionClaims,
-} from "@educatio/shared";
+import type { PublicUser, TutorSessionClaims } from "@educatio/shared";
 import type { SignupInput } from "@educatio/shared/api/auth";
 
 const MAGIC_LINK_TTL_MIN = 10;
@@ -51,15 +52,17 @@ export class AuthService {
 
   async callback(rawToken: string): Promise<{ sessionJwt: string }> {
     const tokenHash = this.hash(rawToken);
-    const link = await this.magicLinks.findOne({ tokenHash });
-    if (!link || link.usedAt || link.expiresAt.getTime() < Date.now()) {
+    const link = await this.magicLinks.findOneAndUpdate(
+      { tokenHash, usedAt: { $exists: false }, expiresAt: { $gt: new Date() } },
+      { $set: { usedAt: new Date() } },
+      { new: true },
+    );
+    if (!link) {
       throw new UnauthorizedException({
         code: "invalid_token",
         message: "This sign-in link is invalid or has expired.",
       });
     }
-    link.usedAt = new Date();
-    await link.save();
 
     const user = await this.users.findById(link.userId);
     if (!user) {
@@ -84,8 +87,7 @@ export class AuthService {
     return { sessionJwt };
   }
 
-  async me(claims: SessionClaims): Promise<PublicUser> {
-    if (claims.kind !== "tutor") throw new UnauthorizedException();
+  async me(claims: TutorSessionClaims): Promise<PublicUser> {
     const user = await this.users.findById(claims.sub);
     if (!user) throw new UnauthorizedException();
     return this.toPublic(user);
@@ -114,7 +116,12 @@ export class AuthService {
     const from = this.config.get("EMAIL_FROM", { infer: true });
 
     if (!apiKey || !from) {
-      // Dev fallback: log the link rather than failing when email isn't configured.
+      if (this.config.get("NODE_ENV", { infer: true }) === "production") {
+        throw new ServiceUnavailableException(
+          "Email delivery is not configured",
+        );
+      }
+      // Dev-only fallback: log the link rather than failing when email isn't configured.
       this.logger.warn(
         `RESEND not configured — magic link for ${user.email}: ${url}`,
       );

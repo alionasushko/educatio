@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { validateEnv, type Env } from "./config/env";
 import { CommonModule } from "./common/common.module";
 import { AuthModule } from "./auth/auth.module";
@@ -24,6 +26,7 @@ import { SummaryModule } from "./summary/summary.module";
         uri: config.get("MONGODB_URI", { infer: true }),
       }),
     }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     CommonModule,
     AuthModule,
     LessonsModule,
@@ -33,5 +36,6 @@ import { SummaryModule } from "./summary/summary.module";
     UploadModule,
     SummaryModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

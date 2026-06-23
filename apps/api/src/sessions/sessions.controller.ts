@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, Post } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { SessionsService } from "./sessions.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import {
@@ -12,6 +13,7 @@ export class SessionsController {
 
   @Post("student")
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   createStudent(
     @Body(new ZodValidationPipe(studentSessionSchema))
     body: StudentSessionInput,

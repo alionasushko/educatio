@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import type { FastifyRequest } from "fastify";
-import type { SessionClaims } from "@educatio/shared";
+import { sessionClaimsSchema, type SessionClaims } from "@educatio/shared";
 
 export interface AuthedRequest extends FastifyRequest {
   session?: SessionClaims;
@@ -23,11 +23,17 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException("Missing bearer token");
     }
     const token = header.slice("Bearer ".length);
+    let payload: unknown;
     try {
-      req.session = await this.jwt.verifyAsync<SessionClaims>(token);
-      return true;
+      payload = await this.jwt.verifyAsync(token);
     } catch {
       throw new UnauthorizedException("Invalid or expired session");
     }
+    const parsed = sessionClaimsSchema.safeParse(payload);
+    if (!parsed.success) {
+      throw new UnauthorizedException("Invalid session claims");
+    }
+    req.session = parsed.data;
+    return true;
   }
 }

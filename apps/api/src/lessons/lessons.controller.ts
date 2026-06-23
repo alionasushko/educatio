@@ -12,6 +12,7 @@ import { LessonsService } from "./lessons.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { CurrentTutor, Session } from "../common/session.decorator";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
+import { ObjectIdPipe } from "../common/object-id.pipe";
 import {
   createLessonSchema,
   listLessonsQuerySchema,
@@ -45,13 +46,16 @@ export class LessonsController {
   }
 
   @Get(":id")
-  get(@Param("id") id: string, @Session() session: SessionClaims) {
+  get(
+    @Param("id", ObjectIdPipe) id: string,
+    @Session() session: SessionClaims,
+  ) {
     return this.lessons.getForSession(id, session);
   }
 
   @Patch(":id")
   update(
-    @Param("id") id: string,
+    @Param("id", ObjectIdPipe) id: string,
     @CurrentTutor() tutor: TutorSessionClaims,
     @Body(new ZodValidationPipe(updateLessonSchema)) body: UpdateLessonInput,
   ) {

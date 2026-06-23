@@ -52,6 +52,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
           details: obj.details,
         };
       }
+      if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+        this.logger.error(exception.stack ?? exception.message);
+        body = { code: body.code, message: "Something went wrong" };
+      }
     } else {
       this.logger.error(
         exception instanceof Error ? exception.stack : exception,

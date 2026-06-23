@@ -12,6 +12,7 @@ import type { Env } from "../config/env";
       useFactory: (config: ConfigService<Env, true>) => ({
         secret: config.get("AUTH_JWT_SECRET", { infer: true }),
         signOptions: { algorithm: "HS256" },
+        verifyOptions: { algorithms: ["HS256"] },
       }),
     }),
   ],

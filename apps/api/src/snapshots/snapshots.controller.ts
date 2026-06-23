@@ -10,6 +10,7 @@ import { SnapshotsService } from "./snapshots.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { Session } from "../common/session.decorator";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
+import { ObjectIdPipe } from "../common/object-id.pipe";
 import {
   snapshotSchema,
   type SnapshotInput,
@@ -24,7 +25,7 @@ export class SnapshotsController {
   @Post()
   @HttpCode(200)
   save(
-    @Param("lessonId") lessonId: string,
+    @Param("lessonId", ObjectIdPipe) lessonId: string,
     @Session() session: SessionClaims,
     @Body(new ZodValidationPipe(snapshotSchema)) body: SnapshotInput,
   ) {

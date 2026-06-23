@@ -1,20 +1,29 @@
-export interface TutorSessionClaims {
-  kind: "tutor";
-  sub: string;
-  email: string;
-  iat: number;
-  exp: number;
-}
+import { z } from "zod";
 
-export interface StudentSessionClaims {
-  kind: "student";
-  lessonId: string;
-  name: string;
-  iat: number;
-  exp: number;
-}
+export const tutorSessionClaimsSchema = z.object({
+  kind: z.literal("tutor"),
+  sub: z.string(),
+  email: z.string(),
+  iat: z.number(),
+  exp: z.number(),
+});
 
-export type SessionClaims = TutorSessionClaims | StudentSessionClaims;
+export const studentSessionClaimsSchema = z.object({
+  kind: z.literal("student"),
+  lessonId: z.string(),
+  name: z.string(),
+  iat: z.number(),
+  exp: z.number(),
+});
+
+export const sessionClaimsSchema = z.discriminatedUnion("kind", [
+  tutorSessionClaimsSchema,
+  studentSessionClaimsSchema,
+]);
+
+export type TutorSessionClaims = z.infer<typeof tutorSessionClaimsSchema>;
+export type StudentSessionClaims = z.infer<typeof studentSessionClaimsSchema>;
+export type SessionClaims = z.infer<typeof sessionClaimsSchema>;
 
 export function isTutorSession(c: SessionClaims): c is TutorSessionClaims {
   return c.kind === "tutor";

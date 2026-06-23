@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { randomUUID } from "node:crypto";
 import { put } from "@vercel/blob";
 import type { MultipartFile } from "@fastify/multipart";
 import {
@@ -40,7 +41,7 @@ export class UploadService {
     }
 
     const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const { url } = await put(`uploads/${Date.now()}-${safeName}`, buffer, {
+    const { url } = await put(`uploads/${randomUUID()}-${safeName}`, buffer, {
       access: "public",
       token,
       contentType: file.mimetype,

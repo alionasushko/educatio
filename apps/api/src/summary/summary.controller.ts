@@ -2,6 +2,7 @@ import { Controller, HttpCode, Param, Post, UseGuards } from "@nestjs/common";
 import { SummaryService } from "./summary.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { CurrentTutor } from "../common/session.decorator";
+import { ObjectIdPipe } from "../common/object-id.pipe";
 import type { TutorSessionClaims } from "@educatio/shared";
 
 @Controller("lessons/:lessonId/summary")
@@ -12,7 +13,7 @@ export class SummaryController {
   @Post()
   @HttpCode(200)
   generate(
-    @Param("lessonId") lessonId: string,
+    @Param("lessonId", ObjectIdPipe) lessonId: string,
     @CurrentTutor() tutor: TutorSessionClaims,
   ) {
     return this.summary.generate(lessonId, tutor.sub);

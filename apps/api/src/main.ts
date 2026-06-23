@@ -7,6 +7,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import fastifyCors from "@fastify/cors";
+import fastifyHelmet from "@fastify/helmet";
 import fastifyMultipart from "@fastify/multipart";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter";
@@ -23,6 +24,8 @@ async function bootstrap() {
   const config = app.get<ConfigService<Env, true>>(ConfigService);
   const port = config.get("PORT", { infer: true });
   const webOrigin = config.get("WEB_ORIGIN", { infer: true });
+
+  await app.register(fastifyHelmet);
 
   await app.register(fastifyCors, {
     origin: webOrigin,

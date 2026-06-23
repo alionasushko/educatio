@@ -6,10 +6,11 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { AuthService } from "./auth.service";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
-import { Session } from "../common/session.decorator";
+import { CurrentTutor } from "../common/session.decorator";
 import {
   signupSchema,
   signinSchema,
@@ -18,7 +19,7 @@ import {
   type SigninInput,
   type CallbackInput,
 } from "@educatio/shared/api/auth";
-import type { SessionClaims } from "@educatio/shared";
+import type { TutorSessionClaims } from "@educatio/shared";
 
 @Controller("auth")
 export class AuthController {
@@ -26,6 +27,7 @@ export class AuthController {
 
   @Post("signup")
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signup(
     @Body(new ZodValidationPipe(signupSchema)) body: SignupInput,
   ): Promise<{ sent: true }> {
@@ -35,6 +37,7 @@ export class AuthController {
 
   @Post("signin")
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signin(
     @Body(new ZodValidationPipe(signinSchema)) body: SigninInput,
   ): Promise<{ sent: true }> {
@@ -44,6 +47,7 @@ export class AuthController {
 
   @Post("callback")
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async callback(
     @Body(new ZodValidationPipe(callbackSchema)) body: CallbackInput,
   ): Promise<{ sessionJwt: string }> {
@@ -60,7 +64,7 @@ export class AuthController {
 
   @Get("me")
   @UseGuards(JwtAuthGuard)
-  async me(@Session() session: SessionClaims) {
-    return { user: await this.auth.me(session) };
+  async me(@CurrentTutor() tutor: TutorSessionClaims) {
+    return { user: await this.auth.me(tutor) };
   }
 }
