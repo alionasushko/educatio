@@ -112,7 +112,9 @@ Student join:
 
 ### `proxy.ts` gate
 
-The Edge route gate's only job: does the request carry an `educatio_session` cookie whose JWT verifies against `AUTH_JWT_SECRET`? No Mongo, no api call. The shared secret is the only thing the web side needs; Resend, Mongo, and JWT minting are all api-only.
+The route gate's only job: does the request carry an `educatio_session` cookie whose JWT verifies against `AUTH_JWT_SECRET`? No Mongo, no api call. The shared secret is the only thing the web side needs; Resend, Mongo, and JWT minting are all api-only.
+
+**The gate is defense-in-depth, not the sole authorization.** Next 16's proxy docs warn that a matcher change or moving a Server Function to a different route can silently drop proxy coverage. When the authenticated screens land, every protected page/layout and every Server Action must re-check auth via `getCurrentSession()` (in `src/lib/session-server.ts`) and verify the claim — do not rely on `proxy.ts` alone. Relatedly, when `/sign-in` consumes a `callbackUrl` to redirect after login, it MUST reject any value that isn't a relative path (must start with a single `/`, not `//` or a scheme) or it becomes an open redirect.
 
 ## API surface
 

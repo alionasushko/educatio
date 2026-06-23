@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
-
-const API_URL = process.env.EDUCATIO_API_URL ?? "http://localhost:3001";
+import {
+  SESSION_COOKIE,
+  sessionCookieOptions,
+  verifySessionToken,
+} from "@/lib/session";
+import { requireApiUrl } from "@/lib/api-base";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -12,15 +15,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
+  const apiUrl = requireApiUrl();
+
   let sessionJwt: string;
   try {
-    const res = await fetch(`${API_URL}/auth/callback`, {
+    const res = await fetch(`${apiUrl}/auth/callback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     });
     if (!res.ok) throw new Error("callback rejected");
-    ({ sessionJwt } = (await res.json()) as { sessionJwt: string });
+    const data = (await res.json()) as { sessionJwt?: unknown };
+    if (typeof data.sessionJwt !== "string" || !data.sessionJwt) {
+      throw new Error("malformed callback response");
+    }
+    if (!(await verifySessionToken(data.sessionJwt))) {
+      throw new Error("unverifiable session token");
+    }
+    sessionJwt = data.sessionJwt;
   } catch {
     signIn.searchParams.set("error", "invalid-token");
     return NextResponse.redirect(signIn);

@@ -1,5 +1,5 @@
 import { jwtVerify } from "jose";
-import type { SessionClaims } from "@educatio/shared";
+import { sessionClaimsSchema, type SessionClaims } from "@educatio/shared";
 
 export const SESSION_COOKIE = "educatio_session";
 
@@ -14,7 +14,8 @@ export async function verifySessionToken(
       new TextEncoder().encode(secret),
       { algorithms: ["HS256"] },
     );
-    return payload as unknown as SessionClaims;
+    const parsed = sessionClaimsSchema.safeParse(payload);
+    return parsed.success ? parsed.data : null;
   } catch {
     return null;
   }

@@ -1,9 +1,10 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { SESSION_COOKIE } from "./session";
+import { requireApiUrl } from "./api-base";
 import type { ApiError } from "@educatio/shared/api/errors";
 
-const API_URL = process.env.EDUCATIO_API_URL ?? "http://localhost:3001";
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export class ApiClientError extends Error {
   constructor(
@@ -23,14 +24,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body !== undefined) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${requireApiUrl()}${path}`, {
     ...init,
     headers,
     cache: "no-store",
+    signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
 
   const text = await res.text();
-  const data: unknown = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!res.ok) {
     throw new ApiClientError(

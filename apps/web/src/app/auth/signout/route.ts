@@ -1,14 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/session";
 
-const API_URL = process.env.EDUCATIO_API_URL ?? "http://localhost:3001";
-
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  const origin = req.headers.get("origin");
+  if (origin && origin !== req.nextUrl.origin) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
 
-  if (token) {
+  const token = req.cookies.get(SESSION_COOKIE)?.value;
+  const apiUrl = process.env.EDUCATIO_API_URL;
+
+  if (token && apiUrl) {
     try {
-      await fetch(`${API_URL}/auth/signout`, {
+      await fetch(`${apiUrl}/auth/signout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
