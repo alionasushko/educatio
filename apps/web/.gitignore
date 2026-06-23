@@ -1,0 +1,11 @@
+# Web-specific ignores (root .gitignore covers shared ones like node_modules, .env*).
+
+# Next build output
+.next/
+out/
+
+# Next generated types
+next-env.d.ts
+
+# TypeScript build cache
+*.tsbuildinfo
