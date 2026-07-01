@@ -8,11 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Educatio is a collaborative whiteboard for one-on-one online tutoring. The project is structured as a **monorepo with two apps** (npm workspaces):
 
-- **`apps/web`** — Next 16 / React 19 / Tailwind v4 / shadcn `base-nova`. **UI only** — no DB, AI, email, or Liveblocks-server code (the boundary rule is now real, not aspirational). Has the marketing landing (`/`), the magic-link plumbing (`auth/callback` + `auth/signout` route handlers), the Edge `proxy.ts` gate, the typed `api-client`, and session helpers. The auth _screens_ (`/sign-in`, `/sign-up`, `/verify`) and authenticated app routes (`/dashboard`, `/lesson/[id]`, `/lesson/[id]/summary`, student `/join/[code]`) are **not yet built** — those are the next feature work, and they consume the api that now exists.
+- **`apps/web`** — Next 16 / React 19 / Tailwind v4 / shadcn `base-nova`. **UI only** — no DB, AI, email, or Liveblocks-server code (the boundary rule is now real, not aspirational). Has the marketing landing (`/`), the magic-link plumbing (`auth/callback` + `auth/signout` route handlers), the Edge `proxy.ts` gate, the typed `api-client`, and session helpers. The tutor sign-up (`/sign-up`) and email-verify (`/verify`) screens are built (on shared `Input`/`Card`/`AuthShell` primitives), along with a `/dashboard` **stub** (greeting + sign-out). Still to build: the sign-in screen (`/sign-in`), the full dashboard, and the lesson/summary/student-join routes (`/lesson/[id]`, `/lesson/[id]/summary`, `/join/[code]`) — they consume the api that already exists.
 - **`apps/api`** — NestJS + Fastify. Owns data (Mongoose), auth (Resend magic-link → JWT), AI (Anthropic), Liveblocks token issuance, blob uploads, email. **All endpoints are implemented**: `auth/*`, `sessions/student`, `lessons` CRUD, `lessons/:id/snapshot`, `lessons/:id/summary`, `liveblocks/auth`, `upload`.
 - **`packages/shared`** — `@educatio/shared`: domain types (`canvas`, `lesson`, `auth`) + per-endpoint Zod schemas under `@educatio/shared/api/*`. Consumed by both apps.
 
-> **Status.** The marketing landing is built and every api endpoint is implemented. The remaining work is the **web screens** (auth, dashboard, lesson canvas, summary, student join — see `docs/SPEC.md` §Features), plus Sentry wiring and tests. Everything compiles and builds, but nothing has been run against live Mongo/Resend/Liveblocks/Anthropic — end-to-end behavior is unverified until you run both apps with real env values.
+> **Status.** The marketing landing, the tutor `/sign-up` + `/verify` screens, and a `/dashboard` stub are built; every api endpoint is implemented. The remaining work is the rest of the **web screens** (`/sign-in`, full dashboard, lesson canvas, summary, student join — see `docs/SPEC.md` §Features), plus Sentry wiring and tests. Everything compiles and builds; the sign-up flow has been exercised against **local** Mongo (Resend unconfigured in dev, so the magic link is logged to the api console), but nothing has run against live Resend/Liveblocks/Anthropic — treat behavior beyond local auth as unverified.
 
 Read first when picking up work:
 
@@ -107,7 +107,7 @@ The Next file convention previously called `middleware.ts` is now `proxy.ts`. [a
 
 - Boundary discipline (above) — load-bearing, hard rule.
 - Server components by default in web; client only where interactive.
-- Components as an arrow `const` + `export default` (one per file); props typed as an `interface` (use `type` only for unions/intersections/mapped types); non-components (hooks, `cva` helpers, types) keep named exports.
-- File names are kebab-case (`faq-section.tsx`); the component identifier inside is PascalCase (`FaqSection`).
+- Components as an arrow `const` + `export default`, one per **folder** — `component-name/index.tsx` holds the component, with a co-located `helpers/` subfolder for non-component code (`types.ts`, `constants.ts`, `enums.ts`, `helpers.ts` as needed), a nested `components/` folder for child components, and `__tests__/` for tests. The shadcn primitives in `components/ui/` stay flat single-files; older flat components migrate to the folder shape over time. Props typed as an `interface` (use `type` only for unions/intersections/mapped types); non-components keep named exports.
+- File and folder names are kebab-case (`sign-up-form/index.tsx`, `faq-section.tsx`); the component identifier inside is PascalCase (`SignUpForm`).
 - All web→api calls through `apps/web/src/lib/api-client.ts`.
 - All api validation via Zod schemas in `@educatio/shared/api/*`.
