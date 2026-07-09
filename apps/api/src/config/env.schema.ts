@@ -12,6 +12,11 @@ export const envSchema = z.object({
   MONGODB_URI: z.string().url(),
   WEB_ORIGIN: z.string().url(),
 
+  ENABLE_DEMO_LOGIN: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
+
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
   LIVEBLOCKS_SECRET_KEY: z.string().optional(),

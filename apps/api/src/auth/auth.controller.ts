@@ -54,6 +54,13 @@ export class AuthController {
     return this.auth.callback(body.token);
   }
 
+  @Post("demo")
+  @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  async demo(): Promise<{ sessionJwt: string }> {
+    return this.auth.demoLogin();
+  }
+
   @Post("signout")
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)

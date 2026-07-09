@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   Logger,
   ServiceUnavailableException,
@@ -6,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, type JwtSignOptions } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { createHash } from "node:crypto";
 import { Resend } from "resend";
@@ -19,6 +20,16 @@ import type { SignupInput } from "@educatio/shared/api/auth";
 
 const MAGIC_LINK_TTL_MIN = 10;
 const SESSION_TTL = "30d";
+const DEMO_SESSION_TTL = "1d";
+const DEMO_EMAIL = "demo@educatio.app";
+
+function isDuplicateKeyError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: number }).code === 11000
+  );
+}
 
 @Injectable()
 export class AuthService {
@@ -34,18 +45,20 @@ export class AuthService {
 
   async signup(input: SignupInput): Promise<void> {
     const email = input.email.toLowerCase().trim();
-    const user =
-      (await this.users.findOne({ email })) ??
-      (await this.users.create({
-        email,
-        name: input.name,
-        teaches: input.teaches,
-      }));
+
+    if (email === DEMO_EMAIL) return;
+
+    const user = await this.upsertUser(email, {
+      email,
+      name: input.name,
+      teaches: input.teaches,
+    });
     await this.sendMagicLink(user);
   }
 
   async signin(emailRaw: string): Promise<void> {
     const email = emailRaw.toLowerCase().trim();
+    if (email === DEMO_EMAIL) return;
     const user = await this.users.findOne({ email });
     if (user) await this.sendMagicLink(user);
   }
@@ -76,15 +89,56 @@ export class AuthService {
       await user.save();
     }
 
+    return { sessionJwt: await this.signSession(user) };
+  }
+
+  async demoLogin(): Promise<{ sessionJwt: string }> {
+    if (!this.config.get("ENABLE_DEMO_LOGIN", { infer: true })) {
+      throw new ForbiddenException({
+        code: "demo_disabled",
+        message: "Demo login is not available.",
+      });
+    }
+
+    const user = await this.upsertUser(DEMO_EMAIL, {
+      email: DEMO_EMAIL,
+      name: "Demo Tutor",
+      teaches: "Mathematics",
+      emailVerified: new Date(),
+    });
+
+    return { sessionJwt: await this.signSession(user, DEMO_SESSION_TTL) };
+  }
+
+  private async upsertUser(
+    email: string,
+    insert: Partial<User>,
+  ): Promise<UserDocument> {
+    try {
+      const user = await this.users.findOneAndUpdate(
+        { email },
+        { $setOnInsert: insert },
+        { upsert: true, new: true },
+      );
+      if (user) return user;
+    } catch (err) {
+      if (!isDuplicateKeyError(err)) throw err;
+    }
+    const existing = await this.users.findOne({ email });
+    if (!existing) throw new Error(`upsertUser failed for ${email}`);
+    return existing;
+  }
+
+  private signSession(
+    user: UserDocument,
+    ttl: JwtSignOptions["expiresIn"] = SESSION_TTL,
+  ): Promise<string> {
     const claims: Omit<TutorSessionClaims, "iat" | "exp"> = {
       kind: "tutor",
       sub: user.id,
       email: user.email,
     };
-    const sessionJwt = await this.jwt.signAsync(claims, {
-      expiresIn: SESSION_TTL,
-    });
-    return { sessionJwt };
+    return this.jwt.signAsync(claims, { expiresIn: ttl });
   }
 
   async me(claims: TutorSessionClaims): Promise<PublicUser> {
