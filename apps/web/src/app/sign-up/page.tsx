@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import AuthShell from "@/components/auth/auth-shell";
 import SignUpForm from "@/components/auth/sign-up-form";
+import TryDemoButton from "@/components/auth/try-demo-button";
+import DemoErrorBanner from "@/components/auth/demo-error-banner";
 import Card from "@/components/ui/card";
 import Eyebrow from "@/components/ui/eyebrow";
 
@@ -35,7 +38,19 @@ const SignUpPage = () => {
           30 seconds.
         </p>
 
+        <Suspense fallback={null}>
+          <DemoErrorBanner />
+        </Suspense>
+
         <SignUpForm />
+
+        <div className="my-5 flex items-center gap-3">
+          <span className="bg-border h-px flex-1" />
+          <span className="text-text-tertiary text-xs">or</span>
+          <span className="bg-border h-px flex-1" />
+        </div>
+
+        <TryDemoButton />
 
         <p className="text-text-tertiary mt-4 text-center text-xs leading-snug">
           By creating an account you agree to our{" "}

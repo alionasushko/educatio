@@ -1,9 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/session";
+import { isCrossSiteRequest } from "@/lib/request";
 
 export async function POST(req: NextRequest) {
-  const origin = req.headers.get("origin");
-  if (origin && origin !== req.nextUrl.origin) {
+  if (isCrossSiteRequest(req)) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-    } catch {
-      // ignore — we still clear the cookie below
+    } catch (error) {
+      console.error("sign-out api call failed", error);
     }
   }
 

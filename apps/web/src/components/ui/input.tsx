@@ -71,17 +71,16 @@ const Input = ({
           {...props}
         />
       </div>
-      {message && (
-        <p
-          id={descriptionId}
-          className={cn(
-            "mt-1.5 text-[12.5px] leading-snug",
-            error ? "text-destructive" : "text-text-tertiary",
-          )}
-        >
-          {message}
-        </p>
-      )}
+      <p
+        id={descriptionId}
+        aria-hidden={message ? undefined : true}
+        className={cn(
+          "mt-1.5 min-h-4.5 text-[12.5px] leading-snug",
+          error ? "text-destructive" : "text-text-tertiary",
+        )}
+      >
+        {message}
+      </p>
     </div>
   );
 };

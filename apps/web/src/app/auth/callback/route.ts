@@ -1,10 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  SESSION_COOKIE,
-  sessionCookieOptions,
-  verifySessionToken,
-} from "@/lib/session";
-import { requireApiUrl } from "@/lib/api-base";
+import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { fetchVerifiedSessionJwt } from "@/lib/session-server";
+import { clientIpHeaders } from "@/lib/request";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -15,25 +12,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
-  const apiUrl = requireApiUrl();
+  const sessionJwt = await fetchVerifiedSessionJwt("/auth/callback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...clientIpHeaders(req) },
+    body: JSON.stringify({ token }),
+  });
 
-  let sessionJwt: string;
-  try {
-    const res = await fetch(`${apiUrl}/auth/callback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    });
-    if (!res.ok) throw new Error("callback rejected");
-    const data = (await res.json()) as { sessionJwt?: unknown };
-    if (typeof data.sessionJwt !== "string" || !data.sessionJwt) {
-      throw new Error("malformed callback response");
-    }
-    if (!(await verifySessionToken(data.sessionJwt))) {
-      throw new Error("unverifiable session token");
-    }
-    sessionJwt = data.sessionJwt;
-  } catch {
+  if (!sessionJwt) {
     signIn.searchParams.set("error", "invalid-token");
     return NextResponse.redirect(signIn);
   }
