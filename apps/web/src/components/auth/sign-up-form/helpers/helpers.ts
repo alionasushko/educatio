@@ -3,8 +3,8 @@ import type { Errors, Field } from "./types";
 
 export const validate = (values: Record<Field, string>): Errors => {
   const result = signupSchema.safeParse({
-    name: values.name,
-    email: values.email,
+    name: values.name.trim(),
+    email: values.email.trim(),
     teaches: values.teaches.trim() || undefined,
   });
   if (result.success) return {};

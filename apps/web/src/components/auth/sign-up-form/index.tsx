@@ -104,7 +104,6 @@ const SignUpForm = () => {
 
       <Button
         type="submit"
-        size="lg"
         disabled={isPending}
         className="h-12 w-full text-[15px]"
       >

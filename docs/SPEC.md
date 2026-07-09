@@ -56,6 +56,7 @@ Auth lives in `apps/api` (NestJS, `auth/` module). `apps/web` only renders forms
 - `POST /auth/callback` — body `{ token }`. Atomically consumes the link (`findOneAndUpdate` matching an unused, unexpired `tokenHash` and setting `usedAt`, so it can't be replayed under concurrency), marks `User.emailVerified=now`, mints a session JWT (HS256, payload `{ kind: 'tutor', sub: userId, email, iat, exp: +30d }`), returns `{ sessionJwt }`.
 - `POST /auth/signout` — placeholder for future revocation; v1 returns `{ ok: true }` immediately (the web simply clears the cookie).
 - `GET /auth/me` — auth required; returns `{ user: { id, email, name, image?, teaches? } }`.
+- `POST /auth/demo` — no body; gated by `ENABLE_DEMO_LOGIN` (returns `403` when unset). Upserts a shared, reserved demo tutor (`demo@educatio.app`, never reachable via the signup/signin magic-link flow) and returns a short-lived (`1d`) `{ sessionJwt }`. Powers the one-click "Try demo" button.
 
 ### Tutor dashboard
 
@@ -212,6 +213,7 @@ All routes live on the **api service** (NestJS, base URL `EDUCATIO_API_URL`). Au
 | `/auth/callback`        | POST   | none                                             | body `{ token }` → `{ sessionJwt }`                                                         |
 | `/auth/signout`         | POST   | tutor                                            | → `{ ok: true }`                                                                            |
 | `/auth/me`              | GET    | tutor                                            | → `{ user }`                                                                                |
+| `/auth/demo`            | POST   | none                                             | gated by `ENABLE_DEMO_LOGIN` (403 when off) → `{ sessionJwt }` (shared demo tutor, exp +1d) |
 | `/sessions/student`     | POST   | none                                             | body `{ inviteCode, name }` → `{ sessionJwt }` (kind=student, exp +7d)                      |
 | `/lessons`              | POST   | tutor                                            | body `{ title, studentName?, videoCallUrl? }` → `{ id, inviteCode, liveblocksRoomId }`      |
 | `/lessons`              | GET    | tutor                                            | query `?page=1&limit=20&status=all\|active\|ended` → `{ lessons, total, page, totalPages }` |

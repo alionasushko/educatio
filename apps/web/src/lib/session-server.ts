@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySessionToken } from "./session";
 import { requireApiUrl } from "./api-base";
 import type { SessionClaims } from "@educatio/shared";
@@ -11,6 +12,11 @@ export async function getCurrentSession(): Promise<SessionClaims | null> {
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+export async function redirectSignedInTutor(to = "/dashboard"): Promise<void> {
+  const session = await getCurrentSession();
+  if (session?.kind === "tutor") redirect(to);
 }
 
 export async function fetchVerifiedSessionJwt(

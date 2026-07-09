@@ -5,15 +5,18 @@ import { CheckIcon } from "lucide-react";
 import AuthShell from "@/components/auth/auth-shell";
 import SignUpForm from "@/components/auth/sign-up-form";
 import TryDemoButton from "@/components/auth/try-demo-button";
-import DemoErrorBanner from "@/components/auth/demo-error-banner";
+import AuthErrorBanner from "@/components/auth/auth-error-banner";
 import Card from "@/components/ui/card";
 import Eyebrow from "@/components/ui/eyebrow";
+import { redirectSignedInTutor } from "@/lib/session-server";
 
 export const metadata: Metadata = {
   title: "Create your tutor account",
 };
 
-const SignUpPage = () => {
+const SignUpPage = async () => {
+  await redirectSignedInTutor();
+
   return (
     <AuthShell
       footer={
@@ -39,7 +42,7 @@ const SignUpPage = () => {
         </p>
 
         <Suspense fallback={null}>
-          <DemoErrorBanner />
+          <AuthErrorBanner />
         </Suspense>
 
         <SignUpForm />
@@ -73,8 +76,7 @@ const SignUpPage = () => {
           <span className="text-text-primary font-medium">
             Are you a student?
           </span>{" "}
-          You don&apos;t need an account — just open the lesson link your tutor
-          sent.
+          You don’t need an account — just open the lesson link your tutor sent.
         </p>
       </div>
     </AuthShell>

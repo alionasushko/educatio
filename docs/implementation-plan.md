@@ -108,7 +108,7 @@ educatio/                                  ← workspaces root
 │   │   ├── src/
 │   │   │   ├── app/
 │   │   │   │   ├── (marketing)/page.tsx    # Landing                          [built]
-│   │   │   │   ├── sign-in/page.tsx        #                                  [not built]
+│   │   │   │   ├── sign-in/page.tsx        # tutor sign-in + server action     [built]
 │   │   │   │   ├── sign-up/page.tsx        # tutor sign-up + server action     [built]
 │   │   │   │   ├── verify/page.tsx         # check-your-email + resend         [built]
 │   │   │   │   ├── auth/callback/route.ts  # thin proxy: token → cookie       [built]
@@ -209,7 +209,7 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 - [x] **Project setup** — monorepo + workspace tooling. Sentry wiring still pending.
 - [x] **Marketing landing** — see `docs/SPEC.md` §Marketing landing. Lighthouse not yet measured.
-- [ ] **Authentication** — api endpoints built (`/auth/*`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Web screens: `/sign-up` and `/verify` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions); `/sign-in` still not built. See `docs/SPEC.md` §Authentication.
+- [ ] **Authentication** — api endpoints built (`/auth/*` incl. flag-gated `/auth/demo`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Web screens: `/sign-up`, `/sign-in`, and `/verify` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions, one-click demo login, stale-tab redirect on `/verify`). Remaining: tests. See `docs/SPEC.md` §Authentication.
 - [ ] **Tutor dashboard** — api ready (`GET /lessons`). Web page (`/dashboard`) is a stub (auth-loop landing: greeting via `/auth/me` + sign-out); the full dashboard (lesson list, sidebar, pagination, empty state) is not built. See `docs/SPEC.md` §Tutor dashboard.
 - [ ] **Lesson creation** — api endpoint built (`POST /lessons`). Web form (`/lesson/new`) not built. See `docs/SPEC.md` §Lesson creation.
 - [ ] **Lesson canvas** — api endpoints built (`/lessons/:id`, `/lessons/:id/snapshot`, `/liveblocks/auth`). Canvas UI, toolbar, presence, snapshot loop not built. See `docs/SPEC.md` §Lesson canvas.
@@ -221,10 +221,10 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 ### Build state
 
-- **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing, Edge `proxy.ts` JWT gate via `jose`, `auth/callback` + `auth/signout` route handlers, typed `api-client`, `session.ts` / `session-server.ts`, the `/sign-up` + `/verify` screens and a `/dashboard` stub built on shared `Input`/`Card`/`AuthShell` primitives, following the folder-per-component convention); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types + per-endpoint Zod schemas, builds to `dist`).
+- **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing, Edge `proxy.ts` JWT gate via `jose`, `auth/callback` + `auth/signout` route handlers, typed `api-client`, `session.ts` / `session-server.ts`, the `/sign-up` + `/sign-in` + `/verify` screens plus a flag-gated one-click demo login and a `/dashboard` stub built on shared `Input`/`Card`/`AuthShell` primitives, following the folder-per-component convention); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types + per-endpoint Zod schemas, builds to `dist`).
 - **Verified:** `tsc --noEmit` and production builds pass for all three workspaces; both `apps/web` and `apps/api` have their own ESLint configs and lint clean.
 - **Not verified:** nothing has been run against live Mongo/Resend/Liveblocks/Anthropic — those need real env values.
-- **Cross-cutting remaining:** the rest of the web screens (`/sign-in`, full dashboard, lesson creation, lesson canvas, summary, student join — consuming the existing endpoints), Sentry on both apps, and tests.
+- **Cross-cutting remaining:** the rest of the web screens (full dashboard, lesson creation, lesson canvas, summary, student join — consuming the existing endpoints), Sentry on both apps, and tests.
 
 ---
 

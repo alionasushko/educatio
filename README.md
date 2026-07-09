@@ -13,7 +13,7 @@ A collaborative whiteboard for one-on-one online tutoring. Tutors create a lesso
 | `packages/shared` | `@educatio/shared` — domain types + Zod schemas shared by both apps.               |
 | `docs/`           | Architecture, spec, design, and implementation plan.                               |
 
-> **Status:** the api owns every endpoint (auth, lessons, sessions, snapshot, summary, liveblocks, upload); web is UI-only and authenticates via a JWT cookie. The marketing landing page is built; the auth/dashboard/lesson/summary **screens are the remaining work** (see [docs/SPEC.md](docs/SPEC.md) §Features for behavior, [docs/implementation-plan.md](docs/implementation-plan.md) §7 for status). Everything compiles and builds, but hasn't been run against live Mongo/Resend/Liveblocks/Anthropic.
+> **Status:** the api owns every endpoint (auth, lessons, sessions, snapshot, summary, liveblocks, upload); web is UI-only and authenticates via a JWT cookie. The marketing landing and the auth screens (`/sign-up`, `/sign-in`, `/verify`, a one-click demo login, and a `/dashboard` stub) are built; the full dashboard/lesson/summary **screens are the remaining work** (see [docs/SPEC.md](docs/SPEC.md) §Features for behavior, [docs/implementation-plan.md](docs/implementation-plan.md) §7 for status). Everything compiles and builds and the auth flows work against a local Mongo, but nothing has run against live/hosted Resend/Liveblocks/Anthropic.
 
 ## Prerequisites
 
