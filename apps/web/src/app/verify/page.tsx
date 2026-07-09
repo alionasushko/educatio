@@ -4,6 +4,7 @@ import { MailIcon } from "lucide-react";
 import AuthShell from "@/components/auth/auth-shell";
 import Card from "@/components/ui/card";
 import ResendLink from "@/components/auth/resend-link";
+import SessionWatcher from "@/components/auth/session-watcher";
 
 export const metadata: Metadata = {
   title: "Check your email",
@@ -18,6 +19,7 @@ const VerifyPage = async ({ searchParams }: Props) => {
 
   return (
     <AuthShell>
+      <SessionWatcher />
       <Card padding={32}>
         <div
           className="border-accent-soft-border bg-accent-soft text-accent-brand mb-4.5 flex size-11 items-center justify-center rounded-full border"
