@@ -7,22 +7,24 @@ import type { SessionClaims } from "@educatio/shared";
 
 const SESSION_FETCH_TIMEOUT_MS = 30_000;
 
-export async function getCurrentSession(): Promise<SessionClaims | null> {
+export const getCurrentSession = async (): Promise<SessionClaims | null> => {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);
-}
+};
 
-export async function redirectSignedInTutor(to = "/dashboard"): Promise<void> {
+export const redirectSignedInTutor = async (
+  to = "/dashboard",
+): Promise<void> => {
   const session = await getCurrentSession();
   if (session?.kind === "tutor") redirect(to);
-}
+};
 
-export async function fetchVerifiedSessionJwt(
+export const fetchVerifiedSessionJwt = async (
   path: string,
   init?: RequestInit,
-): Promise<string | null> {
+): Promise<string | null> => {
   let res: Response;
   try {
     res = await fetch(`${requireApiUrl()}${path}`, {
@@ -57,4 +59,4 @@ export async function fetchVerifiedSessionJwt(
   }
 
   return data.sessionJwt;
-}
+};

@@ -5,9 +5,9 @@ export const SESSION_COOKIE = "educatio_session";
 
 export const POST_LOGIN_COOKIE = "educatio_post_login";
 
-export async function verifySessionToken(
+export const verifySessionToken = async (
   token: string,
-): Promise<SessionClaims | null> {
+): Promise<SessionClaims | null> => {
   const secret = process.env.AUTH_JWT_SECRET;
   if (!secret) return null;
   try {
@@ -21,7 +21,7 @@ export async function verifySessionToken(
   } catch {
     return null;
   }
-}
+};
 
 export const sessionCookieOptions = {
   httpOnly: true as const,

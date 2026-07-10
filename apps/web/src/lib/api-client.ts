@@ -16,7 +16,7 @@ export class ApiClientError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
 
@@ -51,7 +51,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
   return data as T;
-}
+};
 
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),

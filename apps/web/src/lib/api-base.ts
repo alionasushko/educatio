@@ -1,6 +1,6 @@
 import "server-only";
 
-export function requireApiUrl(): string {
+export const requireApiUrl = (): string => {
   const url = process.env.EDUCATIO_API_URL;
   if (!url) {
     throw new Error(
@@ -8,4 +8,4 @@ export function requireApiUrl(): string {
     );
   }
   return url;
-}
+};
