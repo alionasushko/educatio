@@ -32,30 +32,33 @@ Auth lives in `apps/api` (NestJS, `auth/` module). `apps/web` only renders forms
 
 **Web pages** (`apps/web/src/app/`):
 
-- `/sign-in`: email input → `POST {EDUCATIO_API_URL}/auth/signin` → renders `/verify`. Footer: "New to Educatio? Create a tutor account" → `/sign-up`.
+- `/sign-in`: email + password → `POST {EDUCATIO_API_URL}/auth/signin/password`; on success the server action sets the session cookie and redirects to `/dashboard` (honoring `callbackUrl`). A "Forgot your password? Email me a magic link" action falls back to `POST /auth/signin` → `/verify` (also the recovery path). Footer: "New to Educatio? Create a tutor account" → `/sign-up`.
 - `/sign-up`: tutor account creation form.
   - Eyebrow "For tutors" + heading "Create your tutor account"
   - Subhead: "Free for solo tutors — unlimited lessons, no card needed. Setup takes 30 seconds."
   - Fields:
     - **Your name** (required) — placeholder "Sara Martínez", autofocus. Sent as `name`.
-    - **Email** (required, valid email) — placeholder "you@school.com", helper "We'll send a magic link — no password needed."
+    - **Email** (required, valid email) — placeholder "you@school.com", helper "We'll send a link to confirm it's you."
     - **What do you teach?** (optional, free text) — placeholder "Spanish, GCSE Maths, piano…", helper "Optional. Helps us tailor your lesson templates." Sent as `teaches`.
-  - Primary CTA "Create account" (full-width, size lg) → `POST {EDUCATIO_API_URL}/auth/signup { name, email, teaches? }` → renders `/verify`.
+  - Primary CTA "Create account" (full-width, size lg) → `POST {EDUCATIO_API_URL}/auth/signup { name, email, teaches? }` → renders `/verify`. No password field — a password is set later, post-verification (see `/set-password`).
   - Below the CTA: small terms/privacy line — "By creating an account you agree to our Terms and Privacy Policy."
   - Below the card: callout (accent-tint background, check icon) — "Are you a student? You don't need an account — just open the lesson link your tutor sent."
   - Footer link: "Already have an account? Sign in" → `/sign-in`.
 - `/verify`: informational ("Check your email"). No form submit; the magic link does the work.
+- `/set-password`: authenticated; shown after magic-link verification (the callback's default landing when there's no stashed deep-link). Sets/replaces the password via `POST {EDUCATIO_API_URL}/auth/password` (authenticated — the only way a password is ever set). "Skip for now" → `/dashboard`. **Interim home:** when the profile/settings screen is built, move password set/change there and drop this standalone page (or redirect it).
 - `auth/callback/route.ts` (server route, not a page): receives the magic-link URL (`?token=…`) → calls `POST {EDUCATIO_API_URL}/auth/callback { token }` → on success, sets `educatio_session` httpOnly cookie (`SameSite=Lax`, `Secure` in prod, path `/`) from the returned JWT → redirects to `/dashboard`. On failure, redirects to `/sign-in?error=invalid-token`.
 - `proxy.ts`: Edge runtime, verifies the `educatio_session` JWT (HS256, `AUTH_JWT_SECRET`) on every request to `/dashboard`, `/lesson/*`, `/settings`. No DB calls, no api calls. Unauthenticated → redirect to `/sign-in?callbackUrl=…`.
 - Sign-out: web clears the cookie, calls `POST {EDUCATIO_API_URL}/auth/signout`, redirects to `/`.
 
 **Api endpoints** (`apps/api/src/auth/`):
 
-- `POST /auth/signup` — body `{ name, email, teaches? }`. Creates User (idempotent on email — re-sends magic link if user already exists). Mints a one-time link token (`crypto.randomBytes(32).toString('base64url')`) with 10-min expiry, stores `{ tokenHash, userId, expiresAt }` in a `magic_links` collection. Sends email via Resend with link → `{WEB_ORIGIN}/auth/callback?token={raw}`. Returns `{ sent: true }`.
+- `POST /auth/signup` — body `{ name, email, teaches? }`. Creates the (unverified) User (idempotent on email — re-sends the verification link if the user already exists). No password is set here. Mints a one-time link token (`crypto.randomBytes(32).toString('base64url')`) with 10-min expiry, stores `{ tokenHash, userId, expiresAt }` in a `magic_links` collection. Sends email via Resend with link → `{WEB_ORIGIN}/auth/callback?token={raw}`. Returns `{ sent: true }`.
 - `POST /auth/signin` — body `{ email }`. Same flow as signup, but does NOT create a user if missing — still returns `{ sent: true }` (no user enumeration). Real send only happens for existing users.
+- `POST /auth/signin/password` — body `{ email, password }`. Verifies the bcrypt hash (against a dummy hash when the account/password is absent, so timing doesn't leak existence). ALL failure modes — unknown email, no password set, wrong password, unverified, or a live lockout — return the same generic `401 { code: 'invalid_credentials' }` (no account-existence or credential-validity oracle). Per-account lockout after 10 consecutive failures for 15 min (magic-link sign-in still works). Success → `{ sessionJwt }` (HS256, `{ kind: 'tutor', sub, email }`, 30-day exp). The demo account is rejected here. Throttled 10/min.
+- `POST /auth/password` — **authenticated** (`JwtAuthGuard`, tutor session); body `{ password }` (min 8, ≤72 bytes). bcrypt-hashes and sets/replaces the caller's own `passwordHash`, keyed on the session `sub`. This is the ONLY way a password is ever set, so it can't be planted on an account before its email is verified; it's also the recovery path (sign in via magic link, then set a new one). The demo account is rejected. Returns `{ ok: true }`. Throttled 10/min.
 - `POST /auth/callback` — body `{ token }`. Atomically consumes the link (`findOneAndUpdate` matching an unused, unexpired `tokenHash` and setting `usedAt`, so it can't be replayed under concurrency), marks `User.emailVerified=now`, mints a session JWT (HS256, payload `{ kind: 'tutor', sub: userId, email, iat, exp: +30d }`), returns `{ sessionJwt }`.
 - `POST /auth/signout` — placeholder for future revocation; v1 returns `{ ok: true }` immediately (the web simply clears the cookie).
-- `GET /auth/me` — auth required; returns `{ user: { id, email, name, image?, teaches? } }`.
+- `GET /auth/me` — auth required; returns `{ user: { id, email, name, image?, teaches?, hasPassword } }` (`hasPassword` drives the set-vs-change label; the hash itself is never returned).
 - `POST /auth/demo` — no body; gated by `ENABLE_DEMO_LOGIN` (returns `403` when unset). Upserts a shared, reserved demo tutor (`demo@educatio.app`, never reachable via the signup/signin magic-link flow) and returns a short-lived (`1d`) `{ sessionJwt }`. Powers the one-click "Try demo" button.
 
 ### Tutor dashboard

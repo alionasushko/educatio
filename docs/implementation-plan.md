@@ -27,7 +27,7 @@
 | Canvas rendering   | React Konva (`konva` + `react-konva`)                                                                      | `apps/web`                                |
 | Real-time (client) | `@liveblocks/react`, `@liveblocks/client`                                                                  | `apps/web`                                |
 | Real-time (server) | `@liveblocks/node` (token issuance only)                                                                   | `apps/api`                                |
-| Auth               | Resend magic-link → JWT issued by Nest, stored as `httpOnly` cookie by web                                 | `apps/api` owns; `apps/web` stores cookie |
+| Auth               | Email + password (bcrypt) or Resend magic-link → JWT by Nest, stored as `httpOnly` cookie by web           | `apps/api` owns; `apps/web` stores cookie |
 | Database           | MongoDB Atlas + Mongoose                                                                                   | `apps/api` only                           |
 | AI                 | Anthropic Claude via Vercel AI SDK (`@ai-sdk/anthropic`)                                                   | `apps/api` only                           |
 | File storage       | Vercel Blob (`@vercel/blob`)                                                                               | `apps/api` only                           |
@@ -86,6 +86,10 @@ BLOB_READ_WRITE_TOKEN=
 # Web origin for CORS allowlist
 WEB_ORIGIN=http://localhost:3000
 
+# Fastify trustProxy hop count (or CIDR/IP list). Must match the deployment's
+# proxy depth; never "true" in prod. Default 1 (single LB/web hop).
+TRUST_PROXY=1
+
 # Sentry (optional in dev)
 SENTRY_DSN=
 
@@ -111,6 +115,7 @@ educatio/                                  ← workspaces root
 │   │   │   │   ├── sign-in/page.tsx        # tutor sign-in + server action     [built]
 │   │   │   │   ├── sign-up/page.tsx        # tutor sign-up + server action     [built]
 │   │   │   │   ├── verify/page.tsx         # check-your-email + resend         [built]
+│   │   │   │   ├── set-password/page.tsx   # post-verify set/change password   [built]
 │   │   │   │   ├── auth/callback/route.ts  # thin proxy: token → cookie       [built]
 │   │   │   │   ├── auth/signout/route.ts   #                                  [built]
 │   │   │   │   ├── (app)/
@@ -209,7 +214,7 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 - [x] **Project setup** — monorepo + workspace tooling. Sentry wiring still pending.
 - [x] **Marketing landing** — see `docs/SPEC.md` §Marketing landing. Lighthouse not yet measured.
-- [ ] **Authentication** — api endpoints built (`/auth/*` incl. flag-gated `/auth/demo`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Web screens: `/sign-up`, `/sign-in`, and `/verify` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions, one-click demo login, stale-tab redirect on `/verify`). Remaining: tests. See `docs/SPEC.md` §Authentication.
+- [ ] **Authentication** — api endpoints built (`/auth/*` incl. flag-gated `/auth/demo`, authenticated `/auth/password`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Email + password sign-in added alongside magic-link (password set only post-verification via `/auth/password`; per-account lockout; client-IP forwarding for throttling). Web screens: `/sign-up`, `/sign-in`, `/verify`, and `/set-password` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions, one-click demo login, stale-tab redirect on `/verify`). **Follow-ups:** (1) `/set-password` is the interim home for password set/change shown after verification — fold it into the profile/settings screen when that's built; (2) deferred security hardening — server-side session revocation (`tokenVersion` / make `/auth/signout` kill live sessions) and full magic-link login-CSRF defense. Remaining: tests. See `docs/SPEC.md` §Authentication.
 - [ ] **Tutor dashboard** — api ready (`GET /lessons`). Web page (`/dashboard`) is a stub (auth-loop landing: greeting via `/auth/me` + sign-out); the full dashboard (lesson list, sidebar, pagination, empty state) is not built. See `docs/SPEC.md` §Tutor dashboard.
 - [ ] **Lesson creation** — api endpoint built (`POST /lessons`). Web form (`/lesson/new`) not built. See `docs/SPEC.md` §Lesson creation.
 - [ ] **Lesson canvas** — api endpoints built (`/lessons/:id`, `/lessons/:id/snapshot`, `/liveblocks/auth`). Canvas UI, toolbar, presence, snapshot loop not built. See `docs/SPEC.md` §Lesson canvas.

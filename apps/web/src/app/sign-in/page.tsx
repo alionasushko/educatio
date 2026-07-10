@@ -28,7 +28,7 @@ const SignInPage = async ({ searchParams }: Props) => {
           Sign in to Educatio
         </h1>
         <p className="text-text-secondary mt-2 mb-6 text-sm leading-normal">
-          We’ll email you a magic link — no password needed.
+          Welcome back — sign in with your password.
         </p>
 
         <Suspense fallback={null}>

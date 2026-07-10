@@ -39,4 +39,5 @@ export interface PublicUser {
   name: string;
   image?: string;
   teaches?: string;
+  hasPassword: boolean;
 }

@@ -34,6 +34,11 @@ const BOUNDARY_VIOLATIONS = [
     message: "Email is api-only. The api sends from /auth/* endpoints.",
   },
   {
+    name: "bcrypt",
+    message:
+      "bcrypt is api-only — hash/verify passwords in apps/api behind /auth endpoints.",
+  },
+  {
     name: "next-auth",
     message:
       "Auth.js is not used in this project — auth lives in apps/api (Nest).",

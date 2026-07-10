@@ -75,7 +75,7 @@ const SignUpForm = () => {
           type="email"
           autoComplete="email"
           placeholder="you@school.com"
-          helper="We'll send a magic link — no password needed."
+          helper="We'll send a link to confirm it's you."
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           onBlur={() => handleBlur("email")}

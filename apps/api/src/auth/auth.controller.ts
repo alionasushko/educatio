@@ -14,9 +14,13 @@ import { CurrentTutor } from "../common/session.decorator";
 import {
   signupSchema,
   signinSchema,
+  passwordSigninSchema,
+  setPasswordSchema,
   callbackSchema,
   type SignupInput,
   type SigninInput,
+  type PasswordSigninInput,
+  type SetPasswordInput,
   type CallbackInput,
 } from "@educatio/shared/api/auth";
 import type { TutorSessionClaims } from "@educatio/shared";
@@ -43,6 +47,27 @@ export class AuthController {
   ): Promise<{ sent: true }> {
     await this.auth.signin(body.email);
     return { sent: true };
+  }
+
+  @Post("signin/password")
+  @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  async signinPassword(
+    @Body(new ZodValidationPipe(passwordSigninSchema))
+    body: PasswordSigninInput,
+  ): Promise<{ sessionJwt: string }> {
+    return this.auth.signinWithPassword(body.email, body.password);
+  }
+
+  @Post("password")
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  async setPassword(
+    @CurrentTutor() tutor: TutorSessionClaims,
+    @Body(new ZodValidationPipe(setPasswordSchema)) body: SetPasswordInput,
+  ): Promise<{ ok: true }> {
+    return this.auth.setPassword(tutor, body.password);
   }
 
   @Post("callback")

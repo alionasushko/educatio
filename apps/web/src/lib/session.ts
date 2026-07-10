@@ -26,7 +26,7 @@ export const verifySessionToken = async (
 export const sessionCookieOptions = {
   httpOnly: true as const,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   path: "/",
   maxAge: 60 * 60 * 24 * 30,
 };
@@ -34,7 +34,7 @@ export const sessionCookieOptions = {
 export const postLoginCookieOptions = {
   httpOnly: true as const,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   path: "/",
   maxAge: 60 * 10,
 };

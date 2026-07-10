@@ -17,6 +17,15 @@ export class User {
   @Prop({ type: Date, default: null })
   emailVerified: Date | null;
 
+  @Prop({ select: false })
+  passwordHash?: string;
+
+  @Prop({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Prop({ type: Date, default: null })
+  lockedUntil: Date | null;
+
   @Prop()
   teaches?: string;
 }

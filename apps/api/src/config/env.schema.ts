@@ -12,6 +12,8 @@ export const envSchema = z.object({
   MONGODB_URI: z.string().url(),
   WEB_ORIGIN: z.string().url(),
 
+  TRUST_PROXY: z.string().default("1"),
+
   ENABLE_DEMO_LOGIN: z
     .string()
     .optional()

@@ -73,13 +73,15 @@ This split is enforced two ways: by what's installed where (api-only packages ar
 Nest owns the entire identity surface.
 
 ```
-Tutor sign-up:
+Tutor sign-up (email verification; password set later):
   Browser → web POST /sign-up form                     (web: pure UI)
-  web → api POST /auth/signup { name, email, teaches } (web acts as a proxy)
-  api creates User in Mongo, generates one-time magic-link token,
-    sends email via Resend with link → web/auth/callback?token=...
+  web → api POST /auth/signup { name, email, teaches }  (web acts as a proxy)
+  api creates unverified User in Mongo,
+    generates one-time magic-link token,
+    sends verification email via Resend → web/auth/callback?token=...
   api → web returns 200 { sent: true }
   web → renders /verify ("Check your email")
+  (a password is set only post-verification via authenticated POST /auth/password)
 
 Magic-link callback:
   Browser → web GET /auth/callback?token=…
@@ -87,6 +89,14 @@ Magic-link callback:
   api validates token, marks User.emailVerified, mints session JWT
   api → web returns { sessionJwt } in the response body
   web → sets `educatio_session` httpOnly cookie on its own domain, redirects to /dashboard
+
+Password sign-in:
+  Browser → web POST /sign-in form { email, password }
+  web → api POST /auth/signin/password { email, password }
+  api verifies bcrypt hash; if the email is verified, mints session JWT
+  api → web returns { sessionJwt }
+  web verifies the JWT, sets `educatio_session` cookie, redirects to /dashboard (or callbackUrl)
+  (the "email me a magic link" fallback + password recovery reuses the magic-link callback above)
 
 Authenticated request from web → api:
   Browser → web /dashboard (server component)

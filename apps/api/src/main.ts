@@ -14,10 +14,22 @@ import { AllExceptionsFilter } from "./common/all-exceptions.filter";
 import type { Env } from "./config/env";
 import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
 
+const parseTrustProxy = (
+  raw: string | undefined,
+): boolean | number | string => {
+  const v = raw?.trim() || "1";
+  if (v === "true") return true;
+  if (v === "false") return false;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 ? n : v;
+};
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ trustProxy: true }),
+    new FastifyAdapter({
+      trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
+    }),
     { bufferLogs: true },
   );
 

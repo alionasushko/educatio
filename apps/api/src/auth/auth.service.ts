@@ -11,6 +11,7 @@ import { JwtService, type JwtSignOptions } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { createHash } from "node:crypto";
 import { Resend } from "resend";
+import * as bcrypt from "bcrypt";
 import { User, UserDocument } from "../schemas/user.schema";
 import { MagicLink, MagicLinkDocument } from "../schemas/magic-link.schema";
 import { generateOpaqueToken } from "../common/ids";
@@ -22,6 +23,14 @@ const MAGIC_LINK_TTL_MIN = 10;
 const SESSION_TTL = "30d";
 const DEMO_SESSION_TTL = "1d";
 const DEMO_EMAIL = "demo@educatio.app";
+const BCRYPT_ROUNDS = 12;
+const MAX_FAILED_ATTEMPTS = 10;
+const LOCKOUT_MINUTES = 15;
+
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  generateOpaqueToken(),
+  BCRYPT_ROUNDS,
+);
 
 function isDuplicateKeyError(err: unknown): boolean {
   return (
@@ -48,6 +57,9 @@ export class AuthService {
 
     if (email === DEMO_EMAIL) return;
 
+    // No password here: signup only creates the (unverified) account and sends
+    // the verification magic link. A password is set later, once authenticated,
+    // via setPassword — so an unauthenticated caller can never plant one.
     const user = await this.upsertUser(email, {
       email,
       name: input.name,
@@ -61,6 +73,87 @@ export class AuthService {
     if (email === DEMO_EMAIL) return;
     const user = await this.users.findOne({ email });
     if (user) await this.sendMagicLink(user);
+  }
+
+  async signinWithPassword(
+    emailRaw: string,
+    password: string,
+  ): Promise<{ sessionJwt: string }> {
+    const email = emailRaw.toLowerCase().trim();
+
+    // The demo account is reachable only via the flag-gated demoLogin — it must
+    // never carry a password or be sign-in-able here (kill-switch integrity).
+    if (email === DEMO_EMAIL) {
+      throw new UnauthorizedException({
+        code: "invalid_credentials",
+        message: "Invalid email or password.",
+      });
+    }
+
+    const user = await this.users.findOne({ email }).select("+passwordHash");
+
+    const locked =
+      !!user?.lockedUntil && user.lockedUntil.getTime() > Date.now();
+
+    // Always run one compare (dummy hash when the account/password is missing)
+    // so response time doesn't reveal whether the email is registered. A
+    // password can only be set on a verified account, so emailVerified is folded
+    // into the SAME generic failure — never a distinct code — to avoid an
+    // account-existence / credential-validity oracle. A live lockout also fails
+    // with the identical response, so it isn't observable to an attacker.
+    const matches = await bcrypt.compare(
+      password,
+      user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+    );
+    if (
+      !user ||
+      !user.passwordHash ||
+      !matches ||
+      !user.emailVerified ||
+      locked
+    ) {
+      // Count failures only against a real, unlocked, password-bearing account
+      // with a wrong password — a silent per-account lockout the response never
+      // reveals. IP throttling can't protect one account across many IPs.
+      if (user && user.passwordHash && !locked && !matches) {
+        await this.recordFailedLogin(user.id);
+      }
+      throw new UnauthorizedException({
+        code: "invalid_credentials",
+        message: "Invalid email or password.",
+      });
+    }
+
+    // Success clears any accumulated failures / lock (atomic set).
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await this.users.updateOne(
+        { _id: user.id },
+        { $set: { failedLoginAttempts: 0, lockedUntil: null } },
+      );
+    }
+
+    return { sessionJwt: await this.signSession(user) };
+  }
+
+  // Atomic $inc so concurrent wrong guesses can't lose increments and slip past
+  // the lockout — the multi-request threat the lockout exists to stop.
+  private async recordFailedLogin(userId: string): Promise<void> {
+    const updated = await this.users.findByIdAndUpdate(
+      userId,
+      { $inc: { failedLoginAttempts: 1 } },
+      { new: true },
+    );
+    if (updated && updated.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+      await this.users.updateOne(
+        { _id: userId },
+        {
+          $set: {
+            lockedUntil: new Date(Date.now() + LOCKOUT_MINUTES * 60_000),
+            failedLoginAttempts: 0,
+          },
+        },
+      );
+    }
   }
 
   async callback(rawToken: string): Promise<{ sessionJwt: string }> {
@@ -110,6 +203,27 @@ export class AuthService {
     return { sessionJwt: await this.signSession(user, DEMO_SESSION_TTL) };
   }
 
+  // Set/replace the password on an already-authenticated account. The session
+  // is the authority (it was obtained by proving email ownership or with an
+  // existing password), so no password can be set by an unauthenticated caller.
+  // This is also the recovery path: sign in via magic link, then set a new one.
+  async setPassword(
+    claims: TutorSessionClaims,
+    password: string,
+  ): Promise<{ ok: true }> {
+    if (claims.email === DEMO_EMAIL) {
+      throw new ForbiddenException({
+        code: "demo_readonly",
+        message: "The demo account can't set a password.",
+      });
+    }
+    const user = await this.users.findById(claims.sub);
+    if (!user) throw new UnauthorizedException();
+    user.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    await user.save();
+    return { ok: true };
+  }
+
   private async upsertUser(
     email: string,
     insert: Partial<User>,
@@ -142,7 +256,7 @@ export class AuthService {
   }
 
   async me(claims: TutorSessionClaims): Promise<PublicUser> {
-    const user = await this.users.findById(claims.sub);
+    const user = await this.users.findById(claims.sub).select("+passwordHash");
     if (!user) throw new UnauthorizedException();
     return this.toPublic(user);
   }
@@ -154,6 +268,7 @@ export class AuthService {
       name: user.name,
       image: user.image,
       teaches: user.teaches,
+      hasPassword: !!user.passwordHash,
     };
   }
 

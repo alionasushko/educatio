@@ -45,7 +45,7 @@ Nav (logo + Sign in + Get started) · Hero (headline "_The whiteboard your **stu
 
 ### 2. Sign-in (`/sign-in`)
 
-Single centered card. Logo. Heading "Sign in to Educatio". Email input. "Continue with email" button. Subtext: "We'll email you a magic link — no password needed."
+Single centered card. Logo. Heading "Sign in to Educatio". Subtext: "Welcome back — sign in with your password." Email + password inputs, "Sign in" button. Below it, a subtle text button "Forgot your password? Email me a magic link" — the passwordless fallback, which doubles as the password-recovery path.
 
 ### 2b. Tutor sign-up (`/sign-up`)
 
@@ -58,8 +58,11 @@ Layout follows the shared `AuthShell`: wordmark top-left, single centered card (
 - Subhead (14, text-secondary, line-height 1.5): _"Free for solo tutors — unlimited lessons, no card needed. Setup takes 30 seconds."_
 - Three stacked inputs (gap 14, margin-bottom 18):
   1. **Your name** — placeholder `Sara Martínez`, `autoFocus`
-  2. **Email** (type=email) — placeholder `you@school.com`, helper _"We'll send a magic link — no password needed."_
+  2. **Email** (type=email) — placeholder `you@school.com`, helper _"We'll send a link to confirm it's you."_
   3. **What do you teach?** — placeholder `Spanish, GCSE Maths, piano…`, helper _"Optional. Helps us tailor your lesson templates."_
+
+(No password field — sign-up is passwordless; a password is set after verification on `/set-password`.)
+
 - Primary button, full-width, size `lg`: **"Create account"**
 - Fine print (12, text-tertiary, centered, margin-top 16): "By creating an account you agree to our [Terms] and [Privacy Policy]."
 

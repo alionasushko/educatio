@@ -28,7 +28,8 @@ export async function GET(req: NextRequest) {
   }
 
   const dest =
-    safeInternalPath(req.cookies.get(POST_LOGIN_COOKIE)?.value) ?? "/dashboard";
+    safeInternalPath(req.cookies.get(POST_LOGIN_COOKIE)?.value) ??
+    "/set-password";
 
   const response = NextResponse.redirect(new URL(dest, req.nextUrl.origin));
   response.cookies.set(SESSION_COOKIE, sessionJwt, sessionCookieOptions);
