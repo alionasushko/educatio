@@ -3,6 +3,8 @@ import { sessionClaimsSchema, type SessionClaims } from "@educatio/shared";
 
 export const SESSION_COOKIE = "educatio_session";
 
+export const POST_LOGIN_COOKIE = "educatio_post_login";
+
 export async function verifySessionToken(
   token: string,
 ): Promise<SessionClaims | null> {
@@ -27,4 +29,12 @@ export const sessionCookieOptions = {
   secure: process.env.NODE_ENV === "production",
   path: "/",
   maxAge: 60 * 60 * 24 * 30,
+};
+
+export const postLoginCookieOptions = {
+  httpOnly: true as const,
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: 60 * 10,
 };

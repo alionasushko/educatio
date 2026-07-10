@@ -7,7 +7,11 @@ import Input from "@/components/ui/input";
 import { signinSchema } from "@educatio/shared/api/auth";
 import { signinAction } from "@/app/sign-in/actions";
 
-const SignInForm = () => {
+interface Props {
+  callbackUrl?: string;
+}
+
+const SignInForm = ({ callbackUrl }: Props) => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string>();
   const [formError, setFormError] = useState<string>();
@@ -32,7 +36,7 @@ const SignInForm = () => {
     }
 
     startTransition(async () => {
-      const result = await signinAction(email.trim());
+      const result = await signinAction(email.trim(), callbackUrl);
       if (result?.error) setFormError(result.error);
     });
   };

@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import {
+  SESSION_COOKIE,
+  POST_LOGIN_COOKIE,
+  sessionCookieOptions,
+} from "@/lib/session";
 import { fetchVerifiedSessionJwt } from "@/lib/session-server";
-import { clientIpHeaders } from "@/lib/request";
+import { clientIpHeaders, safeInternalPath } from "@/lib/request";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -23,9 +27,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
-  const response = NextResponse.redirect(
-    new URL("/dashboard", req.nextUrl.origin),
-  );
+  const dest =
+    safeInternalPath(req.cookies.get(POST_LOGIN_COOKIE)?.value) ?? "/dashboard";
+
+  const response = NextResponse.redirect(new URL(dest, req.nextUrl.origin));
   response.cookies.set(SESSION_COOKIE, sessionJwt, sessionCookieOptions);
+  response.cookies.delete(POST_LOGIN_COOKIE);
   return response;
 }
