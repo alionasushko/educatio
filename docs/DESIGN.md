@@ -74,7 +74,7 @@ The sibling `/sign-in` screen's footer reciprocates with "New to Educatio? Creat
 
 ### 3. Verify-email (`/verify`)
 
-Single centered card. "Check your email" heading. Subtext: "We sent a magic link to {email}. Click it to sign in." A "Resend" link.
+Single centered card. "Check your email" heading. Subtext: "We sent a magic link to {email}. Click it to sign in." A "Resend" link. Since sign-in never reveals whether an email is registered, the card handles a mistyped or unregistered address in-place — nudging the user to re-check the spelling, then offering a "Create a tutor account" → `/sign-up` link.
 
 ### 4. Dashboard (`/dashboard`)
 
