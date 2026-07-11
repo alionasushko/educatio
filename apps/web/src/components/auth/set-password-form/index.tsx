@@ -65,7 +65,11 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
         </p>
       )}
 
-      <Button type="submit" disabled={isPending} className="h-11 text-[15px]">
+      <Button
+        type="submit"
+        disabled={isPending}
+        className="h-11 w-full text-[15px]"
+      >
         {isPending && (
           <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
         )}
