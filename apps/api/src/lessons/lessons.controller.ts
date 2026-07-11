@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -60,5 +61,13 @@ export class LessonsController {
     @Body(new ZodValidationPipe(updateLessonSchema)) body: UpdateLessonInput,
   ) {
     return this.lessons.update(id, tutor.sub, body);
+  }
+
+  @Delete(":id")
+  remove(
+    @Param("id", ObjectIdPipe) id: string,
+    @CurrentTutor() tutor: TutorSessionClaims,
+  ) {
+    return this.lessons.delete(id, tutor.sub);
   }
 }

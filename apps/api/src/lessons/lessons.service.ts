@@ -1,13 +1,21 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
+import { ConfigService } from "@nestjs/config";
 import { Model, Types } from "mongoose";
 import { randomUUID } from "node:crypto";
+import { Liveblocks } from "@liveblocks/node";
 import { Lesson, LessonDocument } from "../schemas/lesson.schema";
+import {
+  LessonSnapshot,
+  LessonSnapshotDocument,
+} from "../schemas/lesson-snapshot.schema";
 import { generateInviteCode } from "../common/ids";
+import type { Env } from "../config/env";
 import type { Lesson as LessonDTO, SessionClaims } from "@educatio/shared";
 import type {
   CreateLessonInput,
@@ -15,10 +23,18 @@ import type {
   UpdateLessonInput,
 } from "@educatio/shared/api/lessons";
 
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 @Injectable()
 export class LessonsService {
+  private readonly logger = new Logger(LessonsService.name);
+
   constructor(
     @InjectModel(Lesson.name) private readonly lessons: Model<LessonDocument>,
+    @InjectModel(LessonSnapshot.name)
+    private readonly snapshots: Model<LessonSnapshotDocument>,
+    private readonly config: ConfigService<Env, true>,
   ) {}
 
   async create(
@@ -39,6 +55,29 @@ export class LessonsService {
     return { id: lesson.id, inviteCode, liveblocksRoomId };
   }
 
+  async delete(id: string, tutorId: string): Promise<{ ok: true }> {
+    const lesson = await this.getOwnedOr403(id, tutorId);
+    const roomId = lesson.liveblocksRoomId;
+    await Promise.all([
+      lesson.deleteOne(),
+      this.snapshots.deleteMany({ lessonId: lesson._id }),
+    ]);
+    await this.deleteRoomBestEffort(roomId);
+    return { ok: true };
+  }
+
+  private async deleteRoomBestEffort(roomId: string): Promise<void> {
+    const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
+    if (!secret) return;
+    try {
+      await new Liveblocks({ secret }).deleteRoom(roomId);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to delete Liveblocks room ${roomId}: ${String(err)}`,
+      );
+    }
+  }
+
   async list(
     tutorId: string,
     query: ListLessonsQuery,
@@ -52,6 +91,10 @@ export class LessonsService {
       tutorId: new Types.ObjectId(tutorId),
     };
     if (query.status !== "all") filter.status = query.status;
+    if (query.q) {
+      const rx = new RegExp(escapeRegex(query.q), "i");
+      filter.$or = [{ title: rx }, { studentName: rx }];
+    }
 
     const [docs, total] = await Promise.all([
       this.lessons
