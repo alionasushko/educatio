@@ -110,6 +110,14 @@
   --warning: #d97706;
   --accent-rust: #c2410c; /* Burnt orange — second-participant accent in mock illustrations */
 
+  /* Categorical identity palette — decorative, one distinct colour per person (avatars) */
+  --avatar-1: var(--accent-brand);
+  --avatar-2: var(--accent-rust);
+  --avatar-3: #4d7c0f;
+  --avatar-4: #7c3aed;
+  --avatar-5: #0f766e;
+  --avatar-6: #9f1239;
+
   /* shadcn semantic tokens mapped to brand palette */
   --background: var(--bg);
   --foreground: var(--text-primary);
