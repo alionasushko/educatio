@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const AUTH_SEGMENT = "auth";
+export const authPath = (action: string) => `/${AUTH_SEGMENT}/${action}`;
+
 const utf8ByteLength = (value: string): number =>
   Array.from(value).reduce((total, char) => {
     const cp = char.codePointAt(0) ?? 0;
@@ -46,3 +49,15 @@ export type SentResponse = z.infer<typeof sentResponseSchema>;
 
 export const sessionResponseSchema = z.object({ sessionJwt: z.string() });
 export type SessionResponse = z.infer<typeof sessionResponseSchema>;
+
+export const publicUserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string(),
+  image: z.string().optional(),
+  teaches: z.string().optional(),
+  hasPassword: z.boolean(),
+});
+
+export const meResponseSchema = z.object({ user: publicUserSchema });
+export type MeResponse = z.infer<typeof meResponseSchema>;

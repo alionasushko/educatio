@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { Lesson } from "../lesson";
+
+export const LESSONS_SEGMENT = "lessons";
+export const LESSONS_PATH = `/${LESSONS_SEGMENT}`;
+export const lessonPath = (id: string) => `${LESSONS_PATH}/${id}`;
 
 const videoCallUrlSchema = z.url({ protocol: /^https?$/ });
 
@@ -30,15 +33,41 @@ export const listLessonsQuerySchema = z.object({
 });
 export type ListLessonsQuery = z.infer<typeof listLessonsQuerySchema>;
 
-export interface CreateLessonResponse {
-  id: string;
-  inviteCode: string;
-  liveblocksRoomId: string;
-}
+export const lessonSummarySchema = z.object({
+  text: z.string(),
+  generatedAt: z.iso.datetime(),
+});
+export type LessonSummaryResponse = z.infer<typeof lessonSummarySchema>;
 
-export interface LessonListResponse {
-  lessons: Lesson[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
+export const lessonSchema = z.object({
+  id: z.string(),
+  tutorId: z.string(),
+  title: z.string(),
+  studentName: z.string().optional(),
+  videoCallUrl: z.string().optional(),
+  inviteCode: z.string(),
+  status: z.enum(["scheduled", "active", "ended"]),
+  startedAt: z.iso.datetime().optional(),
+  endedAt: z.iso.datetime().optional(),
+  durationSeconds: z.number().optional(),
+  liveblocksRoomId: z.string(),
+  summary: lessonSummarySchema.optional(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+export type LessonResponse = z.infer<typeof lessonSchema>;
+
+export const createLessonResponseSchema = z.object({
+  id: z.string(),
+  inviteCode: z.string(),
+  liveblocksRoomId: z.string(),
+});
+export type CreateLessonResponse = z.infer<typeof createLessonResponseSchema>;
+
+export const lessonListResponseSchema = z.object({
+  lessons: z.array(lessonSchema),
+  total: z.number(),
+  page: z.number(),
+  totalPages: z.number(),
+});
+export type LessonListResponse = z.infer<typeof lessonListResponseSchema>;
