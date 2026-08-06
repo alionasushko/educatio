@@ -5,12 +5,15 @@ import Card from "@/components/ui/card";
 import SetPasswordForm from "@/components/auth/set-password-form";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
+import { requireTutor } from "@/lib/session-server";
 
 export const metadata: Metadata = {
   title: "Set password",
 };
 
 const SetPasswordPage = async () => {
+  await requireTutor("/set-password");
+
   const me = await query(fetchCurrentUser);
   const hasPassword = me?.user?.hasPassword ?? false;
 

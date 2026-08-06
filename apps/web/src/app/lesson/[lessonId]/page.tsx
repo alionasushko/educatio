@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { VideoIcon } from "lucide-react";
 import type { Lesson } from "@educatio/shared";
 import Wordmark from "@/components/brand/wordmark";
@@ -10,6 +10,7 @@ import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers"
 import { cn } from "@/lib/utils";
 import { ApiClientError } from "@/lib/api-client";
 import { getLesson } from "@/lib/api-lessons";
+import { getCurrentSession } from "@/lib/session-server";
 
 export const metadata: Metadata = {
   title: "Lesson",
@@ -21,6 +22,10 @@ interface Props {
 
 const LessonPage = async ({ params }: Props) => {
   const { lessonId } = await params;
+
+  if (!(await getCurrentSession())) {
+    redirect(`/sign-in?callbackUrl=/lesson/${encodeURIComponent(lessonId)}`);
+  }
 
   let lesson: Lesson;
   try {
@@ -36,7 +41,7 @@ const LessonPage = async ({ params }: Props) => {
   }
 
   const { variant, label } = statusMeta(lesson.status);
-  // Only surface an http(s) call link — never a javascript:/data: URL.
+
   const videoHref =
     lesson.videoCallUrl && /^https?:\/\//i.test(lesson.videoCallUrl)
       ? lesson.videoCallUrl

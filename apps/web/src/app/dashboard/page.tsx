@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { listLessons } from "@/lib/api-lessons";
 import { query } from "@/lib/api-error";
+import { requireTutor } from "@/lib/session-server";
 import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
 import { LESSONS_PER_PAGE } from "./helpers/constants";
 import { parsePage, parseQuery, parseStatus } from "./helpers/helpers";
@@ -33,6 +34,16 @@ const DashboardPage = async ({ searchParams }: Props) => {
   const status = parseStatus(sp.status);
   const q = parseQuery(sp.q);
 
+  const params = new URLSearchParams();
+  if (status !== "all") params.set("status", status);
+  if (q) params.set("q", q);
+  if (page > 1) params.set("page", String(page));
+  const currentHref = params.toString()
+    ? `/dashboard?${params.toString()}`
+    : "/dashboard";
+
+  await requireTutor(currentHref);
+
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
 
   const me = await query(fetchCurrentUser);
@@ -46,14 +57,6 @@ const DashboardPage = async ({ searchParams }: Props) => {
   const subtitle = isEmpty
     ? "No lessons yet — create your first below."
     : "Recent and active sessions.";
-
-  const retryParams = new URLSearchParams();
-  if (status !== "all") retryParams.set("status", status);
-  if (q) retryParams.set("q", q);
-  if (page > 1) retryParams.set("page", String(page));
-  const retryHref = retryParams.toString()
-    ? `/dashboard?${retryParams.toString()}`
-    : "/dashboard";
 
   return (
     <div className="bg-bg min-h-dvh md:flex">
@@ -85,7 +88,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
                   Something went wrong on our end. Please try again.
                 </p>
                 <Link
-                  href={retryHref}
+                  href={currentHref}
                   className={cn(
                     buttonVariants({ variant: "outline" }),
                     "mt-4 h-9 px-4 text-sm",

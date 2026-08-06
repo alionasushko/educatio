@@ -14,7 +14,12 @@ export const clientIpHeaders = (req: NextRequest): Record<string, string> => {
   return forwardedFor ? { "x-forwarded-for": forwardedFor } : {};
 };
 
-const POST_LOGIN_PREFIXES = ["/dashboard", "/lesson", "/settings"];
+const POST_LOGIN_PREFIXES = [
+  "/dashboard",
+  "/lesson",
+  "/settings",
+  "/set-password",
+];
 
 const VALIDATION_BASE = "https://internal.invalid";
 

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySessionToken } from "./session";
 import { requireApiUrl } from "./api-base";
-import type { SessionClaims } from "@educatio/shared";
+import type { SessionClaims, TutorSessionClaims } from "@educatio/shared";
 
 const SESSION_FETCH_TIMEOUT_MS = 30_000;
 
@@ -19,6 +19,20 @@ export const redirectSignedInTutor = async (
 ): Promise<void> => {
   const session = await getCurrentSession();
   if (session?.kind === "tutor") redirect(to);
+};
+
+const currentTutor = async (): Promise<TutorSessionClaims | null> => {
+  const session = await getCurrentSession();
+  return session?.kind === "tutor" ? session : null;
+};
+
+export const requireTutor = async (
+  callbackUrl: string,
+): Promise<TutorSessionClaims> => {
+  const tutor = await currentTutor();
+  if (!tutor)
+    redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  return tutor;
 };
 
 export const fetchVerifiedSessionJwt = async (
