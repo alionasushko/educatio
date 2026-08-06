@@ -11,6 +11,9 @@ export const ERROR_COPY: Record<ClientErrorCode, string> = {
   too_many_requests: "Too many attempts. Please wait a moment and try again.",
   validation_error: "Please check the form and try again.",
   invalid_credentials: "Invalid email or password.",
+  session_expired: "Your session has expired. Please sign in again.",
+  service_unavailable:
+    "That feature is temporarily unavailable. Please try again shortly.",
   invalid_token: "That link is invalid or has expired.",
   invalid_id: "That link doesn't look right.",
   invalid_invite: "That invite code is invalid or has expired.",

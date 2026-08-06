@@ -23,8 +23,9 @@ import {
   type UpdateLessonInput,
 } from "@educatio/shared/api/lessons";
 import type { SessionClaims, TutorSessionClaims } from "@educatio/shared";
+import { LESSONS_SEGMENT } from "@educatio/shared/api/lessons";
 
-@Controller("lessons")
+@Controller(LESSONS_SEGMENT)
 @UseGuards(JwtAuthGuard)
 export class LessonsController {
   constructor(private readonly lessons: LessonsService) {}

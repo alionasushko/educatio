@@ -10,8 +10,9 @@ import "@fastify/multipart";
 import { Throttle } from "@nestjs/throttler";
 import { UploadService } from "./upload.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
+import { UPLOAD_SEGMENT } from "@educatio/shared/api/upload";
 
-@Controller("upload")
+@Controller(UPLOAD_SEGMENT)
 @UseGuards(JwtAuthGuard)
 export class UploadController {
   constructor(private readonly upload: UploadService) {}

@@ -1,6 +1,18 @@
 import { z } from "zod";
 
 export const AUTH_SEGMENT = "auth";
+
+export const AUTH_ACTIONS = {
+  signup: "signup",
+  signin: "signin",
+  signinPassword: "signin/password",
+  password: "password",
+  callback: "callback",
+  demo: "demo",
+  signout: "signout",
+  me: "me",
+} as const;
+
 export const authPath = (action: string) => `/${AUTH_SEGMENT}/${action}`;
 
 const utf8ByteLength = (value: string): number =>

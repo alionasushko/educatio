@@ -4,17 +4,19 @@ import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { Session } from "../common/session.decorator";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import {
+  LIVEBLOCKS_SEGMENT,
+  LIVEBLOCKS_AUTH_SEGMENT,
   liveblocksAuthSchema,
   type LiveblocksAuthInput,
 } from "@educatio/shared/api/liveblocks";
 import type { SessionClaims } from "@educatio/shared";
 
-@Controller("liveblocks")
+@Controller(LIVEBLOCKS_SEGMENT)
 @UseGuards(JwtAuthGuard)
 export class LiveblocksController {
   constructor(private readonly liveblocks: LiveblocksService) {}
 
-  @Post("auth")
+  @Post(LIVEBLOCKS_AUTH_SEGMENT)
   @HttpCode(200)
   auth(
     @Session() session: SessionClaims,

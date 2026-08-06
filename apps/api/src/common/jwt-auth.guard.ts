@@ -27,11 +27,17 @@ export class JwtAuthGuard implements CanActivate {
     try {
       payload = await this.jwt.verifyAsync(token);
     } catch {
-      throw new UnauthorizedException("Invalid or expired session");
+      throw new UnauthorizedException({
+        code: "session_expired",
+        message: "Invalid or expired session",
+      });
     }
     const parsed = sessionClaimsSchema.safeParse(payload);
     if (!parsed.success) {
-      throw new UnauthorizedException("Invalid session claims");
+      throw new UnauthorizedException({
+        code: "session_expired",
+        message: "Invalid session claims",
+      });
     }
     req.session = parsed.data;
     return true;

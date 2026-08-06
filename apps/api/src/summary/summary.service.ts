@@ -109,7 +109,10 @@ Keep the summary under 400 words. Use a warm, professional tone — this will be
   private async callClaude(prompt: string): Promise<string> {
     const apiKey = this.config.get("ANTHROPIC_API_KEY", { infer: true });
     if (!apiKey) {
-      throw new ServiceUnavailableException("AI summary is not configured");
+      throw new ServiceUnavailableException({
+        code: "service_unavailable",
+        message: "AI summary is not configured",
+      });
     }
     const { generateText } = await import("ai");
     const { createAnthropic } = await import("@ai-sdk/anthropic");

@@ -24,12 +24,13 @@ import {
   type CallbackInput,
 } from "@educatio/shared/api/auth";
 import type { TutorSessionClaims } from "@educatio/shared";
+import { AUTH_SEGMENT, AUTH_ACTIONS } from "@educatio/shared/api/auth";
 
-@Controller("auth")
+@Controller(AUTH_SEGMENT)
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
-  @Post("signup")
+  @Post(AUTH_ACTIONS.signup)
   @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signup(
@@ -39,7 +40,7 @@ export class AuthController {
     return { sent: true };
   }
 
-  @Post("signin")
+  @Post(AUTH_ACTIONS.signin)
   @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signin(
@@ -49,7 +50,7 @@ export class AuthController {
     return { sent: true };
   }
 
-  @Post("signin/password")
+  @Post(AUTH_ACTIONS.signinPassword)
   @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async signinPassword(
@@ -59,7 +60,7 @@ export class AuthController {
     return this.auth.signinWithPassword(body.email, body.password);
   }
 
-  @Post("password")
+  @Post(AUTH_ACTIONS.password)
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
@@ -70,7 +71,7 @@ export class AuthController {
     return this.auth.setPassword(tutor, body.password);
   }
 
-  @Post("callback")
+  @Post(AUTH_ACTIONS.callback)
   @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async callback(
@@ -79,14 +80,14 @@ export class AuthController {
     return this.auth.callback(body.token);
   }
 
-  @Post("demo")
+  @Post(AUTH_ACTIONS.demo)
   @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 10 } })
   async demo(): Promise<{ sessionJwt: string }> {
     return this.auth.demoLogin();
   }
 
-  @Post("signout")
+  @Post(AUTH_ACTIONS.signout)
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   signout(): { ok: true } {
@@ -94,7 +95,7 @@ export class AuthController {
     return { ok: true };
   }
 
-  @Get("me")
+  @Get(AUTH_ACTIONS.me)
   @UseGuards(JwtAuthGuard)
   async me(@CurrentTutor() tutor: TutorSessionClaims) {
     return { user: await this.auth.me(tutor) };

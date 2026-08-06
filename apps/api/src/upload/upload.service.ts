@@ -27,7 +27,18 @@ export class UploadService {
       });
     }
 
-    const buffer = await file.toBuffer();
+    let buffer: Buffer;
+    try {
+      buffer = await file.toBuffer();
+    } catch (err) {
+      if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
+        throw new PayloadTooLargeException({
+          code: "file_too_large",
+          message: "Images must be 5MB or smaller.",
+        });
+      }
+      throw err;
+    }
     if (buffer.byteLength > MAX_UPLOAD_BYTES) {
       throw new PayloadTooLargeException({
         code: "file_too_large",
@@ -37,7 +48,10 @@ export class UploadService {
 
     const token = this.config.get("BLOB_READ_WRITE_TOKEN", { infer: true });
     if (!token) {
-      throw new ServiceUnavailableException("Uploads are not configured");
+      throw new ServiceUnavailableException({
+        code: "service_unavailable",
+        message: "Uploads are not configured",
+      });
     }
 
     const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_");

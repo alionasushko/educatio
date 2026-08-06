@@ -12,12 +12,14 @@ import { Session } from "../common/session.decorator";
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import { ObjectIdPipe } from "../common/object-id.pipe";
 import {
+  SNAPSHOT_SEGMENT,
   snapshotSchema,
   type SnapshotInput,
 } from "@educatio/shared/api/snapshot";
 import type { SessionClaims } from "@educatio/shared";
+import { LESSONS_SEGMENT } from "@educatio/shared/api/lessons";
 
-@Controller("lessons/:lessonId/snapshot")
+@Controller(`${LESSONS_SEGMENT}/:lessonId/${SNAPSHOT_SEGMENT}`)
 @UseGuards(JwtAuthGuard)
 export class SnapshotsController {
   constructor(private readonly snapshots: SnapshotsService) {}

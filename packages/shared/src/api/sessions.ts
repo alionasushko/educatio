@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const STUDENT_SESSION_PATH = "/sessions/student";
+export const SESSIONS_SEGMENT = "sessions";
+export const STUDENT_SEGMENT = "student";
+export const STUDENT_SESSION_PATH = `/${SESSIONS_SEGMENT}/${STUDENT_SEGMENT}`;
 
 export const studentSessionSchema = z.object({
   inviteCode: z.string().min(1),

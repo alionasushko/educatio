@@ -30,7 +30,10 @@ export class LiveblocksService {
 
     const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
     if (!secret) {
-      throw new ServiceUnavailableException("Liveblocks is not configured");
+      throw new ServiceUnavailableException({
+        code: "service_unavailable",
+        message: "Liveblocks is not configured",
+      });
     }
 
     const liveblocks = new Liveblocks({ secret });

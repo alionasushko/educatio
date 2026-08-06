@@ -4,8 +4,10 @@ import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { CurrentTutor } from "../common/session.decorator";
 import { ObjectIdPipe } from "../common/object-id.pipe";
 import type { TutorSessionClaims } from "@educatio/shared";
+import { LESSONS_SEGMENT } from "@educatio/shared/api/lessons";
+import { SUMMARY_SEGMENT } from "@educatio/shared/api/summary";
 
-@Controller("lessons/:lessonId/summary")
+@Controller(`${LESSONS_SEGMENT}/:lessonId/${SUMMARY_SEGMENT}`)
 @UseGuards(JwtAuthGuard)
 export class SummaryController {
   constructor(private readonly summary: SummaryService) {}

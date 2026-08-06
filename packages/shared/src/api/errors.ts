@@ -12,6 +12,8 @@ export const errorCodeSchema = z.enum([
   // Named at the throw site.
   "validation_error",
   "invalid_credentials",
+  "session_expired",
+  "service_unavailable",
   "invalid_token",
   "invalid_id",
   "invalid_invite",
