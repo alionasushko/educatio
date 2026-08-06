@@ -7,24 +7,16 @@ import {
   Logger,
 } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
-import type { ApiError } from "@educatio/shared/api/errors";
+import {
+  errorCodeSchema,
+  errorCodeFromStatus,
+} from "@educatio/shared/api/errors";
+import type { ApiError, ErrorCode } from "@educatio/shared/api/errors";
 
-function codeFromStatus(status: number): string {
-  switch (status) {
-    case HttpStatus.BAD_REQUEST:
-      return "bad_request";
-    case HttpStatus.UNAUTHORIZED:
-      return "unauthorized";
-    case HttpStatus.FORBIDDEN:
-      return "forbidden";
-    case HttpStatus.NOT_FOUND:
-      return "not_found";
-    case HttpStatus.CONFLICT:
-      return "conflict";
-    default:
-      return "internal_error";
-  }
-}
+const toErrorCode = (value: unknown, status: number): ErrorCode => {
+  const parsed = errorCodeSchema.safeParse(value);
+  return parsed.success ? parsed.data : errorCodeFromStatus(status);
+};
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -43,12 +35,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status = exception.getStatus();
       const response = exception.getResponse();
       if (typeof response === "string") {
-        body = { code: codeFromStatus(status), message: response };
+        body = { code: errorCodeFromStatus(status), message: response };
       } else {
         const obj = response as Record<string, unknown>;
         body = {
-          code: (obj.code as string) ?? codeFromStatus(status),
-          message: (obj.message as string | undefined) ?? exception.message,
+          code: toErrorCode(obj.code, status),
+          message:
+            typeof obj.message === "string" ? obj.message : exception.message,
           details: obj.details,
         };
       }
