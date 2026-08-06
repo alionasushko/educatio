@@ -4,8 +4,10 @@ import {
   POST_LOGIN_COOKIE,
   sessionCookieOptions,
 } from "@/lib/session";
-import { fetchVerifiedSessionJwt } from "@/lib/session-server";
-import { clientIpHeaders, safeInternalPath } from "@/lib/request";
+import { exchangeMagicLink } from "@/lib/api-auth";
+import { query } from "@/lib/api-error";
+import { ownSessionJwt } from "@/lib/session-server";
+import { safeInternalPath } from "@/lib/request";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
@@ -16,11 +18,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(signIn);
   }
 
-  const sessionJwt = await fetchVerifiedSessionJwt("/auth/callback", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...clientIpHeaders(req) },
-    body: JSON.stringify({ token }),
-  });
+  const exchanged = await query(() => exchangeMagicLink(token));
+  const sessionJwt = exchanged && (await ownSessionJwt(exchanged.sessionJwt));
 
   if (!sessionJwt) {
     signIn.searchParams.set("error", "invalid-token");

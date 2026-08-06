@@ -10,16 +10,18 @@ import {
 } from "@educatio/shared/api/errors";
 import type { ApiError } from "@educatio/shared/api/errors";
 
-const REQUEST_TIMEOUT_MS = 30_000;
+export const REQUEST_TIMEOUT_MS = 30_000;
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 type QueryValue = string | number | boolean | undefined;
 
 interface RequestOptions<T> {
+  schema: ZodType<T>;
   body?: unknown;
   query?: Record<string, QueryValue>;
   ip?: boolean;
-  schema?: ZodType<T>;
+  timeoutMs?: number;
+  signal?: AbortSignal;
 }
 
 export class ApiClientError extends Error {
@@ -63,18 +65,6 @@ export const isApiFailure = (
   err instanceof ApiTransportError ||
   err instanceof ApiResponseError;
 
-export const url = (
-  segments: TemplateStringsArray,
-  ...values: (string | number)[]
-): string =>
-  segments.reduce(
-    (acc, segment, i) =>
-      acc +
-      segment +
-      (i < values.length ? encodeURIComponent(String(values[i])) : ""),
-    "",
-  );
-
 const buildQuery = (query?: Record<string, QueryValue>): string => {
   if (!query) return "";
   const params = new URLSearchParams();
@@ -85,16 +75,28 @@ const buildQuery = (query?: Record<string, QueryValue>): string => {
   return qs ? `?${qs}` : "";
 };
 
+const deadline = (opts: RequestOptions<unknown>): AbortSignal => {
+  const timeout = AbortSignal.timeout(opts.timeoutMs ?? REQUEST_TIMEOUT_MS);
+  return opts.signal ? AbortSignal.any([opts.signal, timeout]) : timeout;
+};
+
+const requestBody = (body: unknown): BodyInit | undefined => {
+  if (body === undefined) return undefined;
+  return body instanceof FormData ? body : JSON.stringify(body);
+};
+
 const request = async <T>(
   method: Method,
   path: string,
-  opts: RequestOptions<T> = {},
+  opts: RequestOptions<T>,
 ): Promise<T> => {
   const store = await cookies();
   const url = `${requireApiUrl()}${path}${buildQuery(opts.query)}`;
 
   const headers = new Headers();
-  if (opts.body !== undefined) headers.set("Content-Type", "application/json");
+  if (opts.body !== undefined && !(opts.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   const token = store.get(SESSION_COOKIE)?.value;
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (opts.ip) {
@@ -109,9 +111,9 @@ const request = async <T>(
     res = await fetch(url, {
       method,
       headers,
-      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+      body: requestBody(opts.body),
       cache: "no-store",
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: deadline(opts),
     });
     text = await res.text();
   } catch (cause) {
@@ -138,21 +140,18 @@ const request = async <T>(
     throw new ApiClientError(method, path, res.status, body);
   }
 
-  if (opts.schema) {
-    const parsed = opts.schema.safeParse(data);
-    if (!parsed.success) throw new ApiResponseError(method, path, parsed.error);
-    return parsed.data;
-  }
-  return data as T;
+  const parsed = opts.schema.safeParse(data);
+  if (!parsed.success) throw new ApiResponseError(method, path, parsed.error);
+  return parsed.data;
 };
 
 export const api = {
-  get: <T>(path: string, opts?: RequestOptions<T>) =>
+  get: <T>(path: string, opts: RequestOptions<T>) =>
     request<T>("GET", path, opts),
-  post: <T>(path: string, opts?: RequestOptions<T>) =>
+  post: <T>(path: string, opts: RequestOptions<T>) =>
     request<T>("POST", path, opts),
-  patch: <T>(path: string, opts?: RequestOptions<T>) =>
+  patch: <T>(path: string, opts: RequestOptions<T>) =>
     request<T>("PATCH", path, opts),
-  del: <T>(path: string, opts?: RequestOptions<T>) =>
+  del: <T>(path: string, opts: RequestOptions<T>) =>
     request<T>("DELETE", path, opts),
 };

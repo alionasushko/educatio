@@ -1,17 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
-import { fetchVerifiedSessionJwt } from "@/lib/session-server";
-import { clientIpHeaders, isCrossSiteRequest } from "@/lib/request";
+import { demoLogin } from "@/lib/api-auth";
+import { query } from "@/lib/api-error";
+import { ownSessionJwt } from "@/lib/session-server";
+import { isCrossSiteRequest } from "@/lib/request";
 
 export async function POST(req: NextRequest) {
   if (isCrossSiteRequest(req)) {
     return new NextResponse("Forbidden", { status: 403 });
   }
 
-  const sessionJwt = await fetchVerifiedSessionJwt("/auth/demo", {
-    method: "POST",
-    headers: clientIpHeaders(req),
-  });
+  const issued = await query(demoLogin);
+  const sessionJwt = issued && (await ownSessionJwt(issued.sessionJwt));
 
   if (!sessionJwt) {
     return NextResponse.redirect(

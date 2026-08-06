@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const LESSONS_SEGMENT = "lessons";
 export const LESSONS_PATH = `/${LESSONS_SEGMENT}`;
-export const lessonPath = (id: string) => `${LESSONS_PATH}/${id}`;
+
+export const lessonPath = (id: string) =>
+  `${LESSONS_PATH}/${encodeURIComponent(id)}`;
 
 const videoCallUrlSchema = z.url({ protocol: /^https?$/ });
 
