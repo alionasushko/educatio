@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Trash2Icon } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { deleteLessonAction } from "@/app/dashboard/actions";
@@ -26,6 +27,7 @@ const DeleteLessonButton = ({ lessonId, lessonTitle }: Props) => {
         return;
       }
       setOpen(false);
+      toast.success(`"${lessonTitle}" deleted`);
       router.refresh();
     });
   };
