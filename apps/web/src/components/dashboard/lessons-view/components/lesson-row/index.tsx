@@ -34,7 +34,7 @@ const LessonRow = ({ lesson, last, timeZone }: Props) => {
       <div className="min-w-0">
         <Link
           href={href}
-          className="text-text-primary truncate text-sm font-medium tracking-[-0.005em] no-underline outline-none after:absolute after:inset-0"
+          className="text-text-primary block truncate text-sm font-medium tracking-[-0.005em] no-underline outline-none after:absolute after:inset-0"
         >
           {lesson.title}
         </Link>

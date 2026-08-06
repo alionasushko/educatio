@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { signupSchema, type SignupInput } from "@educatio/shared/api/auth";
-import { api } from "@/lib/api-client";
-import { forwardedIpHeaders } from "@/lib/client-ip";
+import { signup } from "@/lib/api-auth";
+import { actionError } from "@/lib/api-error";
 
 export interface SignupActionResult {
   error: string;
@@ -18,12 +18,9 @@ export const signupAction = async (
   }
 
   try {
-    await api.post("/auth/signup", parsed.data, await forwardedIpHeaders());
+    await signup(parsed.data);
   } catch (err) {
-    console.error("signup action failed", err);
-    return {
-      error: "We couldn't create your account just now. Please try again.",
-    };
+    return actionError(err);
   }
 
   redirect(`/verify?email=${encodeURIComponent(parsed.data.email)}`);

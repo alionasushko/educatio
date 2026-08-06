@@ -1,8 +1,8 @@
 "use server";
 
 import { setPasswordSchema } from "@educatio/shared/api/auth";
-import { api, ApiClientError } from "@/lib/api-client";
-import { forwardedIpHeaders } from "@/lib/client-ip";
+import { setPassword } from "@/lib/api-auth";
+import { actionError } from "@/lib/api-error";
 
 export interface SetPasswordResult {
   ok?: true;
@@ -20,15 +20,9 @@ export const setPasswordAction = async (
   }
 
   try {
-    await api.post("/auth/password", parsed.data, await forwardedIpHeaders());
+    await setPassword(parsed.data);
     return { ok: true };
   } catch (err) {
-    if (err instanceof ApiClientError && err.status === 401) {
-      return { error: "Your session has expired. Please sign in again." };
-    }
-    console.error("set password action failed", err);
-    return {
-      error: "We couldn't update your password just now. Please try again.",
-    };
+    return actionError(err);
   }
 };

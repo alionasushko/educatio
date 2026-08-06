@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
-import type { PublicUser } from "@educatio/shared";
-import type { LessonListResponse } from "@educatio/shared/api/lessons";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import LessonsView from "@/components/dashboard/lessons-view";
 import DashboardEmptyState from "@/components/dashboard/dashboard-empty-state";
@@ -10,8 +8,11 @@ import NewLessonButton from "@/components/lesson/new-lesson-button";
 import TimezoneBootstrap from "@/components/timezone-bootstrap";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api-client";
+import { fetchCurrentUser } from "@/lib/api-auth";
+import { listLessons } from "@/lib/api-lessons";
+import { query } from "@/lib/api-error";
 import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
+import { LESSONS_PER_PAGE } from "./helpers/constants";
 import { parsePage, parseQuery, parseStatus } from "./helpers/helpers";
 
 export const metadata: Metadata = {
@@ -34,26 +35,12 @@ const DashboardPage = async ({ searchParams }: Props) => {
 
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
 
-  let user: PublicUser | null = null;
-  try {
-    ({ user } = await api.get<{ user: PublicUser }>("/auth/me"));
-  } catch (error) {
-    console.error("dashboard: /auth/me failed", error);
-  }
+  const me = await query(fetchCurrentUser);
+  const user = me?.user ?? null;
 
-  const query = new URLSearchParams({
-    page: String(page),
-    limit: "20",
-    status,
-  });
-  if (q) query.set("q", q);
-
-  let data: LessonListResponse | null = null;
-  try {
-    data = await api.get<LessonListResponse>(`/lessons?${query.toString()}`);
-  } catch (error) {
-    console.error("dashboard: /lessons failed", error);
-  }
+  const data = await query(() =>
+    listLessons({ page, limit: LESSONS_PER_PAGE, status, q: q || undefined }),
+  );
 
   const isEmpty = data !== null && data.total === 0 && status === "all" && !q;
   const subtitle = isEmpty

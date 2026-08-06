@@ -70,6 +70,7 @@ const NewLessonForm = ({ onCancel }: Props) => {
           label="Lesson title"
           name="title"
           autoFocus
+          maxLength={200}
           placeholder="e.g. Algebra with Jordan — Week 2"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
@@ -79,6 +80,7 @@ const NewLessonForm = ({ onCancel }: Props) => {
           label="Student name"
           name="studentName"
           optional
+          maxLength={120}
           placeholder="Will be set when student joins if left blank"
           value={studentName}
           onChange={(event) => setStudentName(event.target.value)}

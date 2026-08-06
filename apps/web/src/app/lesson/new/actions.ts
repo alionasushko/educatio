@@ -6,7 +6,8 @@ import {
   type CreateLessonInput,
   type CreateLessonResponse,
 } from "@educatio/shared/api/lessons";
-import { api } from "@/lib/api-client";
+import { createLesson } from "@/lib/api-lessons";
+import { actionError } from "@/lib/api-error";
 
 export interface CreateLessonResult {
   error: string;
@@ -25,12 +26,9 @@ export const createLessonAction = async (
 
   let created: CreateLessonResponse;
   try {
-    created = await api.post<CreateLessonResponse>("/lessons", parsed.data);
+    created = await createLesson(parsed.data);
   } catch (err) {
-    console.error("create lesson action failed", err);
-    return {
-      error: "We couldn't create your lesson just now. Please try again.",
-    };
+    return actionError(err);
   }
 
   redirect(`/lesson/${created.id}`);

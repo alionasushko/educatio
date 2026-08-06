@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-/**
- * Every code the api can emit. It is the stable half of the error contract: the
- * api says what went wrong, each client decides how to say it. `message` is
- * written for a log — clients key on `code` and never render `message`.
- */
 export const errorCodeSchema = z.enum([
   // Derived from the status when a throw site doesn't name a code.
   "bad_request",
@@ -29,7 +24,6 @@ export const errorCodeSchema = z.enum([
 
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
 
-/** The code a response carries when no throw site named one. */
 export const errorCodeFromStatus = (status: number): ErrorCode => {
   switch (status) {
     case 400:
@@ -50,7 +44,7 @@ export const errorCodeFromStatus = (status: number): ErrorCode => {
 };
 
 export const apiErrorSchema = z.object({
-  code: z.string(),
+  code: errorCodeSchema,
   message: z.string(),
   details: z.unknown().optional(),
 });

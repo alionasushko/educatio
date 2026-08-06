@@ -8,7 +8,8 @@ import Badge from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import { cn } from "@/lib/utils";
-import { api, ApiClientError } from "@/lib/api-client";
+import { ApiClientError } from "@/lib/api-client";
+import { getLesson } from "@/lib/api-lessons";
 
 export const metadata: Metadata = {
   title: "Lesson",
@@ -23,11 +24,11 @@ const LessonPage = async ({ params }: Props) => {
 
   let lesson: Lesson;
   try {
-    lesson = await api.get<Lesson>(`/lessons/${lessonId}`);
+    lesson = await getLesson(lessonId);
   } catch (err) {
     if (
       err instanceof ApiClientError &&
-      (err.status === 404 || err.status === 403)
+      (err.body.code === "not_found" || err.body.code === "forbidden")
     ) {
       notFound();
     }

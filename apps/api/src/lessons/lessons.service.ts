@@ -58,10 +58,8 @@ export class LessonsService {
   async delete(id: string, tutorId: string): Promise<{ ok: true }> {
     const lesson = await this.getOwnedOr403(id, tutorId);
     const roomId = lesson.liveblocksRoomId;
-    await Promise.all([
-      lesson.deleteOne(),
-      this.snapshots.deleteMany({ lessonId: lesson._id }),
-    ]);
+    await this.snapshots.deleteMany({ lessonId: lesson._id });
+    await lesson.deleteOne();
     await this.deleteRoomBestEffort(roomId);
     return { ok: true };
   }

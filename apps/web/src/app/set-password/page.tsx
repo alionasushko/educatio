@@ -1,23 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { PublicUser } from "@educatio/shared";
 import AuthShell from "@/components/auth/auth-shell";
 import Card from "@/components/ui/card";
 import SetPasswordForm from "@/components/auth/set-password-form";
-import { api } from "@/lib/api-client";
+import { fetchCurrentUser } from "@/lib/api-auth";
+import { query } from "@/lib/api-error";
 
 export const metadata: Metadata = {
   title: "Set password",
 };
 
 const SetPasswordPage = async () => {
-  let hasPassword = false;
-  try {
-    const { user } = await api.get<{ user: PublicUser }>("/auth/me");
-    hasPassword = user?.hasPassword ?? false;
-  } catch (error) {
-    console.error("set-password: /auth/me failed", error);
-  }
+  const me = await query(fetchCurrentUser);
+  const hasPassword = me?.user?.hasPassword ?? false;
 
   return (
     <AuthShell>

@@ -7,7 +7,8 @@ import {
   passwordSigninSchema,
   type SessionResponse,
 } from "@educatio/shared/api/auth";
-import { api, ApiClientError } from "@/lib/api-client";
+import { requestMagicLink, signinWithPassword } from "@/lib/api-auth";
+import { actionError } from "@/lib/api-error";
 import {
   SESSION_COOKIE,
   sessionCookieOptions,
@@ -16,7 +17,6 @@ import {
   verifySessionToken,
 } from "@/lib/session";
 import { safeInternalPath } from "@/lib/request";
-import { forwardedIpHeaders } from "@/lib/client-ip";
 
 export interface SigninActionResult {
   error: string;
@@ -32,12 +32,9 @@ export const signinAction = async (
   }
 
   try {
-    await api.post("/auth/signin", parsed.data, await forwardedIpHeaders());
+    await requestMagicLink(parsed.data);
   } catch (err) {
-    console.error("signin action failed", err);
-    return {
-      error: "We couldn't send your magic link just now. Please try again.",
-    };
+    return actionError(err);
   }
 
   const dest = safeInternalPath(callbackUrl);
@@ -60,17 +57,11 @@ export const signinPasswordAction = async (
 
   let session: SessionResponse;
   try {
-    session = await api.post<SessionResponse>(
-      "/auth/signin/password",
-      parsed.data,
-      await forwardedIpHeaders(),
-    );
+    session = await signinWithPassword(parsed.data);
   } catch (err) {
-    if (err instanceof ApiClientError && err.status === 401) {
-      return { error: "Invalid email or password." };
-    }
-    console.error("password signin action failed", err);
-    return { error: "We couldn't sign you in just now. Please try again." };
+    return actionError(err, {
+      unauthorized: "Invalid email or password.",
+    });
   }
 
   if (!(await verifySessionToken(session.sessionJwt))) {

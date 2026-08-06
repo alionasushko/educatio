@@ -1,10 +1,12 @@
 import { z } from "zod";
 import type { Lesson } from "../lesson";
 
+const videoCallUrlSchema = z.url({ protocol: /^https?$/ });
+
 export const createLessonSchema = z.object({
   title: z.string().min(1).max(200),
   studentName: z.string().max(120).optional(),
-  videoCallUrl: z.string().url().optional(),
+  videoCallUrl: videoCallUrlSchema.optional(),
 });
 export type CreateLessonInput = z.infer<typeof createLessonSchema>;
 
@@ -12,7 +14,7 @@ export const updateLessonSchema = z
   .object({
     title: z.string().min(1).max(200).optional(),
     studentName: z.string().max(120).optional(),
-    videoCallUrl: z.string().url().optional(),
+    videoCallUrl: videoCallUrlSchema.optional(),
     status: z.enum(["scheduled", "active", "ended"]).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {
