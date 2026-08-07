@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2Icon } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
@@ -13,7 +12,6 @@ interface Props {
 }
 
 const DeleteLessonButton = ({ lessonId, lessonTitle }: Props) => {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
@@ -22,13 +20,12 @@ const DeleteLessonButton = ({ lessonId, lessonTitle }: Props) => {
     setError(undefined);
     startTransition(async () => {
       const result = await deleteLessonAction(lessonId);
-      if (result.error) {
+      if (!result.ok) {
         setError(result.error);
         return;
       }
       setOpen(false);
       toast.success(`"${lessonTitle}" deleted`);
-      router.refresh();
     });
   };
 

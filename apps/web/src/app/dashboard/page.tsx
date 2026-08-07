@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { listLessons } from "@/lib/api-lessons";
 import { query } from "@/lib/api-error";
+import { ERROR_COPY } from "@/lib/error-messages";
 import { requireTutor } from "@/lib/session-server";
 import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
 import { LESSONS_PER_PAGE } from "./helpers/constants";
@@ -47,11 +48,12 @@ const DashboardPage = async ({ searchParams }: Props) => {
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
 
   const me = await query(fetchCurrentUser);
-  const user = me?.user ?? null;
+  const user = me.data?.user ?? null;
 
-  const data = await query(() =>
+  const lessons = await query(() =>
     listLessons({ page, limit: LESSONS_PER_PAGE, status, q: q || undefined }),
   );
+  const data = lessons.data;
 
   const isEmpty = data !== null && data.total === 0 && status === "all" && !q;
   const subtitle = isEmpty
@@ -85,7 +87,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
                   We couldn&apos;t load your lessons
                 </p>
                 <p className="text-text-tertiary mt-1 text-sm">
-                  Something went wrong on our end. Please try again.
+                  {ERROR_COPY[lessons.code ?? "internal_error"]}
                 </p>
                 <Link
                   href={currentHref}

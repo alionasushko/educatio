@@ -1,6 +1,8 @@
 import type { ErrorCode } from "@educatio/shared/api/errors";
 
-export type ClientErrorCode = ErrorCode | "unreachable";
+// Two web-side pseudo-codes for failures that never reach the api's contract:
+// the request didn't complete, and the 2xx body didn't match its endpoint.
+export type ClientErrorCode = ErrorCode | "unreachable" | "malformed_response";
 
 export const ERROR_COPY: Record<ClientErrorCode, string> = {
   bad_request: "Something in that request wasn't right. Please try again.",
@@ -24,4 +26,7 @@ export const ERROR_COPY: Record<ClientErrorCode, string> = {
   unsupported_type: "That file type isn't supported.",
   internal_error: "Something went wrong on our end. Please try again.",
   unreachable: "We couldn't reach the server. Please try again.",
+  // Distinct from `unreachable`: the server answered, we couldn't use it. The
+  // user sees the same class of message, but logs and Sentry can tell them apart.
+  malformed_response: "Something went wrong on our end. Please try again.",
 };

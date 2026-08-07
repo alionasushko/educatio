@@ -59,7 +59,7 @@ const NewLessonForm = ({ onCancel }: Props) => {
 
     startTransition(async () => {
       const result = await createLessonAction(parsed.data);
-      if (result?.error) setFormError(result.error);
+      if (!result.ok) setFormError(result.error);
     });
   };
 

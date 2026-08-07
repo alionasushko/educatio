@@ -32,8 +32,8 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
 
     startTransition(async () => {
       const result = await setPasswordAction(password);
-      if (result.error) {
-        setError(result.error);
+      if (!result.ok) {
+        setError(result.fieldErrors?.password ?? result.error);
         return;
       }
       setDone(true);

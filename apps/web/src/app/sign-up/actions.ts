@@ -3,19 +3,13 @@
 import { redirect } from "next/navigation";
 import { signupSchema, type SignupInput } from "@educatio/shared/api/auth";
 import { signup } from "@/lib/api-auth";
-import { actionError } from "@/lib/api-error";
-
-export interface SignupActionResult {
-  error: string;
-}
+import { actionError, validated, type ActionResult } from "@/lib/api-error";
 
 export const signupAction = async (
   input: SignupInput,
-): Promise<SignupActionResult | void> => {
-  const parsed = signupSchema.safeParse(input);
-  if (!parsed.success) {
-    return { error: "Please check the form and try again." };
-  }
+): Promise<ActionResult> => {
+  const parsed = validated(signupSchema, input);
+  if (!parsed.ok) return parsed;
 
   try {
     await signup(parsed.data);

@@ -8,7 +8,8 @@ import {
   type SessionResponse,
 } from "@educatio/shared/api/auth";
 import { requestMagicLink, signinWithPassword } from "@/lib/api-auth";
-import { actionError } from "@/lib/api-error";
+import { actionError, validated, type ActionResult } from "@/lib/api-error";
+import { ERROR_COPY } from "@/lib/error-messages";
 import {
   SESSION_COOKIE,
   sessionCookieOptions,
@@ -18,18 +19,12 @@ import {
 } from "@/lib/session";
 import { safeInternalPath } from "@/lib/request";
 
-export interface SigninActionResult {
-  error: string;
-}
-
 export const signinAction = async (
   email: string,
   callbackUrl?: string,
-): Promise<SigninActionResult | void> => {
-  const parsed = signinSchema.safeParse({ email });
-  if (!parsed.success) {
-    return { error: "Enter a valid email address." };
-  }
+): Promise<ActionResult> => {
+  const parsed = validated(signinSchema, { email });
+  if (!parsed.ok) return { ...parsed, error: "Enter a valid email address." };
 
   try {
     await requestMagicLink(parsed.data);
@@ -49,26 +44,24 @@ export const signinPasswordAction = async (
   email: string,
   password: string,
   callbackUrl?: string,
-): Promise<SigninActionResult | void> => {
-  const parsed = passwordSigninSchema.safeParse({ email, password });
-  if (!parsed.success) {
-    return { error: "Enter your email and password." };
-  }
+): Promise<ActionResult> => {
+  const parsed = validated(passwordSigninSchema, { email, password });
+  if (!parsed.ok) return { ...parsed, error: "Enter your email and password." };
 
   let session: SessionResponse;
   try {
     session = await signinWithPassword(parsed.data);
   } catch (err) {
-    return actionError(err, {
-      unauthorized: "Invalid email or password.",
-    });
+    // A bare 401 here is a proxy answering, not the api — it names
+    // invalid_credentials for every failure on this route.
+    return actionError(err, { unauthorized: ERROR_COPY.invalid_credentials });
   }
 
   if (!(await verifySessionToken(session.sessionJwt))) {
     console.error(
       "password signin: session token failed verification — does web AUTH_JWT_SECRET match the api?",
     );
-    return { error: "We couldn't sign you in just now. Please try again." };
+    return { ok: false, error: ERROR_COPY.internal_error };
   }
 
   const store = await cookies();

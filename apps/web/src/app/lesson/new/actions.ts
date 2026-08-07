@@ -7,22 +7,14 @@ import {
   type CreateLessonResponse,
 } from "@educatio/shared/api/lessons";
 import { createLesson } from "@/lib/api-lessons";
-import { actionError } from "@/lib/api-error";
-
-export interface CreateLessonResult {
-  error: string;
-}
+import { actionError, validated, type ActionResult } from "@/lib/api-error";
+import { revalidateLessons } from "@/lib/revalidate";
 
 export const createLessonAction = async (
   input: CreateLessonInput,
-): Promise<CreateLessonResult | void> => {
-  const parsed = createLessonSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      error:
-        parsed.error.issues[0]?.message ?? "Please check the form and retry.",
-    };
-  }
+): Promise<ActionResult> => {
+  const parsed = validated(createLessonSchema, input);
+  if (!parsed.ok) return parsed;
 
   let created: CreateLessonResponse;
   try {
@@ -31,5 +23,6 @@ export const createLessonAction = async (
     return actionError(err);
   }
 
+  revalidateLessons();
   redirect(`/lesson/${created.id}`);
 };

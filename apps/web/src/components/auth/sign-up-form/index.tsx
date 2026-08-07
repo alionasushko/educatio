@@ -51,7 +51,7 @@ const SignUpForm = () => {
         email: email.trim(),
         teaches: teaches.trim() || undefined,
       });
-      if (result?.error) setFormError(result.error);
+      if (!result.ok) setFormError(result.error);
     });
   };
 

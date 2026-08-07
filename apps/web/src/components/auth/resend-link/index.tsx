@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { resendAction } from "@/app/verify/actions";
 
 interface Props {
@@ -15,7 +16,15 @@ const ResendLink = ({ email }: Props) => {
     setSent(false);
     startTransition(async () => {
       const result = await resendAction(email);
-      if (result.ok) setSent(true);
+      if (result.ok) {
+        setSent(true);
+        return;
+      }
+      // No inline slot here — a bare link with no form. DESIGN.md routes a
+      // transient failure like this to a toast carrying Retry.
+      toast.error(result.error, {
+        action: { label: "Retry", onClick: resend },
+      });
     });
   };
 

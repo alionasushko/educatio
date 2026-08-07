@@ -15,7 +15,7 @@ const SetPasswordPage = async () => {
   await requireTutor("/set-password");
 
   const me = await query(fetchCurrentUser);
-  const hasPassword = me?.user?.hasPassword ?? false;
+  const hasPassword = me.data?.user.hasPassword ?? false;
 
   return (
     <AuthShell>

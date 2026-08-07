@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
   }
 
   const exchanged = await query(() => exchangeMagicLink(token));
-  const sessionJwt = exchanged && (await ownSessionJwt(exchanged.sessionJwt));
+  const sessionJwt =
+    exchanged.data && (await ownSessionJwt(exchanged.data.sessionJwt));
 
   if (!sessionJwt) {
     signIn.searchParams.set("error", "invalid-token");

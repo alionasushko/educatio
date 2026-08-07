@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { VideoIcon } from "lucide-react";
-import type { Lesson } from "@educatio/shared";
 import Wordmark from "@/components/brand/wordmark";
 import Badge from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import { cn } from "@/lib/utils";
-import { ApiClientError } from "@/lib/api-client";
 import { getLesson } from "@/lib/api-lessons";
+import { queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
 
 export const metadata: Metadata = {
@@ -27,18 +26,8 @@ const LessonPage = async ({ params }: Props) => {
     redirect(`/sign-in?callbackUrl=/lesson/${encodeURIComponent(lessonId)}`);
   }
 
-  let lesson: Lesson;
-  try {
-    lesson = await getLesson(lessonId);
-  } catch (err) {
-    if (
-      err instanceof ApiClientError &&
-      (err.body.code === "not_found" || err.body.code === "forbidden")
-    ) {
-      notFound();
-    }
-    throw err;
-  }
+  // Someone else's lesson looks the same as a missing one, by design.
+  const lesson = await queryOrNotFound(() => getLesson(lessonId));
 
   const { variant, label } = statusMeta(lesson.status);
 

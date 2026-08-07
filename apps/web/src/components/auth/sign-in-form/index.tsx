@@ -53,7 +53,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
         password,
         callbackUrl,
       );
-      if (result?.error) setFormError(result.error);
+      if (!result.ok) setFormError(result.error);
     });
   };
 
@@ -69,7 +69,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
 
     startMagicTransition(async () => {
       const result = await signinAction(email.trim(), callbackUrl);
-      if (result?.error) setFormError(result.error);
+      if (!result.ok) setFormError(result.error);
     });
   };
 

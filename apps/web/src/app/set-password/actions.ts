@@ -2,27 +2,19 @@
 
 import { setPasswordSchema } from "@educatio/shared/api/auth";
 import { setPassword } from "@/lib/api-auth";
-import { actionError } from "@/lib/api-error";
-
-export interface SetPasswordResult {
-  ok?: true;
-  error?: string;
-}
+import { actionError, validated, type ActionResult } from "@/lib/api-error";
 
 export const setPasswordAction = async (
   password: string,
-): Promise<SetPasswordResult> => {
-  const parsed = setPasswordSchema.safeParse({ password });
-  if (!parsed.success) {
-    return {
-      error: parsed.error.issues[0]?.message ?? "Choose a valid password.",
-    };
-  }
+): Promise<ActionResult> => {
+  const parsed = validated(setPasswordSchema, { password });
+  if (!parsed.ok) return parsed;
 
   try {
     await setPassword(parsed.data);
-    return { ok: true };
   } catch (err) {
     return actionError(err);
   }
+
+  return { ok: true, data: undefined };
 };

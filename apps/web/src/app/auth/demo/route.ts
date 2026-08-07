@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
   }
 
   const issued = await query(demoLogin);
-  const sessionJwt = issued && (await ownSessionJwt(issued.sessionJwt));
+  const sessionJwt =
+    issued.data && (await ownSessionJwt(issued.data.sessionJwt));
 
   if (!sessionJwt) {
     return NextResponse.redirect(
