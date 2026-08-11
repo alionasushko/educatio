@@ -8,11 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Educatio is a collaborative whiteboard for one-on-one online tutoring. The project is structured as a **monorepo with two apps** (npm workspaces):
 
-- **`apps/web`** — Next 16 / React 19 / Tailwind v4 / shadcn `base-nova`. **UI only** — no DB, AI, email, or Liveblocks-server code (the boundary rule is now real, not aspirational). Has the marketing landing (`/`), the magic-link plumbing (`auth/callback` + `auth/signout` route handlers), the Edge `proxy.ts` gate, the typed `api-client`, and session helpers. The tutor sign-up (`/sign-up`), sign-in (`/sign-in`), email-verify (`/verify`), and post-verification set-password (`/set-password`) screens are built (on shared `Input`/`Card`/`AuthShell` primitives), including email+password sign-in alongside magic-link, a flag-gated one-click demo login, and a `/dashboard` **stub** (greeting + sign-out). Still to build: the full dashboard and the lesson/summary/student-join routes (`/lesson/[id]`, `/lesson/[id]/summary`, `/join/[code]`) — they consume the api that already exists.
+- **`apps/web`** — Next 16 / React 19 / Tailwind v4 / shadcn `base-nova`. **UI only** — no DB, AI, email, or Liveblocks-server code (the boundary rule is now real, not aspirational). Has the marketing landing (`/`), the magic-link plumbing (`auth/callback` + `auth/signout` route handlers), the Edge `proxy.ts` gate, the typed `api-client`, and session helpers. The tutor sign-up (`/sign-up`), sign-in (`/sign-in`), email-verify (`/verify`), and post-verification set-password (`/set-password`) screens are built (on shared `Input`/`Card`/`AuthShell` primitives), including email+password sign-in alongside magic-link and a flag-gated one-click demo login. The `/dashboard` is built — lesson list with search, status filters and pagination, create and delete, and a skeleton for the cold load — as are the route boundaries (`error.tsx`, `global-error.tsx`, `not-found.tsx`). Still to build: the lesson canvas, the summary, and student join (`/lesson/[id]` is a placeholder, `/lesson/[id]/summary` and `/join/[code]` don't exist) — they consume the api that already exists.
 - **`apps/api`** — NestJS + Fastify. Owns data (Mongoose), auth (Resend magic-link → JWT), AI (Anthropic), Liveblocks token issuance, blob uploads, email. **All endpoints are implemented**: `auth/*`, `sessions/student`, `lessons` CRUD, `lessons/:id/snapshot`, `lessons/:id/summary`, `liveblocks/auth`, `upload`.
 - **`packages/shared`** — `@educatio/shared`: domain types (`canvas`, `lesson`, `auth`) + per-endpoint Zod schemas under `@educatio/shared/api/*`. Consumed by both apps.
 
-> **Status.** The marketing landing, the tutor `/sign-up` + `/sign-in` + `/verify` screens (plus a flag-gated one-click demo login), and a `/dashboard` stub are built; every api endpoint is implemented. The remaining work is the rest of the **web screens** (full dashboard, lesson canvas, summary, student join — see `docs/SPEC.md` §Features), plus Sentry wiring and tests. Everything compiles and builds; the magic-link sign-up / sign-in / verify / demo flows have been exercised against **local** Mongo (Resend unconfigured in dev, so the magic link is logged to the api console); the newly added email + password sign-in (password set post-verification via `/set-password`) is built and type-checks but has not yet been run against Mongo. Nothing has run against live Resend/Liveblocks/Anthropic — treat behavior beyond local magic-link auth as unverified.
+> **Status.** The marketing landing, the tutor `/sign-up` + `/sign-in` + `/verify` + `/set-password` screens, and the `/dashboard` (list, search, filters, pagination, create, delete) are built; every api endpoint is implemented. The web→api request layer is finished and hardened — one `server-only` seam, a response schema required on every call, one `ActionResult` shape for every Server Action, and route boundaries for errors and 404s (see `docs/ARCHITECTURE.md` §Request layer for the rules and the rejected alternatives). The remaining work is the **lesson canvas, the summary, and student join** (see `docs/SPEC.md` §Features), plus Sentry wiring and the rest of the tests.
+>
+> **Verification status.** Everything compiles, builds, and passes `npm run check`. The api's responses are pinned to the shared contract by `apps/api/test/api-contract.spec.ts`; `apps/web` has no tests at all yet, so the request-layer behaviour above is type-checked and reasoned about but not exercised — including `proxy.ts`'s tutor-claim gate. The magic-link sign-up / sign-in / verify / demo flows have been run against **local** Mongo (Resend unconfigured in dev, so the magic link is logged to the api console). Email + password sign-in and everything added since have not been run in a browser. Nothing has run against live Resend/Liveblocks/Anthropic — treat behavior beyond local magic-link auth as unverified.
 
 Read first when picking up work:
 
@@ -33,7 +35,8 @@ npm run build                # builds all workspaces
 npm run lint                 # lints all workspaces
 npm run typecheck            # tsc --noEmit across all workspaces
 npm run format               # prettier --write across the repo
-npm run check                # one-shot gate: format:check + lint + typecheck (run before committing)
+npm run check                # one-shot gate: format:check + lint + typecheck + test (run before committing)
+npm run test                 # vitest across workspaces (only apps/api has a suite today)
 
 # Run the api dev server
 npm run dev:api              # nest start --watch on :3001
@@ -95,7 +98,7 @@ The Next file convention previously called `middleware.ts` is now `proxy.ts`. [a
 **Code quality:**
 
 - TypeScript strict; no `any` without an inline justification comment.
-- Run `npm run check` before committing (format, lint, and typecheck in one shot).
+- Run `npm run check` before committing (format, lint, typecheck, and tests in one shot).
 - Conventional commits with app scope: `feat(api): …`, `feat(web): …`, `feat(shared): …`.
 
 **Dependencies:**
@@ -108,6 +111,7 @@ The Next file convention previously called `middleware.ts` is now `proxy.ts`. [a
 - Boundary discipline (above) — load-bearing, hard rule.
 - Server components by default in web; client only where interactive.
 - Components as an arrow `const` + `export default`, one per **folder** — `component-name/index.tsx` holds the component, with a co-located `helpers/` subfolder for non-component code (`types.ts`, `constants.ts`, `enums.ts`, `helpers.ts` as needed), a nested `components/` folder for child components, and `__tests__/` for tests. The shadcn primitives in `components/ui/` stay flat single-files; older flat components migrate to the folder shape over time. Props typed as an `interface` (use `type` only for unions/intersections/mapped types); non-components keep named exports. Prefer arrow-function expressions over `function` declarations for **all** functions — module utilities and lib helpers too, not just components (`export const safeInternalPath = (…) => { … }`). Use a `function` declaration only where the language requires it: call-before-definition hoisting, TypeScript overload signatures, or generators.
+- Name components for what they are to the user, not for how they render. `Container`, `Wrapper`, `View` and `Shell` describe something true of every component and so say nothing; when no domain name fits, that usually means the component has two jobs. `*Layout` is the exception — arrangement genuinely _is_ the job, and Next already uses the term (`DashboardLayout`). `AuthShell` predates this and should become `AuthLayout` when someone is next in those files.
 - File and folder names are kebab-case (`sign-up-form/index.tsx`, `faq-section.tsx`); the component identifier inside is PascalCase (`SignUpForm`).
 - All web→api calls through `apps/web/src/lib/api-client.ts`.
 - All api validation via Zod schemas in `@educatio/shared/api/*`.

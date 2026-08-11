@@ -118,15 +118,21 @@ educatio/                                  ← workspaces root
 │   │   │   │   ├── set-password/page.tsx   # post-verify set/change password   [built]
 │   │   │   │   ├── auth/callback/route.ts  # thin proxy: token → cookie       [built]
 │   │   │   │   ├── auth/signout/route.ts   #                                  [built]
-│   │   │   │   ├── (app)/
-│   │   │   │   │   ├── dashboard/page.tsx   # stub: greeting + sign-out        [built]
-│   │   │   │   │   ├── lesson/
-│   │   │   │   │   │   ├── new/page.tsx     #                                  [not built]
-│   │   │   │   │   │   └── [lessonId]/
-│   │   │   │   │   │       ├── page.tsx     #                                  [not built]
-│   │   │   │   │   │       └── summary/page.tsx  #                             [not built]
-│   │   │   │   │   └── layout.tsx
+│   │   │   │   ├── auth/demo/route.ts      # flag-gated one-click demo login   [built]
+│   │   │   │   ├── dashboard/
+│   │   │   │   │   ├── page.tsx             # list, search, filters, paging     [built]
+│   │   │   │   │   ├── loading.tsx          # cold-load skeleton                [built]
+│   │   │   │   │   └── actions.ts           # delete lesson                     [built]
+│   │   │   │   ├── lesson/
+│   │   │   │   │   ├── new/page.tsx         # + actions.ts                      [built]
+│   │   │   │   │   └── [lessonId]/
+│   │   │   │   │       ├── page.tsx         # placeholder until the canvas      [built]
+│   │   │   │   │       ├── not-found.tsx    #                                   [built]
+│   │   │   │   │       └── summary/page.tsx #                                   [not built]
 │   │   │   │   ├── join/[inviteCode]/page.tsx    #                            [not built]
+│   │   │   │   ├── error.tsx                # route error boundary              [built]
+│   │   │   │   ├── global-error.tsx         # root-layout failure               [built]
+│   │   │   │   ├── not-found.tsx            # app-wide 404                      [built]
 │   │   │   │   ├── layout.tsx
 │   │   │   │   └── globals.css
 │   │   │   ├── components/
@@ -135,7 +141,13 @@ educatio/                                  ← workspaces root
 │   │   │   │   ├── lesson/                  # LessonHeader, EndLessonDialog    [not built]
 │   │   │   │   └── marketing/               # Hero, Features, etc.             [built]
 │   │   │   ├── lib/
-│   │   │   │   ├── api-client.ts            # typed fetch over EDUCATIO_API_URL [built]
+│   │   │   │   ├── api-client.ts            # the one server-only fetch seam    [built]
+│   │   │   │   ├── api-auth.ts              # per-domain wrappers               [built]
+│   │   │   │   ├── api-lessons.ts           #                                   [built]
+│   │   │   │   ├── api-error.ts             # query/queryOrNotFound/actionError [built]
+│   │   │   │   ├── error-messages.ts        # ERROR_COPY, keyed on api code     [built]
+│   │   │   │   ├── routes.ts                # web's own route builders          [built]
+│   │   │   │   ├── revalidate.ts            # every path showing a lesson list  [built]
 │   │   │   │   ├── session.ts               # Edge-safe cookie/JWT helpers      [built]
 │   │   │   │   ├── session-server.ts        # getCurrentSession via next/headers [built]
 │   │   │   │   ├── pdf/SummaryPDF.tsx        #                                  [not built]
@@ -287,6 +299,24 @@ Page size: A4. Margins: 40pt. Body font: Inter (or system sans-serif fallback). 
   - Student joins via invite link, contributes to canvas
   - Summary export downloads PDF
 - Target: 70% code coverage minimum on `lib/`, smoke E2E on critical paths
+
+### What is actually wired
+
+Only `apps/api`. `apps/web` and `packages/shared` have no test setup yet, and there is no Playwright and no CI — so nothing runs automatically.
+
+`npm test` at the root fans out to workspaces; `npm run check` now runs the tests too, so they gate a commit.
+
+**The api contract test** (`apps/api/test/api-contract.spec.ts`) is the drift guard that replaces codegen. It boots the real Nest app — guards, `ZodValidationPipe` and `AllExceptionsFilter` included — against an ephemeral mongod on port 0, and asserts every response parses against its `@educatio/shared/api/*` schema. Mocks cannot do this job: a fixture only confirms itself.
+
+Setup notes, each of which cost something to discover:
+
+- **Vitest needs `unplugin-swc`.** Its esbuild transform drops the decorator metadata Nest's DI reads at runtime; without swc every provider fails to resolve.
+- **Vitest aliases `@educatio/shared` to `src`.** The package's exports map sends runtime imports to `dist`, so without the alias the suite validates against the last build and a schema edit is invisible.
+- **`ignoreEnvFile` under `NODE_ENV=test`.** `ConfigModule.forRoot()` merges `apps/api/.env`, and that file's `MONGODB_URI` otherwise beats what a harness sets — which once pointed the suite at the dev database. `forRoot()` is also evaluated _while `app.module` is imported_, so the harness imports it dynamically, after setting env.
+- **Mongoose builds indexes on connect** (`autoIndex` is not disabled), so connecting is already a write. The harness therefore verifies the resolved `MONGODB_URI` **before** anything connects, and re-checks host, port and database name after. Any new suite that boots Nest should go through `test/harness.ts` rather than repeat this.
+- **`mongodb-memory-server`, not Testcontainers** — it runs a real mongod rather than a fake, needs no Docker daemon and no CI service, and this suite doesn't need production-version fidelity. Switch when a test needs replica-set behaviour (transactions); `MongoMemoryReplSet` covers the step before Testcontainers becomes necessary. The binary is ~141MB cached under `node_modules/.cache/`, so the first run after `npm ci` pays a download.
+
+**Untested and worth knowing:** everything in `apps/web`. Notably `proxy.ts`'s `claims.kind` gate is a security fix with no test behind it, and `lib/`'s pure functions (`dashboardHref`, `lessonHref`, `isPlainClick`, `safeTimeZone`) are the cheapest tests available — no MSW, no browser.
 
 ---
 
