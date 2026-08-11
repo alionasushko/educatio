@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import LessonsView from "@/components/dashboard/lessons-view";
 import DashboardEmptyState from "@/components/dashboard/dashboard-empty-state";
 import NewLessonButton from "@/components/lesson/new-lesson-button";
@@ -42,12 +43,13 @@ const DashboardPage = async ({ searchParams }: Props) => {
 
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
 
-  const me = await query(fetchCurrentUser);
+  const [me, lessons] = await Promise.all([
+    query(fetchCurrentUser),
+    query(() =>
+      listLessons({ page, limit: LESSONS_PER_PAGE, status, q: q || undefined }),
+    ),
+  ]);
   const user = me.data?.user ?? null;
-
-  const lessons = await query(() =>
-    listLessons({ page, limit: LESSONS_PER_PAGE, status, q: q || undefined }),
-  );
   const data = lessons.data;
 
   const isEmpty = data !== null && data.total === 0 && status === "all" && !q;
@@ -56,61 +58,60 @@ const DashboardPage = async ({ searchParams }: Props) => {
     : "Recent and active sessions.";
 
   return (
-    <div className="bg-bg min-h-dvh md:flex">
+    <>
       <TimezoneBootstrap current={timeZone} />
-      <DashboardSidebar
-        name={user?.name ?? "Tutor"}
-        email={user?.email ?? ""}
-      />
-
-      <main className="bg-surface flex min-w-0 flex-1 flex-col">
-        <header className="border-border-subtle flex items-end justify-between gap-6 border-b px-6 py-6 md:px-10 md:pt-7 md:pb-5">
-          <div className="min-w-0">
+      <DashboardLayout
+        sidebar={
+          <DashboardSidebar
+            name={user?.name ?? "Tutor"}
+            email={user?.email ?? ""}
+          />
+        }
+        heading={
+          <>
             <h1 className="text-text-primary text-[26px] font-semibold tracking-tight">
               Lessons
             </h1>
             <p className="text-text-secondary mt-1 text-[13.5px]">{subtitle}</p>
-          </div>
-          <NewLessonButton />
-        </header>
-
-        <div className="bg-bg flex-1 overflow-auto">
-          {data === null ? (
-            <div className="flex h-full items-center justify-center p-10">
-              <div className="max-w-90 text-center">
-                <p className="text-text-primary text-base font-medium">
-                  We couldn&apos;t load your lessons
-                </p>
-                <p className="text-text-tertiary mt-1 text-sm">
-                  {ERROR_COPY[lessons.code ?? "internal_error"]}
-                </p>
-                <Link
-                  href={currentHref}
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "mt-4 h-9 px-4 text-sm",
-                  )}
-                >
-                  Retry
-                </Link>
-              </div>
+          </>
+        }
+        action={<NewLessonButton />}
+      >
+        {data === null ? (
+          <div className="flex h-full items-center justify-center p-10">
+            <div className="max-w-90 text-center">
+              <p className="text-text-primary text-base font-medium">
+                We couldn&apos;t load your lessons
+              </p>
+              <p className="text-text-tertiary mt-1 text-sm">
+                {ERROR_COPY[lessons.code ?? "internal_error"]}
+              </p>
+              <Link
+                href={currentHref}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "mt-4 h-9 px-4 text-sm",
+                )}
+              >
+                Retry
+              </Link>
             </div>
-          ) : isEmpty ? (
-            <DashboardEmptyState />
-          ) : (
-            <LessonsView
-              lessons={data.lessons}
-              total={data.total}
-              page={data.page}
-              totalPages={data.totalPages}
-              status={status}
-              q={q}
-              timeZone={timeZone}
-            />
-          )}
-        </div>
-      </main>
-    </div>
+          </div>
+        ) : isEmpty ? (
+          <DashboardEmptyState />
+        ) : (
+          <LessonsView
+            lessons={data.lessons}
+            total={data.total}
+            page={data.page}
+            totalPages={data.totalPages}
+            status={status}
+            q={q}
+            timeZone={timeZone}
+          />
+        )}
+      </DashboardLayout>
+    </>
   );
 };
 

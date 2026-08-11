@@ -7,7 +7,7 @@ import { LogOutIcon } from "lucide-react";
 import Wordmark from "@/components/brand/wordmark";
 import Avatar from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "./helpers/constants";
+import { SIDEBAR_FRAME, NAV_ITEMS } from "./helpers/constants";
 
 interface Props {
   name: string;
@@ -33,7 +33,7 @@ const DashboardSidebar = ({ name, email }: Props) => {
 
   return (
     <>
-      <aside className="border-border-subtle bg-bg hidden w-60 shrink-0 flex-col border-r px-3.5 py-5 md:sticky md:top-0 md:flex md:h-dvh">
+      <aside className={SIDEBAR_FRAME}>
         <div className="px-2 pb-6">
           <Wordmark href="/dashboard" size={14} />
         </div>
