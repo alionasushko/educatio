@@ -228,7 +228,7 @@ All routes live on the **api service** (NestJS, base URL `EDUCATIO_API_URL`). Au
 | `/liveblocks/auth`      | POST   | tutor OR student session                         | body `{ room }` → Liveblocks token                                                             |
 | `/upload`               | POST   | tutor OR student session                         | `multipart/form-data` `file` → `{ url }`                                                       |
 
-No `/api/*` surface exists on the web host. The only server-side web routes are page handlers, the magic-link landing (`apps/web/src/app/auth/callback/route.ts`) which proxies to `/auth/callback` and sets the cookie, and any future thin proxies needed for cookie management.
+No `/api/*` surface exists on the web host. The only server-side web routes are page handlers and the thin proxies that exist because the session cookie is `httpOnly` and the browser cannot read it: the magic-link landing (`apps/web/src/app/auth/callback/route.ts`), which proxies to `/auth/callback` and sets the cookie, and `apps/web/src/app/liveblocks-auth/route.ts`, which the canvas client uses as its Liveblocks `authEndpoint` — it forwards `{ room }` to `POST /liveblocks/auth` and relays the token. Neither decides anything; authorization stays in api.
 
 ## Performance targets
 
