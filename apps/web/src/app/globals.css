@@ -272,6 +272,10 @@
   }
 }
 
+.edu-pending {
+  animation: edu-fade-in 140ms ease-out 120ms both;
+}
+
 .edu-shimmer {
   background-color: var(--border-subtle);
   background-image: linear-gradient(

@@ -1,13 +1,10 @@
-import Link from "next/link";
 import type { Lesson } from "@educatio/shared";
 import CascadeUp from "@/components/motion/cascade-up";
 import { cn } from "@/lib/utils";
-import { FILTERS, LESSON_GRID, type LessonFilter } from "./helpers/constants";
+import { LESSON_GRID, type LessonFilter } from "./helpers/constants";
 import LessonRow from "./components/lesson-row";
 import LessonCard from "./components/lesson-card";
-import LessonsPagination from "./components/lessons-pagination";
-import LessonsSearch from "./components/lessons-search";
-import { dashboardHref } from "@/lib/routes";
+import LessonsFilters from "./components/lessons-filters";
 
 interface Props {
   lessons: Lesson[];
@@ -28,34 +25,13 @@ const LessonsView = ({
   q,
   timeZone,
 }: Props) => (
-  <div className="px-6 py-5 md:px-10 md:pb-10">
-    <div className="mb-3 flex flex-wrap items-center gap-2">
-      <LessonsSearch initialQuery={q} status={status} />
-      {FILTERS.map((filter) => {
-        const active = filter.value === status;
-        return (
-          <Link
-            key={filter.value}
-            href={dashboardHref({ status: filter.value, q })}
-            aria-current={active ? "true" : undefined}
-            className={cn(
-              "inline-flex h-7.5 items-center rounded-full border px-3 text-[12.5px] font-medium no-underline transition-colors",
-              "focus-visible:ring-accent-brand/60 outline-none focus-visible:ring-2",
-              active
-                ? "border-accent-soft-border bg-accent-soft text-accent-brand"
-                : "border-border-subtle text-text-secondary hover:text-text-primary",
-            )}
-          >
-            {filter.label}
-          </Link>
-        );
-      })}
-      <div className="flex-1" />
-      <span className="text-text-tertiary text-[12.5px]">
-        {total} {total === 1 ? "lesson" : "lessons"}
-      </span>
-    </div>
-
+  <LessonsFilters
+    status={status}
+    q={q}
+    total={total}
+    page={page}
+    totalPages={totalPages}
+  >
     {lessons.length === 0 ? (
       <div className="border-border-subtle bg-surface text-text-secondary rounded-xl border px-6 py-16 text-center text-sm">
         {q
@@ -112,16 +88,7 @@ const LessonsView = ({
         </div>
       </>
     )}
-
-    {totalPages > 1 && (
-      <LessonsPagination
-        page={page}
-        totalPages={totalPages}
-        status={status}
-        q={q}
-      />
-    )}
-  </div>
+  </LessonsFilters>
 );
 
 export default LessonsView;

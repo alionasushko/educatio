@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 import type { LessonFilter } from "../../helpers/constants";
 import { dashboardHref } from "@/lib/routes";
@@ -9,10 +8,10 @@ import { dashboardHref } from "@/lib/routes";
 interface Props {
   initialQuery: string;
   status: LessonFilter;
+  onNavigate: (href: string) => void;
 }
 
-const LessonsSearch = ({ initialQuery, status }: Props) => {
-  const router = useRouter();
+const LessonsSearch = ({ initialQuery, status, onNavigate }: Props) => {
   const [value, setValue] = useState(initialQuery);
   const [lastInitial, setLastInitial] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
@@ -41,7 +40,7 @@ const LessonsSearch = ({ initialQuery, status }: Props) => {
     setValue(next);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      router.replace(dashboardHref({ status, q: next.trim() }));
+      onNavigate(dashboardHref({ status, q: next.trim() }));
     }, 300);
   };
 

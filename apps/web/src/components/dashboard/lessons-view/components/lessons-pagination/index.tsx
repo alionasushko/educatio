@@ -1,7 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, isPlainClick } from "@/lib/utils";
 import type { LessonFilter } from "../../helpers/constants";
 import { dashboardHref } from "@/lib/routes";
 
@@ -10,9 +12,16 @@ interface Props {
   totalPages: number;
   status: LessonFilter;
   q: string;
+  onNavigate: (href: string) => void;
 }
 
-const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
+const LessonsPagination = ({
+  page,
+  totalPages,
+  status,
+  q,
+  onNavigate,
+}: Props) => {
   const prevDisabled = page <= 1;
   const nextDisabled = page >= totalPages;
   const linkCls = cn(
@@ -21,6 +30,18 @@ const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
   );
   const disabledCls = "text-text-tertiary pointer-events-none opacity-50";
 
+  const handleClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (!isPlainClick(event)) return;
+    event.preventDefault();
+    onNavigate(href);
+  };
+
+  const prevHref = dashboardHref({ status, q, page: page - 1 });
+  const nextHref = dashboardHref({ status, q, page: page + 1 });
+
   return (
     <div className="mt-5 flex items-center justify-between">
       <span className="text-text-tertiary text-[12.5px]">
@@ -28,7 +49,8 @@ const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
       </span>
       <div className="flex items-center gap-2">
         <Link
-          href={dashboardHref({ status, q, page: page - 1 })}
+          href={prevHref}
+          onClick={(event) => handleClick(event, prevHref)}
           aria-disabled={prevDisabled}
           tabIndex={prevDisabled ? -1 : undefined}
           className={cn(linkCls, prevDisabled && disabledCls)}
@@ -37,7 +59,8 @@ const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
           Previous
         </Link>
         <Link
-          href={dashboardHref({ status, q, page: page + 1 })}
+          href={nextHref}
+          onClick={(event) => handleClick(event, nextHref)}
           aria-disabled={nextDisabled}
           tabIndex={nextDisabled ? -1 : undefined}
           className={cn(linkCls, nextDisabled && disabledCls)}
