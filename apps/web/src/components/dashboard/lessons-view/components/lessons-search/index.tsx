@@ -4,19 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 import type { LessonFilter } from "../../helpers/constants";
+import { dashboardHref } from "@/lib/routes";
 
 interface Props {
   initialQuery: string;
   status: LessonFilter;
 }
-
-const buildHref = (query: string, status: LessonFilter): string => {
-  const params = new URLSearchParams();
-  if (status !== "all") params.set("status", status);
-  if (query) params.set("q", query);
-  const qs = params.toString();
-  return qs ? `/dashboard?${qs}` : "/dashboard";
-};
 
 const LessonsSearch = ({ initialQuery, status }: Props) => {
   const router = useRouter();
@@ -48,7 +41,7 @@ const LessonsSearch = ({ initialQuery, status }: Props) => {
     setValue(next);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      router.replace(buildHref(next.trim(), status));
+      router.replace(dashboardHref({ status, q: next.trim() }));
     }, 300);
   };
 

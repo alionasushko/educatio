@@ -1,24 +1,31 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
+import { signInRoute } from "@/lib/routes";
 
 const STUDENT_LESSON_SUBPATHS = ["summary"];
+
+const safeDecode = (value: string): string => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
 
 const studentReachableLessonId = (pathname: string): string | null => {
   const [first, id, ...rest] = pathname.split("/").filter(Boolean);
   if (first !== "lesson" || !id || id === "new") return null;
-  if (rest.length === 0) return id;
+  if (rest.length === 0) return safeDecode(id);
   return rest.length === 1 && STUDENT_LESSON_SUBPATHS.includes(rest[0] ?? "")
-    ? id
+    ? safeDecode(id)
     : null;
 };
 
 const toSignIn = (req: NextRequest): NextResponse => {
   const target = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-  const url = req.nextUrl.clone();
-  url.pathname = "/sign-in";
-  url.search = "";
-  url.searchParams.set("callbackUrl", target);
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(
+    new URL(signInRoute(target), req.nextUrl.origin),
+  );
 };
 
 export default async function proxy(req: NextRequest) {
@@ -30,14 +37,10 @@ export default async function proxy(req: NextRequest) {
   if (claims.kind === "student") {
     if (!claims.lessonId) return toSignIn(req);
 
-    if (
-      studentReachableLessonId(req.nextUrl.pathname) !==
-      encodeURIComponent(claims.lessonId)
-    ) {
-      const url = req.nextUrl.clone();
-      url.pathname = `/lesson/${claims.lessonId}`;
-      url.search = "";
-      return NextResponse.redirect(url);
+    const ownRoom = `/lesson/${claims.lessonId}`;
+    const reachable = studentReachableLessonId(req.nextUrl.pathname);
+    if (reachable !== claims.lessonId && req.nextUrl.pathname !== ownRoom) {
+      return NextResponse.redirect(new URL(ownRoom, req.nextUrl.origin));
     }
   }
 

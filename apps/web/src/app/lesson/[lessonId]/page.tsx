@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
+import { signInRoute } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Lesson",
@@ -23,7 +24,7 @@ const LessonPage = async ({ params }: Props) => {
   const { lessonId } = await params;
 
   if (!(await getCurrentSession())) {
-    redirect(`/sign-in?callbackUrl=/lesson/${encodeURIComponent(lessonId)}`);
+    redirect(signInRoute(`/lesson/${lessonId}`));
   }
 
   // Someone else's lesson looks the same as a missing one, by design.

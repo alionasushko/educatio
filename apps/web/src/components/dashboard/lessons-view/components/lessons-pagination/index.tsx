@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { LessonFilter } from "../../helpers/constants";
+import { dashboardHref } from "@/lib/routes";
 
 interface Props {
   page: number;
@@ -10,15 +11,6 @@ interface Props {
   status: LessonFilter;
   q: string;
 }
-
-const hrefFor = (page: number, status: LessonFilter, q: string): string => {
-  const params = new URLSearchParams();
-  if (status !== "all") params.set("status", status);
-  if (q) params.set("q", q);
-  if (page > 1) params.set("page", String(page));
-  const qs = params.toString();
-  return qs ? `/dashboard?${qs}` : "/dashboard";
-};
 
 const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
   const prevDisabled = page <= 1;
@@ -36,7 +28,7 @@ const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
       </span>
       <div className="flex items-center gap-2">
         <Link
-          href={hrefFor(page - 1, status, q)}
+          href={dashboardHref({ status, q, page: page - 1 })}
           aria-disabled={prevDisabled}
           tabIndex={prevDisabled ? -1 : undefined}
           className={cn(linkCls, prevDisabled && disabledCls)}
@@ -45,7 +37,7 @@ const LessonsPagination = ({ page, totalPages, status, q }: Props) => {
           Previous
         </Link>
         <Link
-          href={hrefFor(page + 1, status, q)}
+          href={dashboardHref({ status, q, page: page + 1 })}
           aria-disabled={nextDisabled}
           tabIndex={nextDisabled ? -1 : undefined}
           className={cn(linkCls, nextDisabled && disabledCls)}

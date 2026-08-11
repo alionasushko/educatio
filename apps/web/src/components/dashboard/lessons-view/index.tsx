@@ -7,6 +7,7 @@ import LessonRow from "./components/lesson-row";
 import LessonCard from "./components/lesson-card";
 import LessonsPagination from "./components/lessons-pagination";
 import LessonsSearch from "./components/lessons-search";
+import { dashboardHref } from "@/lib/routes";
 
 interface Props {
   lessons: Lesson[];
@@ -17,14 +18,6 @@ interface Props {
   q: string;
   timeZone?: string;
 }
-
-const chipHref = (value: LessonFilter, q: string): string => {
-  const params = new URLSearchParams();
-  if (value !== "all") params.set("status", value);
-  if (q) params.set("q", q);
-  const qs = params.toString();
-  return qs ? `/dashboard?${qs}` : "/dashboard";
-};
 
 const LessonsView = ({
   lessons,
@@ -43,7 +36,7 @@ const LessonsView = ({
         return (
           <Link
             key={filter.value}
-            href={chipHref(filter.value, q)}
+            href={dashboardHref({ status: filter.value, q })}
             aria-current={active ? "true" : undefined}
             className={cn(
               "inline-flex h-7.5 items-center rounded-full border px-3 text-[12.5px] font-medium no-underline transition-colors",

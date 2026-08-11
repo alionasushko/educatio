@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySessionToken } from "./session";
+import { signInRoute } from "./routes";
 import type { SessionClaims, TutorSessionClaims } from "@educatio/shared";
 
 export const getCurrentSession = async (): Promise<SessionClaims | null> => {
@@ -27,8 +28,7 @@ export const requireTutor = async (
   callbackUrl: string,
 ): Promise<TutorSessionClaims> => {
   const tutor = await currentTutor();
-  if (!tutor)
-    redirect(`/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+  if (!tutor) redirect(signInRoute(callbackUrl));
   return tutor;
 };
 

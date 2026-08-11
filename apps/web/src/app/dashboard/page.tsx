@@ -13,6 +13,7 @@ import { listLessons } from "@/lib/api-lessons";
 import { query } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
 import { requireTutor } from "@/lib/session-server";
+import { dashboardHref } from "@/lib/routes";
 import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
 import { LESSONS_PER_PAGE } from "./helpers/constants";
 import { parsePage, parseQuery, parseStatus } from "./helpers/helpers";
@@ -35,13 +36,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
   const status = parseStatus(sp.status);
   const q = parseQuery(sp.q);
 
-  const params = new URLSearchParams();
-  if (status !== "all") params.set("status", status);
-  if (q) params.set("q", q);
-  if (page > 1) params.set("page", String(page));
-  const currentHref = params.toString()
-    ? `/dashboard?${params.toString()}`
-    : "/dashboard";
+  const currentHref = dashboardHref({ status, q, page });
 
   await requireTutor(currentHref);
 

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatDuration, formatWhen, statusMeta } from "../../helpers/helpers";
 import LessonTimer from "../lesson-timer";
 import DeleteLessonButton from "../delete-lesson-button";
+import { lessonHref } from "@/lib/routes";
 
 interface Props {
   lesson: Lesson;
@@ -14,10 +15,7 @@ interface Props {
 
 const LessonCard = ({ lesson, timeZone }: Props) => {
   const { variant, label } = statusMeta(lesson.status);
-  const href =
-    lesson.status === "ended"
-      ? `/lesson/${lesson.id}/summary`
-      : `/lesson/${lesson.id}`;
+  const href = lessonHref(lesson);
   const duration = formatDuration(lesson);
 
   return (
