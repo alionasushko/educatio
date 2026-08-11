@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, Types } from "mongoose";
+import { HydratedDocument, SchemaTypes, Types } from "mongoose";
 import type { LessonStatus } from "@educatio/shared";
 
 @Schema({ _id: false })
@@ -16,7 +16,12 @@ export type LessonDocument = HydratedDocument<Lesson>;
 
 @Schema({ timestamps: true, collection: "lessons" })
 export class Lesson {
-  @Prop({ type: Types.ObjectId, ref: "User", required: true, index: true })
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: "User",
+    required: true,
+    index: true,
+  })
   tutorId: Types.ObjectId;
 
   @Prop({ required: true })
