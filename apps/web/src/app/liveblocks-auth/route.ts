@@ -7,7 +7,7 @@ import { authorizeRoom } from "@/lib/api-liveblocks";
 const fail = (status: number, body: ApiError) =>
   NextResponse.json(body, { status });
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   let payload: unknown;
   try {
     payload = await req.json();
@@ -36,4 +36,4 @@ export const POST = async (req: NextRequest) => {
     }
     throw err;
   }
-};
+}
