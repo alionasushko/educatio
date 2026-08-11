@@ -55,6 +55,9 @@ AUTH_JWT_SECRET=                # `openssl rand -base64 32`
 EDUCATIO_API_URL=http://localhost:3001
 
 # Liveblocks client (public key, safe to ship)
+# Likely dead — see §7 "Lesson canvas": the room token must come from api via an
+# authEndpoint, and publicApiKey mode would grant any room to anyone. Drop it
+# when the canvas lands unless something else needs it.
 NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY=
 
 # Sentry (optional in dev)
@@ -224,24 +227,24 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 ### Per-feature
 
-- [x] **Project setup** — monorepo + workspace tooling. Sentry wiring still pending.
+- [x] **Project setup** — monorepo + workspace tooling. Sentry still unwired: `@sentry/nextjs` is in `apps/web`'s deps with no config files, and `apps/api` has no Sentry dependency at all.
 - [x] **Marketing landing** — see `docs/SPEC.md` §Marketing landing. Lighthouse not yet measured.
 - [ ] **Authentication** — api endpoints built (`/auth/*` incl. flag-gated `/auth/demo`, authenticated `/auth/password`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Email + password sign-in added alongside magic-link (password set only post-verification via `/auth/password`; per-account lockout; client-IP forwarding for throttling). Web screens: `/sign-up`, `/sign-in`, `/verify`, and `/set-password` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions, one-click demo login, stale-tab redirect on `/verify`). **Follow-ups:** (1) `/set-password` is the interim home for password set/change shown after verification — fold it into the profile/settings screen when that's built; (2) deferred security hardening — server-side session revocation (`tokenVersion` / make `/auth/signout` kill live sessions) and full magic-link login-CSRF defense. Remaining: tests. See `docs/SPEC.md` §Authentication.
-- [ ] **Tutor dashboard** — api ready (`GET /lessons`). Web page (`/dashboard`) is a stub (auth-loop landing: greeting via `/auth/me` + sign-out); the full dashboard (lesson list, sidebar, pagination, empty state) is not built. See `docs/SPEC.md` §Tutor dashboard.
-- [ ] **Lesson creation** — api endpoint built (`POST /lessons`). Web form (`/lesson/new`) not built. See `docs/SPEC.md` §Lesson creation.
-- [ ] **Lesson canvas** — api endpoints built (`/lessons/:id`, `/lessons/:id/snapshot`, `/liveblocks/auth`). Canvas UI, toolbar, presence, snapshot loop not built. See `docs/SPEC.md` §Lesson canvas.
-- [ ] **Student join** — api endpoint built (`POST /sessions/student`). Web page (`/join/[inviteCode]`) not built. See `docs/SPEC.md` §Student join.
+- [x] **Tutor dashboard** — api ready (`GET /lessons`). Web page built: lesson list (card + row), search, status filters, pagination, create, delete, empty state, cold-load skeleton, shared `DashboardLayout` + sidebar. Row click uses `lessonHref`, which sends **ended** lessons to `/lesson/:id/summary` — a page that does not exist yet, so those rows 404 until Summary page ships. Remaining: tests. See `docs/SPEC.md` §Tutor dashboard.
+- [x] **Lesson creation** — api endpoint built (`POST /lessons`); web form (`/lesson/new`) + server action built, redirecting to `/lesson/:id`. Remaining: tests. See `docs/SPEC.md` §Lesson creation.
+- [ ] **Lesson canvas** — **the next stage.** Api endpoints built (`/lessons/:id`, `/lessons/:id/snapshot`, `/liveblocks/auth`); `konva`, `react-konva`, `@liveblocks/{client,react}` already in web's deps; `/lesson/[lessonId]` is a placeholder page. Canvas UI, toolbar, presence, snapshot loop not built. Three gaps to close first: (1) **the browser has no path to Liveblocks auth** — the canvas is a client component, the session JWT is httpOnly, and api is another origin, so web needs a thin route handler that reads the cookie and forwards to `POST /liveblocks/auth`, wired as Liveblocks' `authEndpoint` (`publicApiKey` mode is not an option — it grants any room to anyone, which makes `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` dead); (2) **no `GET /lessons/:id/snapshot`** — `SnapshotsService.latest()` exists but no controller exposes it; (3) **nothing writes snapshots** — `POST /lessons/:id/snapshot` has no caller anywhere. Also the first feature that cannot be exercised locally: `LIVEBLOCKS_SECRET_KEY` is optional in the env schema and api answers 503 without it. See `docs/SPEC.md` §Lesson canvas.
+- [ ] **Student join** — api endpoint built (`POST /sessions/student`). `proxy.ts` already scopes a `kind: 'student'` claim to its own `/lesson/:id` (+ `/summary`). Web page (`/join/[inviteCode]`) and the route handler that turns the returned student JWT into the httpOnly cookie are not built. See `docs/SPEC.md` §Student join.
 - [ ] **Image upload** — api endpoint built (`POST /upload`). Canvas-tool integration not built. See `docs/SPEC.md` §Image upload.
-- [ ] **AI lesson summary** — api endpoint built (`POST /lessons/:id/summary`). End-lesson trigger not wired. See `docs/SPEC.md` §AI lesson summary.
-- [ ] **Summary page & export** — web page + PDF/Text/Copy/Email controls not built. See `docs/SPEC.md` §Summary page & export.
-- [ ] **Session history / replay** — see `docs/SPEC.md` §Session history / replay.
+- [ ] **AI lesson summary** — api endpoint built (`POST /lessons/:id/summary`), and `PATCH /lessons/:id` can end the lesson. End-lesson trigger not wired. Note the endpoint reads `SnapshotsService.latest()`, so **until the canvas snapshot loop exists it summarizes an empty canvas** — generation "works" and says nothing. See `docs/SPEC.md` §AI lesson summary.
+- [ ] **Summary page & export** — web page + PDF/Text/Copy/Email controls not built; the dashboard already links here for ended lessons. Two api-side gaps: "Email to student" has no route in `docs/SPEC.md` §API routes (Resend is already wired in `auth.service.ts`), and the final-canvas thumbnail needs the `GET` snapshot endpoint above. See `docs/SPEC.md` §Summary page & export.
+- [ ] **Session history / replay** — blocked on the same `GET /lessons/:id/snapshot`. See `docs/SPEC.md` §Session history / replay.
 
 ### Build state
 
-- **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing, Edge `proxy.ts` JWT gate via `jose`, `auth/callback` + `auth/signout` route handlers, typed `api-client`, `session.ts` / `session-server.ts`, the `/sign-up` + `/sign-in` + `/verify` screens plus a flag-gated one-click demo login and a `/dashboard` stub built on shared `Input`/`Card`/`AuthShell` primitives, following the folder-per-component convention); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types + per-endpoint Zod schemas, builds to `dist`).
-- **Verified:** `tsc --noEmit` and production builds pass for all three workspaces; both `apps/web` and `apps/api` have their own ESLint configs and lint clean.
-- **Not verified:** nothing has been run against live Mongo/Resend/Liveblocks/Anthropic — those need real env values.
-- **Cross-cutting remaining:** the rest of the web screens (full dashboard, lesson creation, lesson canvas, summary, student join — consuming the existing endpoints), Sentry on both apps, and tests.
+- **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing; Edge `proxy.ts` JWT gate via `jose`, gating on the session _kind_ as well as its signature; `auth/callback` + `auth/signout` + flag-gated `auth/demo` route handlers; the `/sign-up` + `/sign-in` + `/verify` + `/set-password` screens on shared `Input`/`Card`/`AuthShell` primitives; the full `/dashboard` and `/lesson/new`; route boundaries; and the finished request layer — one `server-only` `api-client` seam, a mandatory response schema per call, one `ActionResult` shape per Server Action, `ERROR_COPY` keyed on the api's error code); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types, per-endpoint Zod request _and_ response schemas, shared route-path constants, builds to `dist`).
+- **Verified:** `npm run check` passes (format, lint, typecheck, test) and production builds pass for all three workspaces. `apps/api`'s responses are pinned to the shared contract by `test/api-contract.spec.ts`, which boots the real Nest app against an ephemeral mongod. The magic-link sign-up / sign-in / verify / demo flows have been run against **local** Mongo.
+- **Not verified:** all of `apps/web` — it has no tests, so the request layer and `proxy.ts`'s kind gate are type-checked and reasoned about but never exercised. Email + password sign-in and everything added since have not been run in a browser. Nothing has run against live Resend/Liveblocks/Anthropic.
+- **Cross-cutting remaining:** the lesson canvas, student join, image upload, the end-lesson → summary trigger, the summary page + export, and replay — plus a web test harness (none exists), Sentry on both apps, and CI (none).
 
 ---
 
