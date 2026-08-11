@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Param,
   Post,
@@ -23,6 +24,14 @@ import { LESSONS_SEGMENT } from "@educatio/shared/api/lessons";
 @UseGuards(JwtAuthGuard)
 export class SnapshotsController {
   constructor(private readonly snapshots: SnapshotsService) {}
+
+  @Get()
+  latest(
+    @Param("lessonId", ObjectIdPipe) lessonId: string,
+    @Session() session: SessionClaims,
+  ) {
+    return this.snapshots.latestForSession(lessonId, session);
+  }
 
   @Post()
   @HttpCode(200)

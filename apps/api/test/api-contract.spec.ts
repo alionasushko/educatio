@@ -15,6 +15,10 @@ import {
   lessonListResponseSchema,
   lessonSchema,
 } from "@educatio/shared/api/lessons";
+import {
+  lessonSnapshotPath,
+  latestSnapshotResponseSchema,
+} from "@educatio/shared/api/snapshot";
 import { startApi, type Harness } from "./harness";
 
 let api: Harness;
@@ -105,6 +109,49 @@ describe("api responses match the shared contract", () => {
     const deleted = await call(lessonPath(id), { method: "DELETE" });
     expect(deleted.status).toBe(200);
     expectShape(okResponseSchema, deleted.data);
+  });
+
+  it("the snapshot round-trip: empty, saved, read back", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Snapshot subject" },
+    });
+    expect(created.status).toBe(201);
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    const empty = await call(lessonSnapshotPath(id));
+    expect(empty.status).toBe(200);
+    expect(expectShape(latestSnapshotResponseSchema, empty.data).snapshot).toBe(
+      null,
+    );
+
+    const canvasState = {
+      el1: {
+        id: "el1",
+        type: "sticky",
+        x: 10,
+        y: 20,
+        rotation: 0,
+        zIndex: 1,
+        createdBy: "tutor",
+        createdAt: 1,
+        width: 160,
+        height: 160,
+        content: "Quadratic formula",
+        color: "yellow",
+      },
+    };
+    const saved = await call(lessonSnapshotPath(id), {
+      method: "POST",
+      body: { canvasState },
+    });
+    expect(saved.status).toBe(200);
+    expectShape(okResponseSchema, saved.data);
+
+    const read = await call(lessonSnapshotPath(id));
+    expect(read.status).toBe(200);
+    const { snapshot } = expectShape(latestSnapshotResponseSchema, read.data);
+    expect(snapshot?.canvasState).toEqual(canvasState);
   });
 });
 

@@ -209,23 +209,24 @@ One room per `lesson.liveblocksRoomId`.
 
 All routes live on the **api service** (NestJS, base URL `EDUCATIO_API_URL`). Auth: bearer JWT in `Authorization: Bearer <jwt>` verified by `JwtAuthGuard` — either tutor session or student session, indicated by the `kind` claim. Request/response shapes have matching Zod schemas in `@educatio/shared/api/*`.
 
-| Route                   | Method | Auth                                             | Notes                                                                                       |
-| ----------------------- | ------ | ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `/auth/signup`          | POST   | none                                             | body `{ name, email, teaches? }` → `{ sent: true }`                                         |
-| `/auth/signin`          | POST   | none                                             | body `{ email }` → `{ sent: true }` (no enumeration)                                        |
-| `/auth/callback`        | POST   | none                                             | body `{ token }` → `{ sessionJwt }`                                                         |
-| `/auth/signout`         | POST   | tutor                                            | → `{ ok: true }`                                                                            |
-| `/auth/me`              | GET    | tutor                                            | → `{ user }`                                                                                |
-| `/auth/demo`            | POST   | none                                             | gated by `ENABLE_DEMO_LOGIN` (403 when off) → `{ sessionJwt }` (shared demo tutor, exp +1d) |
-| `/sessions/student`     | POST   | none                                             | body `{ inviteCode, name }` → `{ sessionJwt }` (kind=student, exp +7d)                      |
-| `/lessons`              | POST   | tutor                                            | body `{ title, studentName?, videoCallUrl? }` → `{ id, inviteCode, liveblocksRoomId }`      |
-| `/lessons`              | GET    | tutor                                            | query `?page=1&limit=20&status=all\|active\|ended` → `{ lessons, total, page, totalPages }` |
-| `/lessons/:id`          | GET    | tutor (owner) OR student session for this lesson | returns full `Lesson`                                                                       |
-| `/lessons/:id`          | PATCH  | tutor                                            | body `{ status?, studentName?, videoCallUrl?, title? }` → updated lesson                    |
-| `/lessons/:id/summary`  | POST   | tutor                                            | generates + saves AI summary. Idempotent (re-run overwrites)                                |
-| `/lessons/:id/snapshot` | POST   | tutor OR student session                         | body `{ canvasState }` → `{ ok: true }`                                                     |
-| `/liveblocks/auth`      | POST   | tutor OR student session                         | body `{ room }` → Liveblocks token                                                          |
-| `/upload`               | POST   | tutor OR student session                         | `multipart/form-data` `file` → `{ url }`                                                    |
+| Route                   | Method | Auth                                             | Notes                                                                                          |
+| ----------------------- | ------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `/auth/signup`          | POST   | none                                             | body `{ name, email, teaches? }` → `{ sent: true }`                                            |
+| `/auth/signin`          | POST   | none                                             | body `{ email }` → `{ sent: true }` (no enumeration)                                           |
+| `/auth/callback`        | POST   | none                                             | body `{ token }` → `{ sessionJwt }`                                                            |
+| `/auth/signout`         | POST   | tutor                                            | → `{ ok: true }`                                                                               |
+| `/auth/me`              | GET    | tutor                                            | → `{ user }`                                                                                   |
+| `/auth/demo`            | POST   | none                                             | gated by `ENABLE_DEMO_LOGIN` (403 when off) → `{ sessionJwt }` (shared demo tutor, exp +1d)    |
+| `/sessions/student`     | POST   | none                                             | body `{ inviteCode, name }` → `{ sessionJwt }` (kind=student, exp +7d)                         |
+| `/lessons`              | POST   | tutor                                            | body `{ title, studentName?, videoCallUrl? }` → `{ id, inviteCode, liveblocksRoomId }`         |
+| `/lessons`              | GET    | tutor                                            | query `?page=1&limit=20&status=all\|active\|ended` → `{ lessons, total, page, totalPages }`    |
+| `/lessons/:id`          | GET    | tutor (owner) OR student session for this lesson | returns full `Lesson`                                                                          |
+| `/lessons/:id`          | PATCH  | tutor                                            | body `{ status?, studentName?, videoCallUrl?, title? }` → updated lesson                       |
+| `/lessons/:id/summary`  | POST   | tutor                                            | generates + saves AI summary. Idempotent (re-run overwrites)                                   |
+| `/lessons/:id/snapshot` | POST   | tutor OR student session                         | body `{ canvasState }` → `{ ok: true }`                                                        |
+| `/lessons/:id/snapshot` | GET    | tutor (owner) OR student session for this lesson | → `{ snapshot: { canvasState, snapshotAt } \| null }` — latest only; canvas cold-load + replay |
+| `/liveblocks/auth`      | POST   | tutor OR student session                         | body `{ room }` → Liveblocks token                                                             |
+| `/upload`               | POST   | tutor OR student session                         | `multipart/form-data` `file` → `{ url }`                                                       |
 
 No `/api/*` surface exists on the web host. The only server-side web routes are page handlers, the magic-link landing (`apps/web/src/app/auth/callback/route.ts`) which proxies to `/auth/callback` and sets the cookie, and any future thin proxies needed for cookie management.
 

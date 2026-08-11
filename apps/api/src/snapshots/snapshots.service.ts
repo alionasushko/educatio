@@ -7,6 +7,7 @@ import {
 } from "../schemas/lesson-snapshot.schema";
 import { LessonsService } from "../lessons/lessons.service";
 import type { SessionClaims } from "@educatio/shared";
+import type { LatestSnapshotResponse } from "@educatio/shared/api/snapshot";
 
 @Injectable()
 export class SnapshotsService {
@@ -28,9 +29,30 @@ export class SnapshotsService {
   }
 
   async latest(lessonId: string): Promise<Record<string, unknown> | null> {
-    const doc = await this.snapshots
-      .findOne({ lessonId })
-      .sort({ snapshotAt: -1 });
+    const doc = await this.latestDoc(lessonId);
     return doc ? doc.canvasState : null;
+  }
+
+  async latestForSession(
+    lessonId: string,
+    session: SessionClaims,
+  ): Promise<LatestSnapshotResponse> {
+    const lesson = await this.lessonsService.findOr404(lessonId);
+    this.lessonsService.assertCanRead(lesson, session);
+    const doc = await this.latestDoc(lessonId);
+    return {
+      snapshot: doc
+        ? {
+            canvasState: doc.canvasState,
+            snapshotAt: doc.snapshotAt.toISOString(),
+          }
+        : null,
+    };
+  }
+
+  private async latestDoc(
+    lessonId: string,
+  ): Promise<LessonSnapshotDocument | null> {
+    return this.snapshots.findOne({ lessonId }).sort({ snapshotAt: -1 });
   }
 }
