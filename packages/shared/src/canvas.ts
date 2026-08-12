@@ -10,7 +10,7 @@ export type CodeLanguage =
   | "css"
   | "plaintext";
 
-export interface BaseElement {
+export type BaseElement = {
   id: string;
   type: string;
   x: number;
@@ -19,9 +19,9 @@ export interface BaseElement {
   zIndex: number;
   createdBy: string;
   createdAt: number;
-}
+};
 
-export interface TextElement extends BaseElement {
+export type TextElement = BaseElement & {
   type: "text";
   width: number;
   height: number;
@@ -30,17 +30,17 @@ export interface TextElement extends BaseElement {
   fontWeight: "normal" | "bold";
   fontStyle: "normal" | "italic";
   color: string;
-}
+};
 
-export interface StickyNoteElement extends BaseElement {
+export type StickyNoteElement = BaseElement & {
   type: "sticky";
   width: number;
   height: number;
   content: string;
   color: StickyColor;
-}
+};
 
-export interface ShapeElement extends BaseElement {
+export type ShapeElement = BaseElement & {
   type: "shape";
   shape: ShapeKind;
   width: number;
@@ -48,29 +48,29 @@ export interface ShapeElement extends BaseElement {
   stroke: string;
   strokeWidth: number;
   fill?: string;
-}
+};
 
-export interface DrawPathElement extends BaseElement {
+export type DrawPathElement = BaseElement & {
   type: "path";
   points: number[];
   stroke: string;
   strokeWidth: number;
-}
+};
 
-export interface ImageElement extends BaseElement {
+export type ImageElement = BaseElement & {
   type: "image";
   width: number;
   height: number;
   src: string;
-}
+};
 
-export interface CodeBlockElement extends BaseElement {
+export type CodeBlockElement = BaseElement & {
   type: "code";
   width: number;
   height: number;
   language: CodeLanguage;
   content: string;
-}
+};
 
 export type CanvasElement =
   | TextElement
