@@ -45,6 +45,13 @@ npm run dev:api              # nest start --watch on :3001
 npm run dev -w @educatio/web
 npm run start:dev -w @educatio/api
 npm run typecheck -w @educatio/shared
+
+# After editing packages/shared — its exports map points at dist, so both apps
+# import the BUILT output at runtime while TypeScript reads src. Skip this and
+# typecheck passes while dev serves the stale dist (a new export arrives as
+# `undefined`). Run the watcher in a third terminal when working in shared.
+npm run build -w @educatio/shared
+npm run dev -w @educatio/shared     # tsc -w, same thing on save
 ```
 
 Node version is pinned to 22.22.2 (`.nvmrc`) — run `nvm use` before any command. Next 16 refuses to start on <20.9.
