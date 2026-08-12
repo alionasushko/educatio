@@ -1,5 +1,7 @@
 import type { LessonStatus } from "@educatio/shared";
 
+export const LIVEBLOCKS_AUTH_ROUTE = "/liveblocks-auth";
+
 export const signInRoute = (callbackUrl?: string): string =>
   callbackUrl
     ? `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`
