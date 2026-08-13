@@ -6,6 +6,7 @@ import {
   useCanRedo,
   useCanUndo,
   useRedo,
+  useStorageRoot,
   useUndo,
   useUpdateMyPresence,
 } from "@liveblocks/react";
@@ -24,6 +25,7 @@ const LessonCanvas = () => {
   const redo = useRedo();
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
+  const [storageRoot] = useStorageRoot();
 
   const changeTool = useCallback(
     (next: CanvasTool) => {
@@ -43,6 +45,7 @@ const LessonCanvas = () => {
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        ready={storageRoot !== null}
       />
     </div>
   );

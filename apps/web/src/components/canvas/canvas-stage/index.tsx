@@ -3,7 +3,12 @@
 import { useCallback, useRef, useState } from "react";
 import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
-import { useRedo, useUndo, useUpdateMyPresence } from "@liveblocks/react";
+import {
+  useRedo,
+  useStorageRoot,
+  useUndo,
+  useUpdateMyPresence,
+} from "@liveblocks/react";
 import type { CanvasTool } from "@/lib/liveblocks.config";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
@@ -33,6 +38,9 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [storageRoot] = useStorageRoot();
+  const storageReady = storageRoot !== null;
 
   const updateMyPresence = useUpdateMyPresence();
   const createElement = useCreateElement();
@@ -68,6 +76,8 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
         return;
       }
 
+      if (!storageReady) return;
+
       const point = stage?.getRelativePointerPosition();
       if (!point) return;
 
@@ -76,7 +86,7 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
       setEditingId(id);
       onToolChange("select");
     },
-    [tool, createElement, select, onToolChange],
+    [tool, storageReady, createElement, select, onToolChange],
   );
 
   const handleDelete = useCallback(() => {
@@ -89,7 +99,7 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
     containerRef,
     viewport,
     tool,
-    enabled: !spaceHeld,
+    enabled: storageReady && !spaceHeld,
     onCommit: createPath,
   });
 

@@ -12,6 +12,7 @@ interface Props {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  ready: boolean;
 }
 
 const CanvasToolbar = ({
@@ -21,6 +22,7 @@ const CanvasToolbar = ({
   onRedo,
   canUndo,
   canRedo,
+  ready,
 }: Props) => (
   <div
     role="toolbar"
@@ -35,6 +37,7 @@ const CanvasToolbar = ({
         shortcut={shortcut}
         Icon={Icon}
         active={tool === value}
+        disabled={!ready}
         onClick={() => onToolChange(value)}
       />
     ))}
@@ -46,14 +49,14 @@ const CanvasToolbar = ({
       shortcut="Cmd+Z"
       Icon={Undo2Icon}
       onClick={onUndo}
-      disabled={!canUndo}
+      disabled={!ready || !canUndo}
     />
     <ToolButton
       label="Redo"
       shortcut="Cmd+Shift+Z"
       Icon={Redo2Icon}
       onClick={onRedo}
-      disabled={!canRedo}
+      disabled={!ready || !canRedo}
     />
   </div>
 );
