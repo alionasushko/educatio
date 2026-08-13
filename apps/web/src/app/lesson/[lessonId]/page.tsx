@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import CanvasRoom from "@/components/canvas/canvas-room";
 import ConnectionStatus from "@/components/canvas/connection-status";
+import LessonCanvas from "@/components/canvas/lesson-canvas";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
@@ -54,65 +55,73 @@ const LessonPage = async ({ params }: Props) => {
   const live = lesson.status !== "ended";
 
   const shell = (
-    <div className="bg-bg flex min-h-dvh flex-col">
-      <header className="border-border-subtle bg-surface flex items-center justify-between border-b px-6 py-4 md:px-10">
-        <Wordmark href="/dashboard" size={14} />
-        <div className="flex items-center gap-3">
+    <div className="bg-bg flex h-dvh flex-col overflow-hidden">
+      <header className="border-border-subtle bg-surface flex h-14 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <Wordmark href="/dashboard" size={14} />
+          <span
+            className="bg-border-subtle h-5 w-px shrink-0"
+            aria-hidden="true"
+          />
+          <div className="min-w-0">
+            <h1 className="text-text-primary truncate text-sm font-medium">
+              {lesson.title}
+            </h1>
+            {lesson.studentName && (
+              <p className="text-text-secondary truncate text-xs">
+                with {lesson.studentName}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
           {live && <ConnectionStatus />}
+          <Badge variant={variant} dot>
+            {label}
+          </Badge>
+          {videoHref && (
+            <a
+              href={videoHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-9 gap-1.5 px-3 text-sm",
+              )}
+            >
+              <VideoIcon className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Join video call</span>
+            </a>
+          )}
           <Link
             href="/dashboard"
             className={cn(
               buttonVariants({ variant: "ghost" }),
-              "h-9 px-3.5 text-sm",
+              "h-9 px-3 text-sm",
             )}
           >
-            Back to dashboard
+            Back
           </Link>
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-6 py-16">
-        <div className="max-w-115 text-center">
-          <div className="mb-4 flex justify-center">
-            <Badge variant={variant} dot>
-              {label}
-            </Badge>
+      <main className="min-h-0 flex-1">
+        {live ? (
+          <LessonCanvas />
+        ) : (
+          <div className="flex h-full items-center justify-center px-6">
+            <div className="max-w-100 text-center">
+              <h2 className="text-text-primary text-lg font-semibold tracking-tight">
+                This lesson has ended
+              </h2>
+              <p className="text-text-secondary mt-2 text-sm leading-relaxed">
+                The canvas is closed for editing. A summary of what you covered
+                is on its way.
+              </p>
+            </div>
           </div>
-          <h1 className="text-text-primary text-2xl font-semibold tracking-tight">
-            {lesson.title}
-          </h1>
-          {lesson.studentName && (
-            <p className="text-text-secondary mt-1.5 text-sm">
-              with {lesson.studentName}
-            </p>
-          )}
-          <p className="text-text-secondary mx-auto mt-4 text-sm leading-relaxed">
-            The live whiteboard for this lesson is coming soon. Your lesson is
-            created and saved to your dashboard.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            {videoHref && (
-              <a
-                href={videoHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "h-10 gap-1.5 px-4 text-sm",
-                )}
-              >
-                <VideoIcon className="size-4" aria-hidden="true" />
-                Join video call
-              </a>
-            )}
-            <Link
-              href="/dashboard"
-              className={cn(buttonVariants(), "h-10 px-4 text-sm")}
-            >
-              Back to dashboard
-            </Link>
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );
