@@ -1,4 +1,3 @@
-import type { StickyColor } from "@educatio/shared";
 import type { Viewport } from "./types";
 
 export const MIN_SCALE = 0.2;
@@ -12,14 +11,6 @@ export const CANVAS_FONT = "Inter, ui-sans-serif, system-ui, sans-serif";
 export const CANVAS_MONO_FONT =
   "JetBrains Mono, ui-monospace, SFMono-Regular, monospace";
 
-export const STICKY_TOKEN: Record<StickyColor, string> = {
-  yellow: "--sticky-yellow",
-  pink: "--sticky-pink",
-  blue: "--sticky-blue",
-  green: "--sticky-green",
-  purple: "--sticky-purple",
-};
-
 export const STICKY_PADDING = 14;
 export const CODE_PADDING = 12;
 
@@ -27,7 +18,6 @@ export const DRAG_SYNC_MS = 50;
 export const SELECTION_PADDING = 6;
 
 export const PEN_MIN_DISTANCE = 2;
-export const PEN_STROKE_WIDTH = 3;
 
 export const MIN_TEXT_HEIGHT: Record<"text" | "sticky" | "code", number> = {
   text: 40,

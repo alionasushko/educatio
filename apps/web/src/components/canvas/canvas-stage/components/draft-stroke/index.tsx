@@ -1,22 +1,22 @@
 "use client";
 
 import { Line } from "react-konva";
-import { PEN_STROKE_WIDTH } from "../../helpers/constants";
-import { cssToken } from "../../helpers/helpers";
-
+import { paint } from "../../helpers/helpers";
 interface Props {
   x: number;
   y: number;
   points: number[];
+  stroke: string;
+  strokeWidth: number;
 }
 
-const DraftStroke = ({ x, y, points }: Props) => (
+const DraftStroke = ({ x, y, points, stroke, strokeWidth }: Props) => (
   <Line
     x={x}
     y={y}
     points={points}
-    stroke={cssToken("--accent-brand")}
-    strokeWidth={PEN_STROKE_WIDTH}
+    stroke={paint(stroke)}
+    strokeWidth={strokeWidth}
     lineCap="round"
     lineJoin="round"
     tension={0.4}

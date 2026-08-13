@@ -2,6 +2,7 @@
 
 import { Arrow, Ellipse, Rect } from "react-konva";
 import type { ShapeElement as ShapeElementType } from "@educatio/shared";
+import { paint } from "../../../../helpers/helpers";
 
 interface Props {
   element: ShapeElementType;
@@ -15,9 +16,9 @@ const ShapeElement = ({ element }: Props) => {
         y={element.height / 2}
         radiusX={element.width / 2}
         radiusY={element.height / 2}
-        stroke={element.stroke}
+        stroke={paint(element.stroke)}
         strokeWidth={element.strokeWidth}
-        fill={element.fill}
+        fill={element.fill ? paint(element.fill) : undefined}
       />
     );
   }
@@ -26,9 +27,9 @@ const ShapeElement = ({ element }: Props) => {
     return (
       <Arrow
         points={[0, 0, element.width, element.height]}
-        stroke={element.stroke}
+        stroke={paint(element.stroke)}
         strokeWidth={element.strokeWidth}
-        fill={element.stroke}
+        fill={paint(element.stroke)}
         pointerLength={10}
         pointerWidth={10}
       />
@@ -39,9 +40,9 @@ const ShapeElement = ({ element }: Props) => {
     <Rect
       width={element.width}
       height={element.height}
-      stroke={element.stroke}
+      stroke={paint(element.stroke)}
       strokeWidth={element.strokeWidth}
-      fill={element.fill}
+      fill={element.fill ? paint(element.fill) : undefined}
     />
   );
 };

@@ -2,11 +2,8 @@
 
 import { Rect, Text } from "react-konva";
 import type { StickyNoteElement } from "@educatio/shared";
-import {
-  CANVAS_FONT,
-  STICKY_PADDING,
-  STICKY_TOKEN,
-} from "../../../../helpers/constants";
+import { CANVAS_FONT, STICKY_PADDING } from "../../../../helpers/constants";
+import { STICKY_TOKEN } from "../../../../../helpers/constants";
 import { cssToken } from "../../../../helpers/helpers";
 
 interface Props {

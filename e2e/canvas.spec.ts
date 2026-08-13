@@ -47,6 +47,50 @@ test("the toolbar drives tool selection", async ({ page, context }) => {
   await expect(select).toHaveAttribute("aria-pressed", "true");
 });
 
+test("the pickers follow the tool that needs them", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+
+  // `exact` matters: getByRole matches the accessible name as a substring by
+  // default, so "Color" would also match the "Sticky color" group.
+  const ink = page.getByRole("group", { name: "Color", exact: true });
+  const sticky = page.getByRole("group", { name: "Sticky color", exact: true });
+  const stroke = page.getByRole("group", { name: "Stroke width" });
+
+  // Select has nothing to color.
+  await expect(ink).toBeHidden();
+  await expect(sticky).toBeHidden();
+  await expect(stroke).toBeHidden();
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  await expect(ink).toBeVisible();
+  await expect(stroke).toBeVisible();
+  await expect(sticky).toBeHidden();
+
+  // A sticky's color is a closed set, so it gets its own palette.
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await expect(sticky).toBeVisible();
+  await expect(ink).toBeHidden();
+  await expect(stroke).toBeHidden();
+
+  const green = sticky.getByRole("button", { name: "Green" });
+  await expect(green).toHaveAttribute("aria-pressed", "false");
+  await green.click();
+  await expect(green).toHaveAttribute("aria-pressed", "true");
+
+  // Choosing a tool must not silently reset a color chosen for another one.
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  await ink.getByRole("button", { name: "Rust" }).click();
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await expect(sticky.getByRole("button", { name: "Green" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
 test("drawing writes to storage and one undo reverses the whole stroke", async ({
   page,
   context,

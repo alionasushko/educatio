@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import type { CanvasElement } from "@educatio/shared";
 import type { CanvasTool } from "@/lib/liveblocks.config";
-import { cssToken } from "./helpers";
+import type { CanvasSettings } from "../../helpers/types";
 
 export type CreatableTool = Exclude<CanvasTool, "select" | "pen" | "image">;
 
@@ -10,13 +10,14 @@ interface Origin {
   y: number;
   createdBy: string;
   zIndex: number;
+  settings: CanvasSettings;
 }
 
 const STICKY_SIZE = 190;
 
 export const createElement = (
   tool: CreatableTool,
-  { x, y, createdBy, zIndex }: Origin,
+  { x, y, createdBy, zIndex, settings }: Origin,
 ): CanvasElement => {
   const base = {
     id: nanoid(10),
@@ -36,7 +37,7 @@ export const createElement = (
         width: STICKY_SIZE,
         height: STICKY_SIZE,
         content: "",
-        color: "yellow",
+        color: settings.stickyColor,
       };
     case "text":
       return {
@@ -50,7 +51,7 @@ export const createElement = (
         fontSize: 20,
         fontWeight: "normal",
         fontStyle: "normal",
-        color: cssToken("--text-primary"),
+        color: settings.inkToken,
       };
     case "shape":
       return {
@@ -61,8 +62,8 @@ export const createElement = (
         shape: "rectangle",
         width: 180,
         height: 120,
-        stroke: cssToken("--accent-brand"),
-        strokeWidth: 2,
+        stroke: settings.inkToken,
+        strokeWidth: settings.strokeWidth,
       };
     case "code":
       return {

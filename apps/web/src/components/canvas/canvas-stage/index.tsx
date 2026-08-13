@@ -9,7 +9,7 @@ import {
   useUndo,
   useUpdateMyPresence,
 } from "@liveblocks/react";
-import type { CanvasTool } from "@/lib/liveblocks.config";
+import type { CanvasSettings } from "../helpers/types";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
 import { useViewport } from "./helpers/use-viewport";
@@ -27,11 +27,12 @@ import SelectionOverlay from "./components/selection-overlay";
 import TextEditor from "./components/text-editor";
 
 interface Props {
-  tool: CanvasTool;
-  onToolChange: (tool: CanvasTool) => void;
+  settings: CanvasSettings;
+  onChange: (patch: Partial<CanvasSettings>) => void;
 }
 
-const CanvasStage = ({ tool, onToolChange }: Props) => {
+const CanvasStage = ({ settings, onChange }: Props) => {
+  const { tool } = settings;
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useStageSize(containerRef);
   const { viewport, panning, spaceHeld, handlers } = useViewport(containerRef);
@@ -81,12 +82,12 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
       const point = stage?.getRelativePointerPosition();
       if (!point) return;
 
-      const id = createElement(tool, point.x, point.y);
+      const id = createElement(tool, point.x, point.y, settings);
       select(id);
       setEditingId(id);
-      onToolChange("select");
+      onChange({ tool: "select" });
     },
-    [tool, storageReady, createElement, select, onToolChange],
+    [tool, settings, storageReady, createElement, select, onChange],
   );
 
   const handleDelete = useCallback(() => {
@@ -95,12 +96,18 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
     select(null);
   }, [selectedId, editingId, deleteElement, select]);
 
+  const commitStroke = useCallback(
+    (x: number, y: number, points: number[]) =>
+      createPath(x, y, points, settings.inkToken, settings.strokeWidth),
+    [createPath, settings.inkToken, settings.strokeWidth],
+  );
+
   const pen = usePen({
     containerRef,
     viewport,
     tool,
     enabled: storageReady && !spaceHeld,
-    onCommit: createPath,
+    onCommit: commitStroke,
   });
 
   const pointerHandlers = {
@@ -123,7 +130,7 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
     onDeselect: handleDeselect,
     onUndo: undo,
     onRedo: redo,
-    onTool: onToolChange,
+    onTool: (next) => onChange({ tool: next }),
   });
 
   const dot = GRID_SIZE * viewport.scale;
@@ -171,6 +178,8 @@ const CanvasStage = ({ tool, onToolChange }: Props) => {
                 x={pen.draft.x}
                 y={pen.draft.y}
                 points={pen.draft.points}
+                stroke={settings.inkToken}
+                strokeWidth={settings.strokeWidth}
               />
             )}
           </Layer>

@@ -8,9 +8,9 @@ import {
   CODE_PADDING,
   MIN_TEXT_HEIGHT,
   STICKY_PADDING,
-  STICKY_TOKEN,
 } from "../../helpers/constants";
-import { cssToken } from "../../helpers/helpers";
+import { STICKY_TOKEN } from "../../../helpers/constants";
+import { cssToken, paint } from "../../helpers/helpers";
 import { useUpdateElementText } from "../../helpers/use-canvas-mutations";
 import type { Viewport } from "../../helpers/types";
 
@@ -90,7 +90,10 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
     fontFamily: element.type === "code" ? CANVAS_MONO_FONT : CANVAS_FONT,
     fontSize: scaled(fontSize),
     lineHeight: element.type === "code" ? 1.5 : 1.35,
-    color: element.type === "text" ? element.color : cssToken("--text-primary"),
+    color:
+      element.type === "text"
+        ? paint(element.color)
+        : cssToken("--text-primary"),
     background:
       element.type === "sticky"
         ? cssToken(STICKY_TOKEN[element.color])

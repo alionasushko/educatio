@@ -10,8 +10,9 @@ import {
   useUndo,
   useUpdateMyPresence,
 } from "@liveblocks/react";
-import type { CanvasTool } from "@/lib/liveblocks.config";
 import CanvasToolbar from "../canvas-toolbar";
+import { DEFAULT_SETTINGS } from "../helpers/constants";
+import type { CanvasSettings } from "../helpers/types";
 
 const CanvasStage = dynamic(() => import("../canvas-stage"), {
   ssr: false,
@@ -19,7 +20,7 @@ const CanvasStage = dynamic(() => import("../canvas-stage"), {
 });
 
 const LessonCanvas = () => {
-  const [tool, setTool] = useState<CanvasTool>("select");
+  const [settings, setSettings] = useState<CanvasSettings>(DEFAULT_SETTINGS);
   const updateMyPresence = useUpdateMyPresence();
   const undo = useUndo();
   const redo = useRedo();
@@ -27,20 +28,20 @@ const LessonCanvas = () => {
   const canRedo = useCanRedo();
   const [storageRoot] = useStorageRoot();
 
-  const changeTool = useCallback(
-    (next: CanvasTool) => {
-      setTool(next);
-      updateMyPresence({ tool: next });
+  const change = useCallback(
+    (patch: Partial<CanvasSettings>) => {
+      setSettings((current) => ({ ...current, ...patch }));
+      if (patch.tool) updateMyPresence({ tool: patch.tool });
     },
     [updateMyPresence],
   );
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <CanvasStage tool={tool} onToolChange={changeTool} />
+      <CanvasStage settings={settings} onChange={change} />
       <CanvasToolbar
-        tool={tool}
-        onToolChange={changeTool}
+        settings={settings}
+        onChange={change}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}

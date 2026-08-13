@@ -2,6 +2,7 @@
 
 import { Line } from "react-konva";
 import type { DrawPathElement } from "@educatio/shared";
+import { paint } from "../../../../helpers/helpers";
 
 interface Props {
   element: DrawPathElement;
@@ -10,7 +11,7 @@ interface Props {
 const PathElement = ({ element }: Props) => (
   <Line
     points={element.points}
-    stroke={element.stroke}
+    stroke={paint(element.stroke)}
     strokeWidth={element.strokeWidth}
     lineCap="round"
     lineJoin="round"

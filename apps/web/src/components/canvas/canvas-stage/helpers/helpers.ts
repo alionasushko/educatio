@@ -1,4 +1,5 @@
 import type { CanvasTool } from "@/lib/liveblocks.config";
+import { INK_FALLBACK } from "../../helpers/constants";
 import { MAX_SCALE, MIN_SCALE } from "./constants";
 import type { CreatableTool } from "./element-factory";
 import type { Viewport } from "./types";
@@ -45,6 +46,9 @@ export const cssToken = (name: string): string => {
 
 export const isCreatable = (tool: CanvasTool): tool is CreatableTool =>
   tool !== "select" && tool !== "pen" && tool !== "image";
+
+export const paint = (color: string): string =>
+  color.startsWith("--") ? cssToken(color) || cssToken(INK_FALLBACK) : color;
 
 export const isTypingTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) return false;

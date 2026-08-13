@@ -3,6 +3,7 @@
 import { Text } from "react-konva";
 import type { TextElement as TextElementType } from "@educatio/shared";
 import { CANVAS_FONT } from "../../../../helpers/constants";
+import { paint } from "../../../../helpers/helpers";
 
 interface Props {
   element: TextElementType;
@@ -23,7 +24,7 @@ const TextElement = ({ element }: Props) => (
         .filter(Boolean)
         .join(" ") || "normal"
     }
-    fill={element.color}
+    fill={paint(element.color)}
     lineHeight={1.35}
   />
 );
