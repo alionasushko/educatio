@@ -1,0 +1,112 @@
+import { test, expect, type Page } from "@playwright/test";
+import {
+  createDemoLesson,
+  deleteLesson,
+  signIn,
+  type DemoLesson,
+} from "./helpers/session";
+
+let lesson: DemoLesson;
+
+test.beforeEach(async () => {
+  lesson = await createDemoLesson("E2E canvas");
+});
+
+test.afterEach(async () => {
+  await deleteLesson(lesson);
+});
+
+const openCanvas = async (page: Page) => {
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(
+    page.getByRole("toolbar", { name: "Canvas tools" }),
+  ).toBeVisible();
+  const canvas = page.locator("canvas").first();
+  await expect(canvas).toBeVisible();
+  // Tools stay disabled until room storage has loaded; drawing before that
+  // would throw inside the mutation and silently lose the stroke.
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  return canvas;
+};
+
+test("the toolbar drives tool selection", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+
+  const select = page.getByRole("button", { name: "Select (V)" });
+  const pen = page.getByRole("button", { name: "Pen (P)" });
+
+  await expect(select).toHaveAttribute("aria-pressed", "true");
+  await expect(pen).toHaveAttribute("aria-pressed", "false");
+
+  await pen.click();
+  await expect(pen).toHaveAttribute("aria-pressed", "true");
+  await expect(select).toHaveAttribute("aria-pressed", "false");
+
+  await page.keyboard.press("v");
+  await expect(select).toHaveAttribute("aria-pressed", "true");
+});
+
+test("drawing writes to storage and one undo reverses the whole stroke", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const undo = page.getByRole("button", { name: "Undo (Cmd+Z)" });
+  await expect(undo).toBeDisabled();
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("canvas has no box");
+  await page.mouse.move(box.x + 150, box.y + 150);
+  await page.mouse.down();
+  for (let step = 1; step <= 12; step += 1) {
+    await page.mouse.move(box.x + 150 + step * 12, box.y + 150 + step * 6);
+  }
+  await page.mouse.up();
+
+  await expect(undo).toBeEnabled();
+
+  // A drag is many storage writes; history.pause() should make it one step.
+  await undo.click();
+  await expect(undo).toBeDisabled();
+});
+
+test("a peer sees what the other person draws", async ({ browser }) => {
+  const tutor = await browser.newContext();
+  const peer = await browser.newContext();
+  await signIn(tutor, lesson.sessionJwt);
+  await signIn(peer, lesson.sessionJwt);
+
+  const tutorPage = await tutor.newPage();
+  const peerPage = await peer.newPage();
+
+  await tutorPage.goto(`/lesson/${lesson.lessonId}`);
+  await peerPage.goto(`/lesson/${lesson.lessonId}`);
+  const peerCanvas = peerPage.locator("canvas").first();
+  await expect(peerCanvas).toBeVisible();
+  await expect(
+    tutorPage.getByRole("button", { name: "Sticky note (S)" }),
+  ).toBeEnabled();
+
+  const before = await peerCanvas.screenshot();
+
+  await tutorPage.getByRole("button", { name: "Sticky note (S)" }).click();
+  const tutorCanvas = tutorPage.locator("canvas").first();
+  const box = await tutorCanvas.boundingBox();
+  if (!box) throw new Error("canvas has no box");
+  await tutorPage.mouse.click(box.x + 300, box.y + 220);
+
+  await expect
+    .poll(async () => (await peerCanvas.screenshot()).equals(before), {
+      message: "peer canvas never changed after the other person drew",
+      timeout: 15_000,
+    })
+    .toBe(false);
+
+  await tutor.close();
+  await peer.close();
+});
