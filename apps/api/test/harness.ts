@@ -15,6 +15,8 @@ export interface Harness {
   baseUrl: string;
   tutorJwt: string;
   tutorId: string;
+  /** A second, unrelated tutor — for asserting one tutor cannot reach another's rows. */
+  otherTutorJwt: string;
   close: () => Promise<void>;
 }
 
@@ -63,22 +65,32 @@ export const startApi = async (): Promise<Harness> => {
   }
 
   const users = moduleRef.get<Model<UserDocument>>(getModelToken(User.name));
+  const jwt = moduleRef.get(JwtService);
+
+  const signTutor = async (email: string, name: string): Promise<string> => {
+    const user = await users.create({ email, name, emailVerified: new Date() });
+    return jwt.signAsync(
+      { kind: "tutor", sub: user.id, email: user.email },
+      { expiresIn: "1h" },
+    );
+  };
+
   const tutor = await users.create({
     email: "tutor@example.com",
     name: "Test Tutor",
     emailVerified: new Date(),
   });
 
-  const tutorJwt = await moduleRef
-    .get(JwtService)
-    .signAsync(
-      { kind: "tutor", sub: tutor.id, email: tutor.email },
-      { expiresIn: "1h" },
-    );
+  const tutorJwt = await jwt.signAsync(
+    { kind: "tutor", sub: tutor.id, email: tutor.email },
+    { expiresIn: "1h" },
+  );
+  const otherTutorJwt = await signTutor("other@example.com", "Other Tutor");
 
   return {
     baseUrl: await app.getUrl(),
     tutorJwt,
+    otherTutorJwt,
     tutorId: tutor.id,
     close: async () => {
       await app.close();

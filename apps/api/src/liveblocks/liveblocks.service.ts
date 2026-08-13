@@ -1,6 +1,6 @@
 import {
-  ForbiddenException,
   Injectable,
+  NotFoundException,
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
@@ -20,13 +20,13 @@ export class LiveblocksService {
 
   async authorize(session: SessionClaims, room: string): Promise<unknown> {
     const lesson = await this.lessons.findOne({ liveblocksRoomId: room });
-    if (!lesson) throw new ForbiddenException("Unknown room");
+    if (!lesson) throw new NotFoundException("Room not found");
 
     const allowed =
       session.kind === "tutor"
         ? lesson.tutorId.toString() === session.sub
         : lesson.id === session.lessonId;
-    if (!allowed) throw new ForbiddenException("No access to this room");
+    if (!allowed) throw new NotFoundException("Room not found");
 
     const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
     if (!secret) {

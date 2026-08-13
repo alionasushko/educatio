@@ -1,9 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { ConfigService } from "@nestjs/config";
 import { Model, Types } from "mongoose";
@@ -124,7 +119,7 @@ export class LessonsService {
   ): Promise<LessonDTO> {
     const lesson = await this.findOr404(id);
     if (lesson.tutorId.toString() !== tutorId) {
-      throw new ForbiddenException("Not your lesson");
+      throw new NotFoundException("Lesson not found");
     }
 
     if (input.title !== undefined) lesson.title = input.title;
@@ -162,7 +157,7 @@ export class LessonsService {
   async getOwnedOr403(id: string, tutorId: string): Promise<LessonDocument> {
     const lesson = await this.findOr404(id);
     if (lesson.tutorId.toString() !== tutorId) {
-      throw new ForbiddenException("Not your lesson");
+      throw new NotFoundException("Lesson not found");
     }
     return lesson;
   }
@@ -182,7 +177,7 @@ export class LessonsService {
       session.kind === "tutor"
         ? lesson.tutorId.toString() === session.sub
         : lesson.id === session.lessonId;
-    if (!ok) throw new ForbiddenException("No access to this lesson");
+    if (!ok) throw new NotFoundException("Lesson not found");
   }
 
   private async uniqueInviteCode(): Promise<string> {

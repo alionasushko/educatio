@@ -35,15 +35,16 @@ interface CallOptions {
   method?: string;
   body?: unknown;
   auth?: boolean;
+  token?: string;
 }
 
 const call = async (
   path: string,
-  { method = "GET", body, auth = true }: CallOptions = {},
+  { method = "GET", body, auth = true, token }: CallOptions = {},
 ) => {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (auth) headers["Authorization"] = `Bearer ${api.tutorJwt}`;
+  if (auth) headers["Authorization"] = `Bearer ${token ?? api.tutorJwt}`;
 
   const res = await fetch(`${api.baseUrl}${path}`, {
     method,
@@ -189,9 +190,39 @@ describe("api errors match the shared envelope", () => {
     expectShape(apiErrorSchema, data);
   });
 
-  it("hides another tutor's lesson behind the same code as a missing one", async () => {
+  it("answers a lesson id that exists for nobody with not_found", async () => {
     const { status, data } = await call(lessonPath("507f1f77bcf86cd799439011"));
     expect(status).toBe(404);
     expect(expectShape(apiErrorSchema, data).code).toBe("not_found");
+  });
+
+  it("hides a real lesson from another tutor behind that same answer", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Someone else's lesson" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    // Identical to the response for an id that exists for nobody, so a tutor
+    // cannot use the api to learn which lesson ids are real.
+    for (const attempt of [
+      await call(lessonPath(id), { token: api.otherTutorJwt }),
+      await call(lessonPath(id), {
+        method: "PATCH",
+        token: api.otherTutorJwt,
+        body: { title: "Stolen" },
+      }),
+      await call(lessonPath(id), {
+        method: "DELETE",
+        token: api.otherTutorJwt,
+      }),
+    ]) {
+      expect(attempt.status).toBe(404);
+      expect(expectShape(apiErrorSchema, attempt.data).code).toBe("not_found");
+    }
+
+    // Still there — the other tutor's DELETE was refused, not silently applied.
+    expect((await call(lessonPath(id))).status).toBe(200);
+    await call(lessonPath(id), { method: "DELETE" });
   });
 });

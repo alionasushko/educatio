@@ -209,6 +209,8 @@ One room per `lesson.liveblocksRoomId`.
 
 All routes live on the **api service** (NestJS, base URL `EDUCATIO_API_URL`). Auth: bearer JWT in `Authorization: Bearer <jwt>` verified by `JwtAuthGuard` — either tutor session or student session, indicated by the `kind` claim. Request/response shapes have matching Zod schemas in `@educatio/shared/api/*`.
 
+**A row you don't own answers exactly like a row that doesn't exist** — `404 not_found`, never `403 forbidden`, for a lesson and everything addressed through it (snapshot, summary, Liveblocks room). Otherwise the difference between the two answers tells a caller which ids are real, and `apps/web` collapsing them at the page would only hide that from its own users, not from anyone calling api directly.
+
 | Route                   | Method | Auth                                             | Notes                                                                                          |
 | ----------------------- | ------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | `/auth/signup`          | POST   | none                                             | body `{ name, email, teaches? }` → `{ sent: true }`                                            |
