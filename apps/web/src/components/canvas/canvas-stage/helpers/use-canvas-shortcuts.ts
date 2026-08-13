@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import type { CanvasTool } from "@/lib/liveblocks.config";
+import { TOOL_BY_SHORTCUT } from "../../canvas-toolbar/helpers/constants";
 import { isTypingTarget } from "./helpers";
 
 interface Options {
@@ -6,6 +8,7 @@ interface Options {
   onDeselect: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  onTool: (tool: CanvasTool) => void;
 }
 
 export const useCanvasShortcuts = ({
@@ -13,6 +16,7 @@ export const useCanvasShortcuts = ({
   onDeselect,
   onUndo,
   onRedo,
+  onTool,
 }: Options) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -25,6 +29,8 @@ export const useCanvasShortcuts = ({
         return;
       }
 
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
       if (event.key === "Escape") {
         onDeselect();
         return;
@@ -33,10 +39,14 @@ export const useCanvasShortcuts = ({
       if (event.key === "Backspace" || event.key === "Delete") {
         event.preventDefault();
         onDelete();
+        return;
       }
+
+      const tool = TOOL_BY_SHORTCUT.get(event.key.toLowerCase());
+      if (tool) onTool(tool);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onDelete, onDeselect, onUndo, onRedo]);
+  }, [onDelete, onDeselect, onUndo, onRedo, onTool]);
 };

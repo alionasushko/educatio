@@ -16,9 +16,10 @@ import CodeElement from "./components/code-element";
 interface Props {
   id: string;
   onSelect: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-const CanvasElementNode = ({ id, onSelect }: Props) => {
+const CanvasElementNode = ({ id, onSelect, onEdit }: Props) => {
   const element = useStorage((root) => root.elements[id]);
   const moveElement = useMoveElement();
   const history = useHistory();
@@ -65,6 +66,8 @@ const CanvasElementNode = ({ id, onSelect }: Props) => {
     startMerging();
   }, [id, onSelect, startMerging]);
 
+  const handleEdit = useCallback(() => onEdit(id), [id, onEdit]);
+
   if (!element) return null;
 
   return (
@@ -75,6 +78,8 @@ const CanvasElementNode = ({ id, onSelect }: Props) => {
       draggable
       onClick={handleSelect}
       onTap={handleSelect}
+      onDblClick={handleEdit}
+      onDblTap={handleEdit}
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}

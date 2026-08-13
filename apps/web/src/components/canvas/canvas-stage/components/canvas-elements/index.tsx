@@ -6,9 +6,10 @@ import CanvasElementNode from "../canvas-element";
 
 interface Props {
   onSelect: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
-const CanvasElements = ({ onSelect }: Props) => {
+const CanvasElements = ({ onSelect, onEdit }: Props) => {
   const ids = useStorage(
     (root) =>
       Object.values(root.elements)
@@ -20,7 +21,7 @@ const CanvasElements = ({ onSelect }: Props) => {
   if (!ids) return null;
 
   return ids.map((id) => (
-    <CanvasElementNode key={id} id={id} onSelect={onSelect} />
+    <CanvasElementNode key={id} id={id} onSelect={onSelect} onEdit={onEdit} />
   ));
 };
 

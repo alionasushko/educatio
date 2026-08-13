@@ -1,4 +1,6 @@
+import type { CanvasTool } from "@/lib/liveblocks.config";
 import { MAX_SCALE, MIN_SCALE } from "./constants";
+import type { CreatableTool } from "./element-factory";
 import type { Viewport } from "./types";
 
 export const clampScale = (scale: number): number =>
@@ -40,6 +42,9 @@ export const cssToken = (name: string): string => {
   tokenCache.set(name, value);
   return value;
 };
+
+export const isCreatable = (tool: CanvasTool): tool is CreatableTool =>
+  tool !== "select" && tool !== "pen" && tool !== "image";
 
 export const isTypingTarget = (target: EventTarget | null): boolean => {
   if (!(target instanceof HTMLElement)) return false;
