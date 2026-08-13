@@ -1,6 +1,7 @@
 import {
   CodeIcon,
   MousePointer2Icon,
+  PenLineIcon,
   SquareIcon,
   StickyNoteIcon,
   TypeIcon,
@@ -17,6 +18,7 @@ export interface ToolDefinition {
 
 export const TOOLS: ToolDefinition[] = [
   { tool: "select", label: "Select", shortcut: "V", Icon: MousePointer2Icon },
+  { tool: "pen", label: "Pen", shortcut: "P", Icon: PenLineIcon },
   { tool: "text", label: "Text", shortcut: "T", Icon: TypeIcon },
   { tool: "sticky", label: "Sticky note", shortcut: "S", Icon: StickyNoteIcon },
   { tool: "shape", label: "Rectangle", shortcut: "R", Icon: SquareIcon },

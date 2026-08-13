@@ -26,6 +26,9 @@ export const CODE_PADDING = 12;
 export const DRAG_SYNC_MS = 50;
 export const SELECTION_PADDING = 6;
 
+export const PEN_MIN_DISTANCE = 2;
+export const PEN_STROKE_WIDTH = 3;
+
 export const MIN_TEXT_HEIGHT: Record<"text" | "sticky" | "code", number> = {
   text: 40,
   sticky: 190,

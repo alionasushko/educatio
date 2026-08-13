@@ -3,57 +3,48 @@
 import { useCallback, useRef, useState } from "react";
 import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
-import {
-  useCanRedo,
-  useCanUndo,
-  useRedo,
-  useUndo,
-  useUpdateMyPresence,
-} from "@liveblocks/react";
+import { useRedo, useUndo, useUpdateMyPresence } from "@liveblocks/react";
 import type { CanvasTool } from "@/lib/liveblocks.config";
-import CanvasToolbar from "../canvas-toolbar";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
 import { useViewport } from "./helpers/use-viewport";
 import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
 import {
   useCreateElement,
+  useCreatePath,
   useDeleteElement,
 } from "./helpers/use-canvas-mutations";
+import { usePen } from "./helpers/use-pen";
 import { isCreatable } from "./helpers/helpers";
 import CanvasElements from "./components/canvas-elements";
+import DraftStroke from "./components/draft-stroke";
 import SelectionOverlay from "./components/selection-overlay";
 import TextEditor from "./components/text-editor";
 
-const CanvasStage = () => {
+interface Props {
+  tool: CanvasTool;
+  onToolChange: (tool: CanvasTool) => void;
+}
+
+const CanvasStage = ({ tool, onToolChange }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useStageSize(containerRef);
   const { viewport, panning, spaceHeld, handlers } = useViewport(containerRef);
 
-  const [tool, setTool] = useState<CanvasTool>("select");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const updateMyPresence = useUpdateMyPresence();
   const createElement = useCreateElement();
+  const createPath = useCreatePath();
   const deleteElement = useDeleteElement();
   const undo = useUndo();
   const redo = useRedo();
-  const canUndo = useCanUndo();
-  const canRedo = useCanRedo();
 
   const select = useCallback(
     (id: string | null) => {
       setSelectedId(id);
       updateMyPresence({ selection: id ? [id] : null });
-    },
-    [updateMyPresence],
-  );
-
-  const changeTool = useCallback(
-    (next: CanvasTool) => {
-      setTool(next);
-      updateMyPresence({ tool: next });
     },
     [updateMyPresence],
   );
@@ -83,9 +74,9 @@ const CanvasStage = () => {
       const id = createElement(tool, point.x, point.y);
       select(id);
       setEditingId(id);
-      changeTool("select");
+      onToolChange("select");
     },
-    [tool, createElement, select, changeTool],
+    [tool, createElement, select, onToolChange],
   );
 
   const handleDelete = useCallback(() => {
@@ -94,12 +85,35 @@ const CanvasStage = () => {
     select(null);
   }, [selectedId, editingId, deleteElement, select]);
 
+  const pen = usePen({
+    containerRef,
+    viewport,
+    tool,
+    enabled: !spaceHeld,
+    onCommit: createPath,
+  });
+
+  const pointerHandlers = {
+    onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
+      handlers.onPointerDown(event);
+      pen.handlers.onPointerDown(event);
+    },
+    onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
+      handlers.onPointerMove(event);
+      pen.handlers.onPointerMove(event);
+    },
+    onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => {
+      handlers.onPointerUp(event);
+      pen.handlers.onPointerUp();
+    },
+  };
+
   useCanvasShortcuts({
     onDelete: handleDelete,
     onDeselect: handleDeselect,
     onUndo: undo,
     onRedo: redo,
-    onTool: changeTool,
+    onTool: onToolChange,
   });
 
   const dot = GRID_SIZE * viewport.scale;
@@ -107,7 +121,7 @@ const CanvasStage = () => {
     ? "grabbing"
     : spaceHeld
       ? "grab"
-      : isCreatable(tool)
+      : tool !== "select"
         ? "crosshair"
         : "default";
 
@@ -116,7 +130,7 @@ const CanvasStage = () => {
       ref={containerRef}
       className="group bg-bg relative h-full w-full touch-none overflow-hidden"
       style={{ cursor }}
-      {...handlers}
+      {...pointerHandlers}
     >
       <div
         aria-hidden="true"
@@ -139,9 +153,16 @@ const CanvasStage = () => {
           onClick={handleStageClick}
           onTap={handleStageClick}
         >
-          <Layer>
+          <Layer listening={tool === "select"}>
             <CanvasElements onSelect={handleSelect} onEdit={handleEdit} />
             <SelectionOverlay selectedId={selectedId} scale={viewport.scale} />
+            {pen.draft && (
+              <DraftStroke
+                x={pen.draft.x}
+                y={pen.draft.y}
+                points={pen.draft.points}
+              />
+            )}
           </Layer>
         </Stage>
       )}
@@ -154,15 +175,6 @@ const CanvasStage = () => {
           onClose={() => setEditingId(null)}
         />
       )}
-
-      <CanvasToolbar
-        tool={tool}
-        onToolChange={changeTool}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-      />
     </div>
   );
 };

@@ -105,6 +105,7 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
       defaultValue={element.content}
       aria-label="Edit canvas text"
       spellCheck={false}
+      onPointerDown={(event) => event.stopPropagation()}
       onChange={(event) => fit(event.currentTarget)}
       onBlur={onClose}
       onKeyDown={(event) => {

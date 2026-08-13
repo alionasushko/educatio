@@ -1,6 +1,16 @@
 import { useMutation } from "@liveblocks/react";
+import { nanoid } from "nanoid";
+import type { LiveMap } from "@liveblocks/client";
 import type { CanvasElement } from "@educatio/shared";
+import { PEN_STROKE_WIDTH } from "./constants";
 import { createElement, type CreatableTool } from "./element-factory";
+import { cssToken } from "./helpers";
+
+const nextZIndex = (elements: LiveMap<string, CanvasElement>): number =>
+  Array.from(elements.values()).reduce(
+    (top, element) => Math.max(top, element.zIndex),
+    0,
+  ) + 1;
 
 export const useMoveElement = () =>
   useMutation(({ storage }, id: string, x: number, y: number) => {
@@ -25,15 +35,11 @@ export const useCreateElement = () =>
   useMutation(
     ({ storage, self }, tool: CreatableTool, x: number, y: number): string => {
       const elements = storage.get("elements");
-      const topZIndex = Array.from(elements.values()).reduce(
-        (top, element) => Math.max(top, element.zIndex),
-        0,
-      );
       const element = createElement(tool, {
         x,
         y,
-        createdBy: self.id ?? self.info.name,
-        zIndex: topZIndex + 1,
+        createdBy: self.id,
+        zIndex: nextZIndex(elements),
       });
       elements.set(element.id, element);
       storage.get("metadata").update({
@@ -44,6 +50,29 @@ export const useCreateElement = () =>
     },
     [],
   );
+
+export const useCreatePath = () =>
+  useMutation(({ storage, self }, x: number, y: number, points: number[]) => {
+    const elements = storage.get("elements");
+    const element: CanvasElement = {
+      id: nanoid(10),
+      type: "path",
+      x,
+      y,
+      rotation: 0,
+      zIndex: nextZIndex(elements),
+      createdBy: self.id,
+      createdAt: Date.now(),
+      points,
+      stroke: cssToken("--accent-brand"),
+      strokeWidth: PEN_STROKE_WIDTH,
+    };
+    elements.set(element.id, element);
+    storage.get("metadata").update({
+      lastEditedAt: Date.now(),
+      elementCount: elements.size,
+    });
+  }, []);
 
 export const useUpdateElementText = () =>
   useMutation(({ storage }, id: string, content: string, height: number) => {
