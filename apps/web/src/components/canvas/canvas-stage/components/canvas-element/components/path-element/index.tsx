@@ -9,15 +9,13 @@ interface Props {
 
 const PathElement = ({ element }: Props) => (
   <Line
-    x={element.x}
-    y={element.y}
-    rotation={element.rotation}
     points={element.points}
     stroke={element.stroke}
     strokeWidth={element.strokeWidth}
     lineCap="round"
     lineJoin="round"
     tension={0.4}
+    hitStrokeWidth={Math.max(element.strokeWidth, 12)}
     perfectDrawEnabled={false}
   />
 );

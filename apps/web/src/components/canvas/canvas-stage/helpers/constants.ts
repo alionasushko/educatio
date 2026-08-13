@@ -22,3 +22,6 @@ export const STICKY_TOKEN: Record<StickyColor, string> = {
 
 export const STICKY_PADDING = 14;
 export const CODE_PADDING = 12;
+
+export const DRAG_SYNC_MS = 50;
+export const SELECTION_PADDING = 6;

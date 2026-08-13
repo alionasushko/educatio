@@ -10,9 +10,6 @@ interface Props {
 
 const TextElement = ({ element }: Props) => (
   <Text
-    x={element.x}
-    y={element.y}
-    rotation={element.rotation}
     width={element.width}
     height={element.height}
     text={element.content}
@@ -28,7 +25,6 @@ const TextElement = ({ element }: Props) => (
     }
     fill={element.color}
     lineHeight={1.35}
-    listening={false}
   />
 );
 

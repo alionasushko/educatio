@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Rect, Text } from "react-konva";
+import { Rect, Text } from "react-konva";
 import type { StickyNoteElement } from "@educatio/shared";
 import {
   CANVAS_FONT,
@@ -14,7 +14,7 @@ interface Props {
 }
 
 const StickyElement = ({ element }: Props) => (
-  <Group x={element.x} y={element.y} rotation={element.rotation}>
+  <>
     <Rect
       width={element.width}
       height={element.height}
@@ -36,7 +36,7 @@ const StickyElement = ({ element }: Props) => (
       fill={cssToken("--text-primary")}
       lineHeight={1.35}
     />
-  </Group>
+  </>
 );
 
 export default StickyElement;

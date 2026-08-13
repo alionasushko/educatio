@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Rect, Text } from "react-konva";
+import { Rect, Text } from "react-konva";
 import type { CodeBlockElement } from "@educatio/shared";
 import { CANVAS_MONO_FONT, CODE_PADDING } from "../../../../helpers/constants";
 import { cssToken } from "../../../../helpers/helpers";
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const CodeElement = ({ element }: Props) => (
-  <Group x={element.x} y={element.y} rotation={element.rotation}>
+  <>
     <Rect
       width={element.width}
       height={element.height}
@@ -30,7 +30,7 @@ const CodeElement = ({ element }: Props) => (
       fill={cssToken("--text-primary")}
       lineHeight={1.5}
     />
-  </Group>
+  </>
 );
 
 export default CodeElement;

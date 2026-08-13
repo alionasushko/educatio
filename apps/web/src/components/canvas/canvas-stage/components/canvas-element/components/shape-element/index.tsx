@@ -8,23 +8,16 @@ interface Props {
 }
 
 const ShapeElement = ({ element }: Props) => {
-  const common = {
-    x: element.x,
-    y: element.y,
-    rotation: element.rotation,
-    stroke: element.stroke,
-    strokeWidth: element.strokeWidth,
-    fill: element.fill,
-  };
-
   if (element.shape === "circle") {
     return (
       <Ellipse
-        {...common}
-        x={element.x + element.width / 2}
-        y={element.y + element.height / 2}
+        x={element.width / 2}
+        y={element.height / 2}
         radiusX={element.width / 2}
         radiusY={element.height / 2}
+        stroke={element.stroke}
+        strokeWidth={element.strokeWidth}
+        fill={element.fill}
       />
     );
   }
@@ -32,16 +25,25 @@ const ShapeElement = ({ element }: Props) => {
   if (element.shape === "arrow") {
     return (
       <Arrow
-        {...common}
         points={[0, 0, element.width, element.height]}
+        stroke={element.stroke}
+        strokeWidth={element.strokeWidth}
+        fill={element.stroke}
         pointerLength={10}
         pointerWidth={10}
-        fill={element.stroke}
       />
     );
   }
 
-  return <Rect {...common} width={element.width} height={element.height} />;
+  return (
+    <Rect
+      width={element.width}
+      height={element.height}
+      stroke={element.stroke}
+      strokeWidth={element.strokeWidth}
+      fill={element.fill}
+    />
+  );
 };
 
 export default ShapeElement;

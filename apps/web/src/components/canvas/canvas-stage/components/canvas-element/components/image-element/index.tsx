@@ -27,9 +27,6 @@ const ImageElement = ({ element }: Props) => {
   if (!image) {
     return (
       <Rect
-        x={element.x}
-        y={element.y}
-        rotation={element.rotation}
         width={element.width}
         height={element.height}
         fill={cssToken("--surface")}
@@ -42,9 +39,6 @@ const ImageElement = ({ element }: Props) => {
 
   return (
     <KonvaImage
-      x={element.x}
-      y={element.y}
-      rotation={element.rotation}
       width={element.width}
       height={element.height}
       image={image}

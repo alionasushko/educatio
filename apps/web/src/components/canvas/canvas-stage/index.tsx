@@ -1,16 +1,58 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
+import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
+import { useRedo, useUndo, useUpdateMyPresence } from "@liveblocks/react";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
 import { useViewport } from "./helpers/use-viewport";
+import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
+import { useDeleteElement } from "./helpers/use-canvas-mutations";
 import CanvasElements from "./components/canvas-elements";
+import SelectionOverlay from "./components/selection-overlay";
 
 const CanvasStage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { width, height } = useStageSize(containerRef);
   const { viewport, panning, spaceHeld, handlers } = useViewport(containerRef);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const updateMyPresence = useUpdateMyPresence();
+  const deleteElement = useDeleteElement();
+  const undo = useUndo();
+  const redo = useRedo();
+
+  const select = useCallback(
+    (id: string | null) => {
+      setSelectedId(id);
+      updateMyPresence({ selection: id ? [id] : null });
+    },
+    [updateMyPresence],
+  );
+
+  const handleSelect = useCallback((id: string) => select(id), [select]);
+  const handleDeselect = useCallback(() => select(null), [select]);
+
+  const handleStageClick = useCallback(
+    (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      if (event.target === event.target.getStage()) handleDeselect();
+    },
+    [handleDeselect],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (!selectedId) return;
+    deleteElement(selectedId);
+    select(null);
+  }, [selectedId, deleteElement, select]);
+
+  useCanvasShortcuts({
+    onDelete: handleDelete,
+    onDeselect: handleDeselect,
+    onUndo: undo,
+    onRedo: redo,
+  });
 
   const dot = GRID_SIZE * viewport.scale;
 
@@ -39,9 +81,12 @@ const CanvasStage = () => {
           y={viewport.y}
           scaleX={viewport.scale}
           scaleY={viewport.scale}
+          onClick={handleStageClick}
+          onTap={handleStageClick}
         >
-          <Layer listening={false}>
-            <CanvasElements />
+          <Layer>
+            <CanvasElements onSelect={handleSelect} />
+            <SelectionOverlay selectedId={selectedId} scale={viewport.scale} />
           </Layer>
         </Stage>
       )}

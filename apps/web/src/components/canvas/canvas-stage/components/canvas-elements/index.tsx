@@ -1,9 +1,14 @@
 "use client";
 
+import { memo } from "react";
 import { shallow, useStorage } from "@liveblocks/react";
 import CanvasElementNode from "../canvas-element";
 
-const CanvasElements = () => {
+interface Props {
+  onSelect: (id: string) => void;
+}
+
+const CanvasElements = ({ onSelect }: Props) => {
   const ids = useStorage(
     (root) =>
       Object.values(root.elements)
@@ -14,7 +19,9 @@ const CanvasElements = () => {
 
   if (!ids) return null;
 
-  return ids.map((id) => <CanvasElementNode key={id} id={id} />);
+  return ids.map((id) => (
+    <CanvasElementNode key={id} id={id} onSelect={onSelect} />
+  ));
 };
 
-export default CanvasElements;
+export default memo(CanvasElements);
