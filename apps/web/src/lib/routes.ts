@@ -1,6 +1,7 @@
 import type { LessonStatus } from "@educatio/shared";
 
 export const LIVEBLOCKS_AUTH_ROUTE = "/liveblocks-auth";
+export const UPLOAD_ROUTE = "/upload";
 
 export const signInRoute = (callbackUrl?: string): string =>
   callbackUrl

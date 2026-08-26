@@ -90,6 +90,39 @@ export const useCreatePath = () =>
     [],
   );
 
+export const useCreateImage = () =>
+  useMutation(
+    (
+      { storage, self },
+      src: string,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+    ) => {
+      const elements = storage.get("elements");
+      const element: CanvasElement = {
+        id: nanoid(10),
+        type: "image",
+        x,
+        y,
+        rotation: 0,
+        zIndex: nextZIndex(elements),
+        createdBy: self.id,
+        createdAt: Date.now(),
+        width,
+        height,
+        src,
+      };
+      elements.set(element.id, element);
+      storage.get("metadata").update({
+        lastEditedAt: Date.now(),
+        elementCount: elements.size,
+      });
+    },
+    [],
+  );
+
 export const useUpdateElementText = () =>
   useMutation(({ storage }, id: string, content: string, height: number) => {
     const elements = storage.get("elements");

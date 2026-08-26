@@ -17,32 +17,41 @@ const json = async (response: Response): Promise<unknown> => {
   return response.json();
 };
 
-export const createDemoLesson = async (title: string): Promise<DemoLesson> => {
-  const demo = (await json(
-    await fetch(`${API_URL}/auth/demo`, { method: "POST" }),
-  )) as { sessionJwt: string };
+let session: Promise<string> | null = null;
 
+const demoSession = (): Promise<string> => {
+  session ??= (async () => {
+    const body = (await json(
+      await fetch(`${API_URL}/auth/demo`, { method: "POST" }),
+    )) as { sessionJwt: string };
+    return body.sessionJwt;
+  })();
+  return session;
+};
+
+export const createDemoLesson = async (title: string): Promise<DemoLesson> => {
+  const sessionJwt = await demoSession();
   const lesson = (await json(
     await fetch(`${API_URL}/lessons`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${demo.sessionJwt}`,
+        Authorization: `Bearer ${sessionJwt}`,
       },
       body: JSON.stringify({ title }),
     }),
   )) as { id: string };
 
-  return { sessionJwt: demo.sessionJwt, lessonId: lesson.id };
+  return { sessionJwt, lessonId: lesson.id };
 };
 
-export const deleteLesson = async ({
-  sessionJwt,
-  lessonId,
-}: DemoLesson): Promise<void> => {
-  await fetch(`${API_URL}/lessons/${lessonId}`, {
+export const deleteLesson = async (
+  lesson: DemoLesson | undefined,
+): Promise<void> => {
+  if (!lesson) return;
+  await fetch(`${API_URL}/lessons/${lesson.lessonId}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${sessionJwt}` },
+    headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
   });
 };
 

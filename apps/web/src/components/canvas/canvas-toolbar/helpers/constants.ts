@@ -1,5 +1,6 @@
 import {
   CodeIcon,
+  ImageIcon,
   MousePointer2Icon,
   PenLineIcon,
   SquareIcon,
@@ -22,6 +23,7 @@ export const TOOLS: ToolDefinition[] = [
   { tool: "text", label: "Text", shortcut: "T", Icon: TypeIcon },
   { tool: "sticky", label: "Sticky note", shortcut: "S", Icon: StickyNoteIcon },
   { tool: "shape", label: "Rectangle", shortcut: "R", Icon: SquareIcon },
+  { tool: "image", label: "Image", shortcut: "I", Icon: ImageIcon },
   { tool: "code", label: "Code block", shortcut: "C", Icon: CodeIcon },
 ];
 

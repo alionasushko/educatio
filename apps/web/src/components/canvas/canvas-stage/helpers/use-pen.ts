@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type RefObject } from "react";
 import type { CanvasTool } from "@/lib/liveblocks.config";
 import { PEN_MIN_DISTANCE } from "./constants";
+import { toCanvasPoint } from "./helpers";
 import type { Viewport } from "./types";
 
 interface Draft {
@@ -28,15 +29,9 @@ export const usePen = ({
   const current = useRef<Draft | null>(null);
 
   const toCanvas = useCallback(
-    (clientX: number, clientY: number) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return null;
-      return {
-        x: (clientX - rect.left - viewport.x) / viewport.scale,
-        y: (clientY - rect.top - viewport.y) / viewport.scale,
-      };
-    },
-    [containerRef, viewport.x, viewport.y, viewport.scale],
+    (clientX: number, clientY: number) =>
+      toCanvasPoint(containerRef.current, viewport, clientX, clientY),
+    [containerRef, viewport],
   );
 
   const onPointerDown = useCallback(

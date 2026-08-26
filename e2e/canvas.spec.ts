@@ -119,6 +119,33 @@ test("drawing writes to storage and one undo reverses the whole stroke", async (
   await expect(undo).toBeDisabled();
 });
 
+test("the image tool refuses a file that is not an image", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  await page.getByRole("button", { name: "Image (I)" }).click();
+
+  const chooser = page.waitForEvent("filechooser");
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("canvas has no box");
+  await page.mouse.click(box.x + 220, box.y + 180);
+
+  // Rejected before any upload, so this holds whether or not blob storage is
+  // configured.
+  await (
+    await chooser
+  ).setFiles({
+    name: "notes.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("not an image"),
+  });
+
+  await expect(page.getByText("That file type isn't supported.")).toBeVisible();
+});
+
 test("a peer sees what the other person draws", async ({ browser }) => {
   const tutor = await browser.newContext();
   const peer = await browser.newContext();

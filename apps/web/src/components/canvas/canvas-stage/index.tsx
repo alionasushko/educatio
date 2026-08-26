@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type DragEvent } from "react";
 import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
 import {
@@ -9,6 +9,7 @@ import {
   useUndo,
   useUpdateMyPresence,
 } from "@liveblocks/react";
+import { ALLOWED_UPLOAD_TYPES } from "@educatio/shared/api/upload";
 import type { CanvasSettings } from "../helpers/types";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
@@ -16,13 +17,16 @@ import { useViewport } from "./helpers/use-viewport";
 import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
 import {
   useCreateElement,
+  useCreateImage,
   useCreatePath,
   useDeleteElement,
 } from "./helpers/use-canvas-mutations";
 import { usePen } from "./helpers/use-pen";
-import { isCreatable } from "./helpers/helpers";
+import { useImageUpload } from "./helpers/use-image-upload";
+import { isCreatable, toCanvasPoint } from "./helpers/helpers";
 import CanvasElements from "./components/canvas-elements";
 import DraftStroke from "./components/draft-stroke";
+import DropOverlay from "./components/drop-overlay";
 import SelectionOverlay from "./components/selection-overlay";
 import TextEditor from "./components/text-editor";
 
@@ -39,6 +43,9 @@ const CanvasStage = ({ settings, onChange }: Props) => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropPoint = useRef<{ x: number; y: number } | null>(null);
 
   const [storageRoot] = useStorageRoot();
   const storageReady = storageRoot !== null;
@@ -46,6 +53,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
   const updateMyPresence = useUpdateMyPresence();
   const createElement = useCreateElement();
   const createPath = useCreatePath();
+  const createImage = useCreateImage();
   const deleteElement = useDeleteElement();
   const undo = useUndo();
   const redo = useRedo();
@@ -65,12 +73,87 @@ const CanvasStage = ({ settings, onChange }: Props) => {
   }, [select]);
   const handleEdit = useCallback((id: string) => setEditingId(id), []);
 
+  const placeImage = useCallback(
+    ({
+      src,
+      x,
+      y,
+      width,
+      height,
+    }: {
+      src: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }) => createImage(src, x, y, width, height),
+    [createImage],
+  );
+
+  const { uploading, upload } = useImageUpload(placeImage);
+
+  const pickImage = useCallback((x: number, y: number) => {
+    dropPoint.current = { x, y };
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChosen = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      const point = dropPoint.current;
+      event.target.value = "";
+      if (!file || !point) return;
+      void upload(file, point.x, point.y);
+    },
+    [upload],
+  );
+
+  const handleDragOver = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      if (!storageReady || !event.dataTransfer.types.includes("Files")) return;
+      event.preventDefault();
+      setDragging(true);
+    },
+    [storageReady],
+  );
+
+  const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null))
+      return;
+    setDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      setDragging(false);
+      if (!storageReady) return;
+      const file = event.dataTransfer.files[0];
+      if (!file) return;
+      const point = toCanvasPoint(
+        containerRef.current,
+        viewport,
+        event.clientX,
+        event.clientY,
+      );
+      if (!point) return;
+      void upload(file, point.x, point.y);
+    },
+    [storageReady, upload, viewport],
+  );
+
   const handleStageClick = useCallback(
     (event: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
       const stage = event.target.getStage();
       if (event.target !== stage) return;
 
       setEditingId(null);
+
+      if (tool === "image") {
+        const spot = stage?.getRelativePointerPosition();
+        if (storageReady && spot) pickImage(spot.x, spot.y);
+        return;
+      }
 
       if (!isCreatable(tool)) {
         select(null);
@@ -87,7 +170,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
       setEditingId(id);
       onChange({ tool: "select" });
     },
-    [tool, settings, storageReady, createElement, select, onChange],
+    [tool, settings, storageReady, createElement, select, onChange, pickImage],
   );
 
   const handleDelete = useCallback(() => {
@@ -147,6 +230,9 @@ const CanvasStage = ({ settings, onChange }: Props) => {
       ref={containerRef}
       className="group bg-bg relative h-full w-full touch-none overflow-hidden"
       style={{ cursor }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       {...pointerHandlers}
     >
       <div
@@ -185,6 +271,25 @@ const CanvasStage = ({ settings, onChange }: Props) => {
           </Layer>
         </Stage>
       )}
+
+      {dragging && <DropOverlay />}
+
+      {uploading && (
+        <div
+          role="status"
+          className="border-border-subtle bg-surface text-text-secondary absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full border px-3 py-1.5 text-xs shadow-(--shadow-medium)"
+        >
+          Adding image…
+        </div>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ALLOWED_UPLOAD_TYPES.join(",")}
+        className="hidden"
+        onChange={handleFileChosen}
+      />
 
       {editingId && (
         <TextEditor

@@ -47,6 +47,20 @@ export const cssToken = (name: string): string => {
 export const isCreatable = (tool: CanvasTool): tool is CreatableTool =>
   tool !== "select" && tool !== "pen" && tool !== "image";
 
+export const toCanvasPoint = (
+  container: HTMLElement | null,
+  viewport: Viewport,
+  clientX: number,
+  clientY: number,
+): { x: number; y: number } | null => {
+  const rect = container?.getBoundingClientRect();
+  if (!rect) return null;
+  return {
+    x: (clientX - rect.left - viewport.x) / viewport.scale,
+    y: (clientY - rect.top - viewport.y) / viewport.scale,
+  };
+};
+
 export const paint = (color: string): string =>
   color.startsWith("--") ? cssToken(color) || cssToken(INK_FALLBACK) : color;
 
