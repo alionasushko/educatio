@@ -11,6 +11,7 @@ import {
   useUpdateMyPresence,
 } from "@liveblocks/react";
 import CanvasToolbar from "../canvas-toolbar";
+import CanvasSnapshot from "../canvas-snapshot";
 import { DEFAULT_SETTINGS } from "../helpers/constants";
 import type { CanvasSettings } from "../helpers/types";
 
@@ -19,7 +20,11 @@ const CanvasStage = dynamic(() => import("../canvas-stage"), {
   loading: () => <div className="bg-bg h-full w-full" />,
 });
 
-const LessonCanvas = () => {
+interface Props {
+  lessonId: string;
+}
+
+const LessonCanvas = ({ lessonId }: Props) => {
   const [settings, setSettings] = useState<CanvasSettings>(DEFAULT_SETTINGS);
   const updateMyPresence = useUpdateMyPresence();
   const undo = useUndo();
@@ -38,6 +43,7 @@ const LessonCanvas = () => {
 
   return (
     <div className="relative h-full w-full overflow-hidden">
+      <CanvasSnapshot lessonId={lessonId} />
       <CanvasStage settings={settings} onChange={change} />
       <CanvasToolbar
         settings={settings}

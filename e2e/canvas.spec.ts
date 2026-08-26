@@ -6,6 +6,8 @@ import {
   type DemoLesson,
 } from "./helpers/session";
 
+const API = process.env.E2E_API_URL ?? "http://localhost:3001";
+
 let lesson: DemoLesson;
 
 test.beforeEach(async () => {
@@ -144,6 +146,37 @@ test("the image tool refuses a file that is not an image", async ({
   });
 
   await expect(page.getByText("That file type isn't supported.")).toBeVisible();
+});
+
+test("leaving the lesson persists the canvas", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  const box = await page.locator("canvas").first().boundingBox();
+  if (!box) throw new Error("no box");
+  await page.mouse.click(box.x + 250, box.y + 200);
+
+  const read = async () => {
+    const res = await fetch(`${API}/lessons/${lesson.lessonId}/snapshot`, {
+      headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
+    });
+    return (await res.json()) as { snapshot: { canvasState: object } | null };
+  };
+  expect((await read()).snapshot).toBeNull();
+
+  await page.getByRole("link", { name: "Back" }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+
+  await expect
+    .poll(
+      async () =>
+        Object.keys((await read()).snapshot?.canvasState ?? {}).length,
+      { message: "leaving did not flush the canvas", timeout: 15_000 },
+    )
+    .toBeGreaterThan(0);
 });
 
 test("a peer sees what the other person draws", async ({ browser }) => {

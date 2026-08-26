@@ -108,7 +108,7 @@ const LessonPage = async ({ params }: Props) => {
 
       <main className="min-h-0 flex-1">
         {live ? (
-          <LessonCanvas />
+          <LessonCanvas lessonId={lesson.id} />
         ) : (
           <div className="flex h-full items-center justify-center px-6">
             <div className="max-w-100 text-center">
