@@ -12,7 +12,6 @@ interface Props {
 const TextElement = ({ element }: Props) => (
   <Text
     width={element.width}
-    height={element.height}
     text={element.content}
     fontSize={element.fontSize}
     fontFamily={CANVAS_FONT}

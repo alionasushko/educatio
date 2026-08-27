@@ -200,7 +200,8 @@ One room per `lesson.liveblocksRoomId`.
   color: string,                 // assigned cursor color
   selection: string[] | null,
   tool: 'select' | 'pen' | 'text' | 'sticky' | 'shape' | 'image' | 'code',
-  draft: { x, y, points: number[], stroke: string, strokeWidth: number } | null
+  draft: { x, y, points: number[], stroke: string, strokeWidth: number } | null,
+  transforming: { id, x, y, rotation, scaleX, scaleY } | null
 }
 ```
 
@@ -210,6 +211,13 @@ rather than storage: an in-progress stroke is ephemeral, should create no undo
 steps, and must vanish by itself if that person disconnects mid-stroke — all of
 which presence gives and a storage write does not. It holds the colour as a
 design-token name, so the peer resolves it against their own palette.
+
+`transforming` does the same for a resize or rotation in progress: the other
+side follows the gesture instead of seeing the element jump when the handle is
+released. It cannot be a storage write, because the element is mid-gesture and
+Konva is still applying its own scale to that node — writing the derived size
+back would fight it. Peers render the element with these values in place of the
+stored ones until the field clears.
 
 **Server auth (`POST /liveblocks/auth` on api):** the `JwtAuthGuard` accepts either a tutor JWT (`kind: 'tutor'`, read+write any room they own) or a student session JWT (`kind: 'student'`, read+write **only** the `lessonId` baked into the token). The controller then calls `liveblocks.identifyUser` / `prepareSession` from `@liveblocks/node` and returns the issued token JSON.
 

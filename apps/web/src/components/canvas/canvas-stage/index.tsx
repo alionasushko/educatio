@@ -29,7 +29,7 @@ import DraftStroke from "./components/draft-stroke";
 import DropOverlay from "./components/drop-overlay";
 import PeerDrafts from "./components/peer-drafts";
 import CursorLayer from "../cursor-layer";
-import SelectionOverlay from "./components/selection-overlay";
+import SelectionTransformer from "./components/selection-transformer";
 import TextEditor from "./components/text-editor";
 
 interface Props {
@@ -270,7 +270,10 @@ const CanvasStage = ({ settings, onChange }: Props) => {
         >
           <Layer listening={tool === "select"}>
             <CanvasElements onSelect={handleSelect} onEdit={handleEdit} />
-            <SelectionOverlay selectedId={selectedId} scale={viewport.scale} />
+            <SelectionTransformer
+              selectedId={selectedId}
+              scale={viewport.scale}
+            />
             <PeerDrafts />
             {pen.draft && (
               <DraftStroke

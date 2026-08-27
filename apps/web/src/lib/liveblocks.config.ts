@@ -25,6 +25,15 @@ export type DraftStroke = {
   strokeWidth: number;
 };
 
+export type ElementTransform = {
+  id: string;
+  x: number;
+  y: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+};
+
 export type CanvasMetadata = {
   lastEditedAt: number;
   elementCount: number;
@@ -40,6 +49,7 @@ declare global {
       selection: string[] | null;
       tool: CanvasTool;
       draft: DraftStroke | null;
+      transforming: ElementTransform | null;
     };
     Storage: {
       elements: LiveMap<string, CanvasElement>;

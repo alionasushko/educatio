@@ -47,7 +47,7 @@ const PresenceStack = () => {
           key={connectionId}
           title={presence.name}
           className="ring-surface -ml-1.5 flex size-7 items-center justify-center rounded-full text-[10.5px] font-semibold text-white ring-2 first:ml-0"
-          style={{ background: presence.color }}
+          style={{ background: `var(${presence.color})` }}
         >
           {initials(presence.name)}
         </span>

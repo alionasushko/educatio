@@ -54,7 +54,7 @@ const RemoteCursor = ({ x, y, name, role, color }: Props) => {
       >
         <path
           d="M1 1L1 16.5L5.2 12.6L8.1 19.4L11 18.1L8.2 11.5L13.5 11.2L1 1Z"
-          fill={color}
+          fill={`var(${color})`}
           stroke="white"
           strokeWidth="1.2"
           strokeLinejoin="round"
@@ -65,7 +65,7 @@ const RemoteCursor = ({ x, y, name, role, color }: Props) => {
           "absolute top-5 left-4 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-white transition-opacity duration-300",
           phase === "moving" ? "opacity-100" : "opacity-0",
         )}
-        style={{ background: color }}
+        style={{ background: `var(${color})` }}
       >
         {name}
         {role === "tutor" ? " · tutor" : ""}

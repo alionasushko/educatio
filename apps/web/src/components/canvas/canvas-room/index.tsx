@@ -28,6 +28,7 @@ const CanvasRoom = ({ roomId, name, role, snapshot, children }: Props) => (
         selection: null,
         tool: "select",
         draft: null,
+        transforming: null,
       }}
       initialStorage={() => buildInitialStorage(snapshot)}
     >

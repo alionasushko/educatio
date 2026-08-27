@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import type { LiveMap } from "@liveblocks/client";
 import type { CanvasElement } from "@educatio/shared";
 import type { CanvasSettings } from "../../helpers/types";
+import { MIN_ELEMENT_SIDE } from "./constants";
 import { createElement, type CreatableTool } from "./element-factory";
 
 const nextZIndex = (elements: LiveMap<string, CanvasElement>): number =>
@@ -122,6 +123,55 @@ export const useCreateImage = () =>
     },
     [],
   );
+
+export interface Transformed {
+  x: number;
+  y: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+  width?: number;
+  height?: number;
+  fontSize?: number;
+}
+
+export const useTransformElement = () =>
+  useMutation(({ storage }, id: string, next: Transformed) => {
+    const elements = storage.get("elements");
+    const element = elements.get(id);
+    if (!element) return;
+
+    const resized: CanvasElement =
+      element.type === "path"
+        ? {
+            ...element,
+            points: element.points.map((value, index) =>
+              index % 2 === 0 ? value * next.scaleX : value * next.scaleY,
+            ),
+          }
+        : {
+            ...element,
+            width: Math.max(
+              MIN_ELEMENT_SIDE,
+              next.width ?? element.width * next.scaleX,
+            ),
+            height: Math.max(
+              MIN_ELEMENT_SIDE,
+              next.height ?? element.height * next.scaleY,
+            ),
+            ...(element.type === "text" && next.fontSize
+              ? { fontSize: next.fontSize }
+              : {}),
+          };
+
+    elements.set(id, {
+      ...resized,
+      x: next.x,
+      y: next.y,
+      rotation: next.rotation,
+    });
+    storage.get("metadata").update({ lastEditedAt: Date.now() });
+  }, []);
 
 export const useUpdateElementText = () =>
   useMutation(({ storage }, id: string, content: string, height: number) => {
