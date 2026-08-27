@@ -31,6 +31,11 @@ export const sessionCookieOptions = {
   maxAge: 60 * 60 * 24 * 30,
 };
 
+export const sessionCookieOptionsFor = (expSeconds: number) => ({
+  ...sessionCookieOptions,
+  maxAge: Math.max(0, expSeconds - Math.floor(Date.now() / 1000)),
+});
+
 export const postLoginCookieOptions = {
   httpOnly: true as const,
   sameSite: "lax" as const,

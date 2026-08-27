@@ -32,12 +32,14 @@ export const requireTutor = async (
   return tutor;
 };
 
-export const ownSessionJwt = async (
+export const ownSession = async (
   sessionJwt: string,
-): Promise<string | null> => {
-  if (await verifySessionToken(sessionJwt)) return sessionJwt;
-  console.error(
-    "session token failed verification — does web AUTH_JWT_SECRET match the api?",
-  );
-  return null;
+): Promise<SessionClaims | null> => {
+  const claims = await verifySessionToken(sessionJwt);
+  if (!claims) {
+    console.error(
+      "session token failed verification — does web AUTH_JWT_SECRET match the api?",
+    );
+  }
+  return claims;
 };

@@ -2,11 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   SESSION_COOKIE,
   POST_LOGIN_COOKIE,
-  sessionCookieOptions,
+  sessionCookieOptionsFor,
 } from "@/lib/session";
 import { exchangeMagicLink } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
-import { ownSessionJwt } from "@/lib/session-server";
+import { ownSession } from "@/lib/session-server";
 import { safeInternalPath } from "@/lib/request";
 
 export async function GET(req: NextRequest) {
@@ -19,10 +19,11 @@ export async function GET(req: NextRequest) {
   }
 
   const exchanged = await query(() => exchangeMagicLink(token));
-  const sessionJwt =
-    exchanged.data && (await ownSessionJwt(exchanged.data.sessionJwt));
+  const claims = exchanged.data
+    ? await ownSession(exchanged.data.sessionJwt)
+    : null;
 
-  if (!sessionJwt) {
+  if (!exchanged.data || !claims) {
     signIn.searchParams.set("error", "invalid-token");
     return NextResponse.redirect(signIn);
   }
@@ -32,7 +33,11 @@ export async function GET(req: NextRequest) {
     "/set-password";
 
   const response = NextResponse.redirect(new URL(dest, req.nextUrl.origin));
-  response.cookies.set(SESSION_COOKIE, sessionJwt, sessionCookieOptions);
+  response.cookies.set(
+    SESSION_COOKIE,
+    exchanged.data.sessionJwt,
+    sessionCookieOptionsFor(claims.exp),
+  );
   response.cookies.delete(POST_LOGIN_COOKIE);
   return response;
 }

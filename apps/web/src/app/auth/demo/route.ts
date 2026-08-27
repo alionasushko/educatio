@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { SESSION_COOKIE, sessionCookieOptionsFor } from "@/lib/session";
 import { demoLogin } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
-import { ownSessionJwt } from "@/lib/session-server";
+import { ownSession } from "@/lib/session-server";
 import { isCrossSiteRequest } from "@/lib/request";
 
 export async function POST(req: NextRequest) {
@@ -11,10 +11,9 @@ export async function POST(req: NextRequest) {
   }
 
   const issued = await query(demoLogin);
-  const sessionJwt =
-    issued.data && (await ownSessionJwt(issued.data.sessionJwt));
+  const claims = issued.data ? await ownSession(issued.data.sessionJwt) : null;
 
-  if (!sessionJwt) {
+  if (!issued.data || !claims) {
     return NextResponse.redirect(
       new URL("/sign-up?error=demo-unavailable", req.nextUrl.origin),
       { status: 303 },
@@ -25,6 +24,10 @@ export async function POST(req: NextRequest) {
     new URL("/dashboard", req.nextUrl.origin),
     { status: 303 },
   );
-  response.cookies.set(SESSION_COOKIE, sessionJwt, sessionCookieOptions);
+  response.cookies.set(
+    SESSION_COOKIE,
+    issued.data.sessionJwt,
+    sessionCookieOptionsFor(claims.exp),
+  );
   return response;
 }
