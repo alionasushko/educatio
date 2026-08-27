@@ -96,8 +96,16 @@ export const usePen = ({
     }
   }, [onCommit, broadcast]);
 
+  const cancel = useCallback(() => {
+    if (!current.current) return;
+    current.current = null;
+    setDraft(null);
+    broadcast(null);
+  }, [broadcast]);
+
   return {
     draft,
+    cancel,
     handlers: { onPointerDown, onPointerMove, onPointerUp },
   };
 };

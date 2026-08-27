@@ -3,11 +3,38 @@ import { INITIAL_VIEWPORT, ZOOM_INTENSITY, ZOOM_STEPS } from "./constants";
 import { isTypingTarget, panBy, zoomAt } from "./helpers";
 import type { Viewport } from "./types";
 
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface Pinch {
+  distance: number;
+  midpoint: Point;
+  viewport: Viewport;
+}
+
+const midpointOf = (a: Point, b: Point): Point => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+});
+
+const distanceOf = (a: Point, b: Point): number =>
+  Math.hypot(b.x - a.x, b.y - a.y);
+
 export const useViewport = (container: HTMLDivElement | null) => {
   const [viewport, setViewport] = useState<Viewport>(INITIAL_VIEWPORT);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [panning, setPanning] = useState(false);
+  const [pinching, setPinching] = useState(false);
   const last = useRef<{ x: number; y: number } | null>(null);
+  const touches = useRef(new Map<number, Point>());
+  const pinch = useRef<Pinch | null>(null);
+  const latest = useRef(viewport);
+
+  useEffect(() => {
+    latest.current = viewport;
+  }, [viewport]);
 
   useEffect(() => {
     if (!container) return;
@@ -55,8 +82,40 @@ export const useViewport = (container: HTMLDivElement | null) => {
     };
   }, []);
 
+  const localPoint = useCallback(
+    (clientX: number, clientY: number): Point | null => {
+      const rect = container?.getBoundingClientRect();
+      if (!rect) return null;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    },
+    [container],
+  );
+
+  const endTouch = useCallback((pointerId: number) => {
+    if (!touches.current.delete(pointerId)) return;
+    if (touches.current.size < 2 && pinch.current) {
+      pinch.current = null;
+      setPinching(false);
+    }
+  }, []);
+
   const onPointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType === "touch") {
+        const point = localPoint(event.clientX, event.clientY);
+        if (!point) return;
+        touches.current.set(event.pointerId, point);
+        const [a, b] = [...touches.current.values()];
+        if (touches.current.size !== 2 || !a || !b) return;
+        pinch.current = {
+          distance: distanceOf(a, b),
+          midpoint: midpointOf(a, b),
+          viewport: latest.current,
+        };
+        setPinching(true);
+        return;
+      }
+
       const middleClick = event.button === 1;
       const spaceDrag = event.button === 0 && spaceHeld;
       if (!middleClick && !spaceDrag) return;
@@ -65,20 +124,56 @@ export const useViewport = (container: HTMLDivElement | null) => {
       last.current = { x: event.clientX, y: event.clientY };
       setPanning(true);
     },
-    [spaceHeld],
+    [spaceHeld, localPoint],
   );
 
-  const onPointerMove = useCallback((event: React.PointerEvent) => {
-    const previous = last.current;
-    if (!previous) return;
-    const dx = event.clientX - previous.x;
-    const dy = event.clientY - previous.y;
-    last.current = { x: event.clientX, y: event.clientY };
-    setViewport((current) => panBy(current, dx, dy));
-  }, []);
+  const onPointerMove = useCallback(
+    (event: React.PointerEvent) => {
+      if (event.pointerType === "touch") {
+        if (!touches.current.has(event.pointerId)) return;
+        const point = localPoint(event.clientX, event.clientY);
+        if (!point) return;
+        touches.current.set(event.pointerId, point);
+
+        const base = pinch.current;
+        const [a, b] = [...touches.current.values()];
+        if (!base || touches.current.size !== 2 || !a || !b) return;
+
+        const distance = distanceOf(a, b);
+        if (distance === 0) return;
+        const midpoint = midpointOf(a, b);
+        const zoomed = zoomAt(
+          base.viewport,
+          base.midpoint.x,
+          base.midpoint.y,
+          distance / base.distance,
+        );
+        setViewport(
+          panBy(
+            zoomed,
+            midpoint.x - base.midpoint.x,
+            midpoint.y - base.midpoint.y,
+          ),
+        );
+        return;
+      }
+
+      const previous = last.current;
+      if (!previous) return;
+      const dx = event.clientX - previous.x;
+      const dy = event.clientY - previous.y;
+      last.current = { x: event.clientX, y: event.clientY };
+      setViewport((current) => panBy(current, dx, dy));
+    },
+    [localPoint],
+  );
 
   const onPointerUp = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType === "touch") {
+        endTouch(event.pointerId);
+        return;
+      }
       if (!last.current) return;
       last.current = null;
       setPanning(false);
@@ -86,7 +181,12 @@ export const useViewport = (container: HTMLDivElement | null) => {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
     },
-    [],
+    [endTouch],
+  );
+
+  const onPointerCancel = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => endTouch(event.pointerId),
+    [endTouch],
   );
 
   const zoomStep = useCallback(
@@ -119,8 +219,9 @@ export const useViewport = (container: HTMLDivElement | null) => {
     viewport,
     panning,
     spaceHeld,
+    pinching,
     zoomStep,
     resetZoom,
-    handlers: { onPointerDown, onPointerMove, onPointerUp },
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
   };
 };

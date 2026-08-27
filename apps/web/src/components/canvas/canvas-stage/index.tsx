@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState, type DragEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
 import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
 import {
@@ -40,10 +46,12 @@ interface Props {
   viewport: Viewport;
   panning: boolean;
   spaceHeld: boolean;
+  pinching: boolean;
   handlers: {
     onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
     onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
     onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
   };
 }
 
@@ -55,6 +63,7 @@ const CanvasStage = ({
   viewport,
   panning,
   spaceHeld,
+  pinching,
   handlers,
 }: Props) => {
   const { tool } = settings;
@@ -63,6 +72,7 @@ const CanvasStage = ({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const stageRef = useRef<Konva.Stage>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropPoint = useRef<{ x: number; y: number } | null>(null);
 
@@ -208,7 +218,7 @@ const CanvasStage = ({
     container,
     viewport,
     tool,
-    enabled: storageReady && !spaceHeld,
+    enabled: storageReady && !spaceHeld && !pinching,
     stroke: settings.inkToken,
     strokeWidth: settings.strokeWidth,
     onCommit: commitStroke,
@@ -235,7 +245,21 @@ const CanvasStage = ({
       handlers.onPointerUp(event);
       pen.handlers.onPointerUp();
     },
+    onPointerCancel: (event: React.PointerEvent<HTMLDivElement>) => {
+      handlers.onPointerCancel(event);
+      pen.handlers.onPointerUp();
+    },
   };
+
+  const cancelPen = pen.cancel;
+
+  useEffect(() => {
+    if (!pinching) return;
+    cancelPen();
+    stageRef.current
+      ?.find((node: Konva.Node) => node.isDragging())
+      .forEach((node) => node.stopDrag());
+  }, [pinching, cancelPen]);
 
   useCanvasShortcuts({
     onDelete: handleDelete,
@@ -276,6 +300,7 @@ const CanvasStage = ({
       />
       {width > 0 && height > 0 && (
         <Stage
+          ref={stageRef}
           width={width}
           height={height}
           x={viewport.x}

@@ -34,8 +34,15 @@ const LessonCanvas = ({ lessonId }: Props) => {
   const canRedo = useCanRedo();
   const [storageRoot] = useStorageRoot();
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const { viewport, panning, spaceHeld, zoomStep, resetZoom, handlers } =
-    useViewport(container);
+  const {
+    viewport,
+    panning,
+    spaceHeld,
+    pinching,
+    zoomStep,
+    resetZoom,
+    handlers,
+  } = useViewport(container);
 
   const change = useCallback(
     (patch: Partial<CanvasSettings>) => {
@@ -56,6 +63,7 @@ const LessonCanvas = ({ lessonId }: Props) => {
         viewport={viewport}
         panning={panning}
         spaceHeld={spaceHeld}
+        pinching={pinching}
         handlers={handlers}
       />
       <div className="border-border-subtle bg-surface absolute inset-x-3 bottom-3 z-10 rounded-[12px] border p-3 text-center shadow-(--shadow-medium) md:hidden">

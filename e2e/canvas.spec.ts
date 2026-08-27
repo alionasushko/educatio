@@ -31,6 +31,99 @@ const openCanvas = async (page: Page) => {
   return canvas;
 };
 
+const pinch = async (page: Page, from: number, to: number) =>
+  page.evaluate(
+    async ([start, end]) => {
+      const el = document.querySelector<HTMLElement>(".touch-none");
+      if (!el) throw new Error("no canvas container");
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      const send = (type: string, id: number, x: number, y: number) =>
+        el.dispatchEvent(
+          new PointerEvent(type, {
+            pointerId: id,
+            pointerType: "touch",
+            clientX: x,
+            clientY: y,
+            bubbles: true,
+          }),
+        );
+
+      send("pointerdown", 1, cx - start! / 2, cy);
+      send("pointerdown", 2, cx + start! / 2, cy);
+      for (let i = 1; i <= 8; i++) {
+        const span = start! + ((end! - start!) * i) / 8;
+        send("pointermove", 1, cx - span / 2, cy);
+        send("pointermove", 2, cx + span / 2, cy);
+        await new Promise((r) => requestAnimationFrame(r));
+      }
+      send("pointerup", 1, cx - end! / 2, cy);
+      send("pointerup", 2, cx + end! / 2, cy);
+      await new Promise((r) => requestAnimationFrame(r));
+    },
+    [from, to],
+  );
+
+const dragTwoFingers = async (page: Page, dx: number) =>
+  page.evaluate(async (shift) => {
+    const el = document.querySelector<HTMLElement>(".touch-none");
+    if (!el) throw new Error("no canvas container");
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const send = (type: string, id: number, x: number, y: number) =>
+      el.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: id,
+          pointerType: "touch",
+          clientX: x,
+          clientY: y,
+          bubbles: true,
+        }),
+      );
+    send("pointerdown", 1, cx - 50, cy);
+    send("pointerdown", 2, cx + 50, cy);
+    for (let i = 1; i <= 8; i++) {
+      const at = (shift * i) / 8;
+      send("pointermove", 1, cx - 50 + at, cy);
+      send("pointermove", 2, cx + 50 + at, cy);
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    send("pointerup", 1, cx - 50 + shift, cy);
+    send("pointerup", 2, cx + 50 + shift, cy);
+  }, dx);
+
+const stageX = (page: Page) =>
+  page.evaluate(() => {
+    const konva = (
+      window as unknown as { Konva?: { stages: { x(): number }[] } }
+    ).Konva;
+    return konva?.stages[0]?.x() ?? 0;
+  });
+
+const shapeCount = (page: Page) =>
+  page.evaluate(() => {
+    const konva = (
+      window as unknown as {
+        Konva?: { stages: { find: (s: string) => { id(): string }[] }[] };
+      }
+    ).Konva;
+    return (
+      konva?.stages[0]?.find("Group").filter((n) => n.id().length > 0).length ??
+      -1
+    );
+  });
+
+const scaleOf = (page: Page) =>
+  page.evaluate(() => {
+    const konva = (
+      window as unknown as { Konva?: { stages: { scaleX(): number }[] } }
+    ).Konva;
+    return konva?.stages[0]?.scaleX() ?? 0;
+  });
+
 test("the toolbar drives tool selection", async ({ page, context }) => {
   await signIn(context, lesson.sessionJwt);
   await openCanvas(page);
@@ -737,4 +830,42 @@ test("a peer sees what the other person draws", async ({ browser }) => {
 
   await tutor.close();
   await peer.close();
+});
+
+test("pinch zooms the canvas on touch", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+
+  const before = await scaleOf(page);
+  await pinch(page, 100, 200);
+  const spread = await scaleOf(page);
+  await pinch(page, 200, 100);
+  const back = await scaleOf(page);
+
+  expect(before).toBeCloseTo(1, 2);
+  expect(spread).toBeCloseTo(2, 1);
+  expect(back).toBeCloseTo(1, 1);
+});
+
+test("two fingers pan the canvas on touch", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+
+  const before = await stageX(page);
+  await dragTwoFingers(page, 120);
+  expect((await stageX(page)) - before).toBeCloseTo(120, 0);
+});
+
+test("pinching with the pen tool leaves no stroke", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+
+  expect(await shapeCount(page)).toBe(0);
+  await pinch(page, 100, 220);
+  await page.waitForTimeout(400);
+  expect(await shapeCount(page)).toBe(0);
 });
