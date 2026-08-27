@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import CanvasRoom from "@/components/canvas/canvas-room";
 import ConnectionStatus from "@/components/canvas/connection-status";
+import PresenceStack from "@/components/canvas/presence-stack";
 import LessonCanvas from "@/components/canvas/lesson-canvas";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
@@ -76,6 +77,7 @@ const LessonPage = async ({ params }: Props) => {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {live && <PresenceStack />}
           {live && <ConnectionStatus />}
           <Badge variant={variant} dot>
             {label}

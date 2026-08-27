@@ -199,9 +199,17 @@ One room per `lesson.liveblocksRoomId`.
   role: 'tutor' | 'student',
   color: string,                 // assigned cursor color
   selection: string[] | null,
-  tool: 'select' | 'pen' | 'text' | 'sticky' | 'shape' | 'image' | 'code'
+  tool: 'select' | 'pen' | 'text' | 'sticky' | 'shape' | 'image' | 'code',
+  draft: { x, y, points: number[], stroke: string, strokeWidth: number } | null
 }
 ```
+
+`draft` carries the stroke a person is currently drawing, so the other side sees
+the line form instead of waiting for the pen to lift. It belongs in presence
+rather than storage: an in-progress stroke is ephemeral, should create no undo
+steps, and must vanish by itself if that person disconnects mid-stroke — all of
+which presence gives and a storage write does not. It holds the colour as a
+design-token name, so the peer resolves it against their own palette.
 
 **Server auth (`POST /liveblocks/auth` on api):** the `JwtAuthGuard` accepts either a tutor JWT (`kind: 'tutor'`, read+write any room they own) or a student session JWT (`kind: 'student'`, read+write **only** the `lessonId` baked into the token). The controller then calls `liveblocks.identifyUser` / `prepareSession` from `@liveblocks/node` and returns the issued token JSON.
 

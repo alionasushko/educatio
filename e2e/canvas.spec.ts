@@ -179,6 +179,69 @@ test("leaving the lesson persists the canvas", async ({ page, context }) => {
     .toBeGreaterThan(0);
 });
 
+test("leaving before storage loads raises nothing", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+
+  // Deterministic: with no room token the client never loads storage, which is
+  // the state the snapshot loop's unmount flush used to throw in.
+  await page.route("**/liveblocks-auth", (route) => route.abort());
+  await page.addInitScript(() => {
+    const seen: string[] = [];
+    (window as unknown as { __rejected: string[] }).__rejected = seen;
+    window.addEventListener("unhandledrejection", (event) => {
+      seen.push(String(event.reason?.message ?? event.reason));
+    });
+  });
+
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  // A client-side navigation, so the page survives and unmounts the canvas.
+  await page.getByRole("link", { name: "Back" }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __rejected: string[] }).__rejected,
+    ),
+  ).toEqual([]);
+});
+
+test("each person sees the other's cursor and name", async ({ browser }) => {
+  const tutor = await browser.newContext();
+  const peer = await browser.newContext();
+  await signIn(tutor, lesson.sessionJwt);
+  await signIn(peer, lesson.sessionJwt);
+
+  const tutorPage = await tutor.newPage();
+  const peerPage = await peer.newPage();
+  await tutorPage.goto(`/lesson/${lesson.lessonId}`);
+  await peerPage.goto(`/lesson/${lesson.lessonId}`);
+  await expect(
+    tutorPage.getByRole("button", { name: "Pen (P)" }),
+  ).toBeEnabled();
+  await expect(peerPage.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  // Each side shows the other in the presence stack.
+  await expect(
+    peerPage.getByRole("group", { name: /other in the lesson/ }),
+  ).toBeVisible();
+
+  const box = await tutorPage.locator("canvas").first().boundingBox();
+  if (!box) throw new Error("canvas has no box");
+  await tutorPage.mouse.move(box.x + 200, box.y + 160);
+  await tutorPage.mouse.move(box.x + 260, box.y + 200);
+
+  // The name pill rides along with the cursor, so finding it proves both.
+  await expect(
+    peerPage.getByText("Demo Tutor", { exact: false }).first(),
+  ).toBeVisible({ timeout: 15_000 });
+
+  await tutor.close();
+  await peer.close();
+});
+
 test("a peer sees what the other person draws", async ({ browser }) => {
   const tutor = await browser.newContext();
   const peer = await browser.newContext();

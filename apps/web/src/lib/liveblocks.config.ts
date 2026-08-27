@@ -17,6 +17,14 @@ export type CanvasCursor = {
   y: number;
 };
 
+export type DraftStroke = {
+  x: number;
+  y: number;
+  points: number[];
+  stroke: string;
+  strokeWidth: number;
+};
+
 export type CanvasMetadata = {
   lastEditedAt: number;
   elementCount: number;
@@ -31,6 +39,7 @@ declare global {
       color: string;
       selection: string[] | null;
       tool: CanvasTool;
+      draft: DraftStroke | null;
     };
     Storage: {
       elements: LiveMap<string, CanvasElement>;

@@ -21,7 +21,7 @@ The client never holds the Liveblocks secret. Point the room's `authEndpoint` at
 ## Room shape (the contract — `docs/SPEC.md` §Liveblocks room state)
 
 - **Storage:** `elements: LiveMap<elementId, CanvasElement>` (keyed by `element.id`) + `metadata: LiveObject<{ lastEditedAt, elementCount }>`.
-- **Presence:** `{ cursor, name, role, color, selection, tool }`.
+- **Presence:** `{ cursor, name, role, color, selection, tool, draft }`. `draft` is the stroke in progress — live drawing goes through presence, never through storage, so it creates no ops, no undo steps, and clears itself if the drawer disconnects.
 - `CanvasElement` (+ variants) is defined in `@educatio/shared` (`canvas.ts`) — that's the source of truth; don't redefine it in web.
 
 ## Patterns

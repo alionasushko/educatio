@@ -27,6 +27,8 @@ import { isCreatable, toCanvasPoint } from "./helpers/helpers";
 import CanvasElements from "./components/canvas-elements";
 import DraftStroke from "./components/draft-stroke";
 import DropOverlay from "./components/drop-overlay";
+import PeerDrafts from "./components/peer-drafts";
+import CursorLayer from "../cursor-layer";
 import SelectionOverlay from "./components/selection-overlay";
 import TextEditor from "./components/text-editor";
 
@@ -190,6 +192,8 @@ const CanvasStage = ({ settings, onChange }: Props) => {
     viewport,
     tool,
     enabled: storageReady && !spaceHeld,
+    stroke: settings.inkToken,
+    strokeWidth: settings.strokeWidth,
     onCommit: commitStroke,
   });
 
@@ -201,7 +205,15 @@ const CanvasStage = ({ settings, onChange }: Props) => {
     onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
       handlers.onPointerMove(event);
       pen.handlers.onPointerMove(event);
+      const at = toCanvasPoint(
+        containerRef.current,
+        viewport,
+        event.clientX,
+        event.clientY,
+      );
+      if (at) updateMyPresence({ cursor: at });
     },
+    onPointerLeave: () => updateMyPresence({ cursor: null }),
     onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => {
       handlers.onPointerUp(event);
       pen.handlers.onPointerUp();
@@ -259,6 +271,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
           <Layer listening={tool === "select"}>
             <CanvasElements onSelect={handleSelect} onEdit={handleEdit} />
             <SelectionOverlay selectedId={selectedId} scale={viewport.scale} />
+            <PeerDrafts />
             {pen.draft && (
               <DraftStroke
                 x={pen.draft.x}
@@ -271,6 +284,8 @@ const CanvasStage = ({ settings, onChange }: Props) => {
           </Layer>
         </Stage>
       )}
+
+      <CursorLayer viewport={viewport} />
 
       {dragging && <DropOverlay />}
 
