@@ -10,6 +10,7 @@ import CanvasRoom from "@/components/canvas/canvas-room";
 import ConnectionStatus from "@/components/canvas/connection-status";
 import PresenceStack from "@/components/canvas/presence-stack";
 import LessonCanvas from "@/components/canvas/lesson-canvas";
+import ShareLessonButton from "@/components/lesson/share-lesson-button";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
@@ -54,12 +55,13 @@ const LessonPage = async ({ params }: Props) => {
       : undefined;
 
   const live = lesson.status !== "ended";
+  const isTutor = session.kind === "tutor";
 
   const shell = (
     <div className="bg-bg flex h-dvh flex-col overflow-hidden">
       <header className="border-border-subtle bg-surface flex h-14 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Wordmark href="/dashboard" size={14} />
+          <Wordmark href={isTutor ? "/dashboard" : undefined} size={14} />
           <span
             className="bg-border-subtle h-5 w-px shrink-0"
             aria-hidden="true"
@@ -82,6 +84,9 @@ const LessonPage = async ({ params }: Props) => {
           <Badge variant={variant} dot>
             {label}
           </Badge>
+          {live && isTutor && (
+            <ShareLessonButton inviteCode={lesson.inviteCode} />
+          )}
           {videoHref && (
             <a
               href={videoHref}
@@ -96,15 +101,17 @@ const LessonPage = async ({ params }: Props) => {
               <span className="hidden sm:inline">Join video call</span>
             </a>
           )}
-          <Link
-            href="/dashboard"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "h-9 px-3 text-sm",
-            )}
-          >
-            Back
-          </Link>
+          {isTutor && (
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-9 px-3 text-sm",
+              )}
+            >
+              Back
+            </Link>
+          )}
         </div>
       </header>
 

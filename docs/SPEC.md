@@ -97,7 +97,8 @@ The centerpiece of the app.
 ### Student join (no auth)
 
 - Route: `/join/[inviteCode]`
-- Invalid code → friendly error page
+- Invalid code → the join form reports it inline on submit (`invalid_invite`). Deliberately not checked before submit: a pre-submit check would confirm whether a code exists to anyone probing.
+- A visitor already signed in as a tutor is warned before joining, since a student session replaces their tutor cookie on that device.
 - Valid: form with "Your name" + "Join lesson" button
 - Submit: `POST /sessions/student { inviteCode, name }` on api → web stores returned student JWT in an httpOnly cookie · redirect to lesson with `?role=student`
 - Student sees same canvas as tutor but **cannot** see End lesson or Share controls. Can use all canvas tools.
