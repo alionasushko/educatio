@@ -83,8 +83,10 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
         : 15;
 
   const style: CSSProperties = {
-    left: scaled(element.x) + viewport.x + scaled(padding),
-    top: scaled(element.y) + viewport.y + scaled(padding),
+    left: scaled(element.x) + viewport.x,
+    top: scaled(element.y) + viewport.y,
+    transformOrigin: "0 0",
+    transform: `rotate(${element.rotation}deg) translate(${scaled(padding)}px, ${scaled(padding)}px)`,
     width: scaled(element.width - padding * 2),
     height: scaled(element.height - padding * 2),
     fontFamily: element.type === "code" ? CANVAS_MONO_FONT : CANVAS_FONT,
