@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useMutation } from "@liveblocks/react";
+import { useMutation, useStorageRoot } from "@liveblocks/react";
 import type { CanvasElement } from "@educatio/shared";
 import { persistCanvas } from "@/app/lesson/[lessonId]/actions";
 import { SNAPSHOT_INTERVAL_MS } from "./helpers/constants";
@@ -13,6 +13,12 @@ interface Props {
 const CanvasSnapshot = ({ lessonId }: Props) => {
   const savedAt = useRef(0);
   const saving = useRef(false);
+  const loaded = useRef(false);
+  const [storageRoot] = useStorageRoot();
+
+  useEffect(() => {
+    loaded.current = storageRoot !== null;
+  }, [storageRoot]);
 
   const readCanvas = useMutation(({ storage }) => {
     const elements = storage.get("elements");
@@ -26,15 +32,14 @@ const CanvasSnapshot = ({ lessonId }: Props) => {
 
   useEffect(() => {
     const save = async () => {
-      if (saving.current) return;
-      const snapshot = readCanvas();
-      if (!snapshot || snapshot.editedAt <= savedAt.current) return;
-
+      if (saving.current || !loaded.current) return;
       saving.current = true;
-      const pendingAt = snapshot.editedAt;
       try {
+        const snapshot = readCanvas();
+        if (!snapshot || snapshot.editedAt <= savedAt.current) return;
+
         const result = await persistCanvas(lessonId, snapshot.canvasState);
-        if (result.ok) savedAt.current = pendingAt;
+        if (result.ok) savedAt.current = snapshot.editedAt;
         else console.error(result.error);
       } catch (err) {
         console.error(err);
