@@ -2,11 +2,13 @@
 
 import { Redo2Icon, Undo2Icon } from "lucide-react";
 import type { StickyColor } from "@educatio/shared";
+import { cn } from "@/lib/utils";
 import { INK_COLORS, STICKY_ORDER, STICKY_TOKEN } from "../helpers/constants";
 import type { CanvasSettings } from "../helpers/types";
 import ToolButton from "./components/tool-button";
 import ColorPicker from "./components/color-picker";
 import StrokePicker from "./components/stroke-picker";
+import ZoomControls from "./components/zoom-controls";
 import { TOOLS } from "./helpers/constants";
 
 interface Props {
@@ -17,6 +19,10 @@ interface Props {
   canUndo: boolean;
   canRedo: boolean;
   ready: boolean;
+  scale: number;
+  onZoom: (direction: 1 | -1) => void;
+  onResetZoom: () => void;
+  className?: string;
 }
 
 const Divider = () => (
@@ -34,6 +40,10 @@ const CanvasToolbar = ({
   canUndo,
   canRedo,
   ready,
+  scale,
+  onZoom,
+  onResetZoom,
+  className,
 }: Props) => {
   const { tool } = settings;
   const inks = tool === "pen" || tool === "text" || tool === "shape";
@@ -45,7 +55,10 @@ const CanvasToolbar = ({
       role="toolbar"
       aria-label="Canvas tools"
       aria-orientation="horizontal"
-      className="border-border-subtle bg-surface absolute bottom-5 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1 rounded-[14px] border p-1.5 shadow-(--shadow-medium)"
+      className={cn(
+        "border-border-subtle bg-surface absolute bottom-5 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1 rounded-[14px] border p-1.5 shadow-(--shadow-medium)",
+        className,
+      )}
     >
       {TOOLS.map(({ tool: value, label, shortcut, Icon }) => (
         <ToolButton
@@ -96,6 +109,15 @@ const CanvasToolbar = ({
           disabled={!ready}
         />
       )}
+
+      <Divider />
+
+      <ZoomControls
+        scale={scale}
+        onZoom={onZoom}
+        onReset={onResetZoom}
+        disabled={!ready}
+      />
 
       <Divider />
 

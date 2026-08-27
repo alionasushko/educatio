@@ -411,6 +411,90 @@ test("text resizes the way editors do: sides re-wrap, corners scale", async ({
   await expect.poll(async () => (await stored())?.fontSize).toBeGreaterThan(20);
 });
 
+test("the wheel pans, and zooms with a modifier", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("canvas has no box");
+
+  // The wheel listener is native and non-passive, so it has to be attached to
+  // a node that exists — the stage arrives after its parent mounts.
+  const view = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: {
+            stages: {
+              x: () => number;
+              y: () => number;
+              scaleX: () => number;
+            }[];
+          };
+        }
+      ).Konva?.stages[0];
+      return stage
+        ? { x: stage.x(), y: stage.y(), scale: stage.scaleX() }
+        : null;
+    });
+
+  expect(await view()).toEqual({ x: 0, y: 0, scale: 1 });
+
+  await page.mouse.move(box.x + 300, box.y + 250);
+  await page.mouse.wheel(0, 200);
+  await expect.poll(async () => (await view())?.y).not.toBe(0);
+  expect((await view())?.scale).toBe(1);
+
+  await page.keyboard.down("Control");
+  await page.mouse.wheel(0, -200);
+  await page.keyboard.up("Control");
+  await expect.poll(async () => (await view())?.scale).toBeGreaterThan(1);
+});
+
+test("zoom controls change the view and reset it", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  await openCanvas(page);
+
+  const readout = page.getByRole("button", { name: /^Zoom \d+%/ });
+  const zoomIn = page.getByRole("button", { name: "Zoom in" });
+  const zoomOut = page.getByRole("button", { name: "Zoom out" });
+  await expect(readout).toHaveText("100%");
+
+  // Steps land on the preset ladder, not on 100 x 1.2 x 1.2 ...
+  await zoomIn.click();
+  await expect(readout).toHaveText("150%");
+  await zoomIn.click();
+  await expect(readout).toHaveText("200%");
+  await zoomOut.click();
+  await expect(readout).toHaveText("150%");
+
+  await readout.click();
+  await expect(readout).toHaveText("100%");
+
+  // 100 -> 150 -> 200 -> 300 -> 400, then the ladder runs out.
+  for (let step = 0; step < 4; step += 1) await zoomIn.click();
+  await expect(readout).toHaveText("400%");
+  await expect(zoomIn).toBeDisabled();
+});
+
+test("the canvas tells you it is read-only on a phone", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  await page.setViewportSize({ width: 375, height: 700 });
+  await page.goto(`/lesson/${lesson.lessonId}`);
+
+  await expect(
+    page.getByText(/works best on a laptop or tablet/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("toolbar", { name: "Canvas tools" }),
+  ).toBeHidden();
+});
+
 test("leaving the lesson persists the canvas", async ({ page, context }) => {
   await signIn(context, lesson.sessionJwt);
 

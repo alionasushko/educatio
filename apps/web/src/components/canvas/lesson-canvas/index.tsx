@@ -12,6 +12,7 @@ import {
 } from "@liveblocks/react";
 import CanvasToolbar from "../canvas-toolbar";
 import CanvasSnapshot from "../canvas-snapshot";
+import { useViewport } from "../canvas-stage/helpers/use-viewport";
 import { DEFAULT_SETTINGS } from "../helpers/constants";
 import type { CanvasSettings } from "../helpers/types";
 
@@ -32,6 +33,9 @@ const LessonCanvas = ({ lessonId }: Props) => {
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
   const [storageRoot] = useStorageRoot();
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const { viewport, panning, spaceHeld, zoomStep, resetZoom, handlers } =
+    useViewport(container);
 
   const change = useCallback(
     (patch: Partial<CanvasSettings>) => {
@@ -44,8 +48,26 @@ const LessonCanvas = ({ lessonId }: Props) => {
   return (
     <div className="relative h-full w-full overflow-hidden">
       <CanvasSnapshot lessonId={lessonId} />
-      <CanvasStage settings={settings} onChange={change} />
+      <CanvasStage
+        settings={settings}
+        onChange={change}
+        container={container}
+        onContainer={setContainer}
+        viewport={viewport}
+        panning={panning}
+        spaceHeld={spaceHeld}
+        handlers={handlers}
+      />
+      <div className="border-border-subtle bg-surface absolute inset-x-3 bottom-3 z-10 rounded-[12px] border p-3 text-center shadow-(--shadow-medium) md:hidden">
+        <p className="text-text-secondary text-[13px] leading-relaxed">
+          Educatio works best on a laptop or tablet for live lessons. You can
+          view this lesson here, but to draw and edit, switch to a larger
+          screen.
+        </p>
+      </div>
+
       <CanvasToolbar
+        className="hidden md:flex"
         settings={settings}
         onChange={change}
         onUndo={undo}
@@ -53,6 +75,9 @@ const LessonCanvas = ({ lessonId }: Props) => {
         canUndo={canUndo}
         canRedo={canRedo}
         ready={storageRoot !== null}
+        scale={viewport.scale}
+        onZoom={zoomStep}
+        onResetZoom={resetZoom}
       />
     </div>
   );

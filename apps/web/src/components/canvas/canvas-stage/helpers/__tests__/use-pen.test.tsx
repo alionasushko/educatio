@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { createRef } from "react";
 import { usePen } from "../use-pen";
 
 const updateMyPresence = vi.fn();
@@ -22,11 +21,9 @@ const pointer = (clientX: number, clientY: number) =>
   }) as unknown as React.PointerEvent<HTMLDivElement>;
 
 const setup = (onCommit = vi.fn()) => {
-  const ref = createRef<HTMLDivElement>();
-  Object.defineProperty(ref, "current", { value: container, writable: true });
   const { result } = renderHook(() =>
     usePen({
-      containerRef: ref,
+      container,
       viewport: { x: 0, y: 0, scale: 1 },
       tool: "pen",
       enabled: true,

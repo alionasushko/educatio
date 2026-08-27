@@ -1,6 +1,7 @@
 import type { Viewport } from "./types";
 
 export const MIN_SCALE = 0.2;
+export const ZOOM_STEPS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
 export const MAX_SCALE = 4;
 export const ZOOM_INTENSITY = 0.0015;
 export const GRID_SIZE = 24;

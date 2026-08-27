@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type RefObject } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useUpdateMyPresence } from "@liveblocks/react";
 import type { CanvasTool } from "@/lib/liveblocks.config";
 import { PEN_MIN_DISTANCE } from "./constants";
@@ -12,7 +12,7 @@ interface Draft {
 }
 
 interface Options {
-  containerRef: RefObject<HTMLDivElement | null>;
+  container: HTMLDivElement | null;
   viewport: Viewport;
   tool: CanvasTool;
   enabled: boolean;
@@ -22,7 +22,7 @@ interface Options {
 }
 
 export const usePen = ({
-  containerRef,
+  container,
   viewport,
   tool,
   enabled,
@@ -45,8 +45,8 @@ export const usePen = ({
 
   const toCanvas = useCallback(
     (clientX: number, clientY: number) =>
-      toCanvasPoint(containerRef.current, viewport, clientX, clientY),
-    [containerRef, viewport],
+      toCanvasPoint(container, viewport, clientX, clientY),
+    [container, viewport],
   );
 
   const onPointerDown = useCallback(

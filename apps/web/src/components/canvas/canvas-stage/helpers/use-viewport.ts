@@ -1,27 +1,20 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
-import { INITIAL_VIEWPORT, ZOOM_INTENSITY } from "./constants";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { INITIAL_VIEWPORT, ZOOM_INTENSITY, ZOOM_STEPS } from "./constants";
 import { isTypingTarget, panBy, zoomAt } from "./helpers";
 import type { Viewport } from "./types";
 
-export const useViewport = (containerRef: RefObject<HTMLDivElement | null>) => {
+export const useViewport = (container: HTMLDivElement | null) => {
   const [viewport, setViewport] = useState<Viewport>(INITIAL_VIEWPORT);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [panning, setPanning] = useState(false);
   const last = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    const node = containerRef.current;
-    if (!node) return;
+    if (!container) return;
 
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      const rect = node.getBoundingClientRect();
+      const rect = container.getBoundingClientRect();
       if (event.ctrlKey || event.metaKey) {
         const factor = Math.exp(-event.deltaY * ZOOM_INTENSITY);
         setViewport((current) =>
@@ -37,9 +30,9 @@ export const useViewport = (containerRef: RefObject<HTMLDivElement | null>) => {
       setViewport((current) => panBy(current, -event.deltaX, -event.deltaY));
     };
 
-    node.addEventListener("wheel", onWheel, { passive: false });
-    return () => node.removeEventListener("wheel", onWheel);
-  }, [containerRef]);
+    container.addEventListener("wheel", onWheel, { passive: false });
+    return () => container.removeEventListener("wheel", onWheel);
+  }, [container]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -96,10 +89,38 @@ export const useViewport = (containerRef: RefObject<HTMLDivElement | null>) => {
     [],
   );
 
+  const zoomStep = useCallback(
+    (direction: 1 | -1) => {
+      const rect = container?.getBoundingClientRect();
+      if (!rect) return;
+      setViewport((current) => {
+        const next =
+          direction > 0
+            ? ZOOM_STEPS.find((step) => step > current.scale + 0.001)
+            : [...ZOOM_STEPS]
+                .reverse()
+                .find((step) => step < current.scale - 0.001);
+        return next
+          ? zoomAt(
+              current,
+              rect.width / 2,
+              rect.height / 2,
+              next / current.scale,
+            )
+          : current;
+      });
+    },
+    [container],
+  );
+
+  const resetZoom = useCallback(() => setViewport(INITIAL_VIEWPORT), []);
+
   return {
     viewport,
     panning,
     spaceHeld,
+    zoomStep,
+    resetZoom,
     handlers: { onPointerDown, onPointerMove, onPointerUp },
   };
 };

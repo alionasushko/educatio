@@ -13,7 +13,7 @@ import { ALLOWED_UPLOAD_TYPES } from "@educatio/shared/api/upload";
 import type { CanvasSettings } from "../helpers/types";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
-import { useViewport } from "./helpers/use-viewport";
+import type { Viewport } from "./helpers/types";
 import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
 import {
   useCreateElement,
@@ -35,13 +35,30 @@ import TextEditor from "./components/text-editor";
 interface Props {
   settings: CanvasSettings;
   onChange: (patch: Partial<CanvasSettings>) => void;
+  container: HTMLDivElement | null;
+  onContainer: (node: HTMLDivElement | null) => void;
+  viewport: Viewport;
+  panning: boolean;
+  spaceHeld: boolean;
+  handlers: {
+    onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
+  };
 }
 
-const CanvasStage = ({ settings, onChange }: Props) => {
+const CanvasStage = ({
+  settings,
+  onChange,
+  container,
+  onContainer,
+  viewport,
+  panning,
+  spaceHeld,
+  handlers,
+}: Props) => {
   const { tool } = settings;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useStageSize(containerRef);
-  const { viewport, panning, spaceHeld, handlers } = useViewport(containerRef);
+  const { width, height } = useStageSize(container);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -133,7 +150,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
       const file = event.dataTransfer.files[0];
       if (!file) return;
       const point = toCanvasPoint(
-        containerRef.current,
+        container,
         viewport,
         event.clientX,
         event.clientY,
@@ -141,7 +158,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
       if (!point) return;
       void upload(file, point.x, point.y);
     },
-    [storageReady, upload, viewport],
+    [storageReady, upload, viewport, container],
   );
 
   const handleStageClick = useCallback(
@@ -188,7 +205,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
   );
 
   const pen = usePen({
-    containerRef,
+    container,
     viewport,
     tool,
     enabled: storageReady && !spaceHeld,
@@ -206,7 +223,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
       handlers.onPointerMove(event);
       pen.handlers.onPointerMove(event);
       const at = toCanvasPoint(
-        containerRef.current,
+        container,
         viewport,
         event.clientX,
         event.clientY,
@@ -239,7 +256,7 @@ const CanvasStage = ({ settings, onChange }: Props) => {
 
   return (
     <div
-      ref={containerRef}
+      ref={onContainer}
       className="group bg-bg relative h-full w-full touch-none overflow-hidden"
       style={{ cursor }}
       onDragOver={handleDragOver}
