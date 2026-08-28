@@ -50,7 +50,7 @@ The concrete end-to-end check that proves the streams fit together, run before "
 ## 5. Forbidden patterns
 
 - Never start integration before the contract in §1 is frozen.
-- Never cross the web↔api boundary: no `mongoose`/`mongodb`, `@liveblocks/node`, `@ai-sdk/anthropic`, `ai`, `@vercel/blob`, or `resend` in `apps/web`. Need data on the web? It's an api endpoint.
+- Never cross the web↔api boundary: no `mongoose`/`mongodb`, `@liveblocks/node`, `@ai-sdk/google`, `ai`, `@vercel/blob`, or `resend` in `apps/web`. Need data on the web? It's an api endpoint.
 - Web → api only through `apps/web/src/lib/api-client.ts`; api validates only through `@educatio/shared/api/*` Zod schemas.
 - Design tokens, not hard-coded hex (`docs/DESIGN.md`).
 

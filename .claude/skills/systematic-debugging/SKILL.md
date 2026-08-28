@@ -24,4 +24,4 @@ Don't guess-and-patch. Run a falsifiable loop and stop the moment a test contrad
 | Runtime crash despite "valid" TypeScript            | An `as` assertion hid a `null`/`undefined` — validate at the boundary with the `@educatio/shared/api/*` Zod schema                   |
 | `null` vs `undefined` mismatch across web↔api       | Declared `null` but got `undefined` (or vice versa) — align the shared type / Zod schema, don't paper over with `?.`                 |
 
-When the bug is at a system boundary (web↔api, api↔Mongo/Liveblocks/Anthropic, browser↔Edge `proxy.ts`), check the contract on _both_ sides before blaming either.
+When the bug is at a system boundary (web↔api, api↔Mongo/Liveblocks/Gemini, browser↔Edge `proxy.ts`), check the contract on _both_ sides before blaming either.

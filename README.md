@@ -13,12 +13,12 @@ A collaborative whiteboard for one-on-one online tutoring. Tutors create a lesso
 | `packages/shared` | `@educatio/shared` — domain types + Zod schemas shared by both apps.               |
 | `docs/`           | Architecture, spec, design, and implementation plan.                               |
 
-> **Status:** the api owns every endpoint (auth, lessons, sessions, snapshot, summary, liveblocks, upload); web is UI-only and authenticates via a JWT cookie. The marketing landing and the auth screens (`/sign-up`, `/sign-in`, `/verify`, a one-click demo login, and a `/dashboard` stub) are built; the full dashboard/lesson/summary **screens are the remaining work** (see [docs/SPEC.md](docs/SPEC.md) §Features for behavior, [docs/implementation-plan.md](docs/implementation-plan.md) §7 for status). Everything compiles and builds and the auth flows work against a local Mongo, but nothing has run against live/hosted Resend/Liveblocks/Anthropic.
+> **Status:** the api owns every endpoint (auth, lessons, sessions, snapshot, summary, liveblocks, upload); web is UI-only and authenticates via a JWT cookie. The marketing landing and the auth screens (`/sign-up`, `/sign-in`, `/verify`, a one-click demo login, and a `/dashboard` stub) are built; the full dashboard/lesson/summary **screens are the remaining work** (see [docs/SPEC.md](docs/SPEC.md) §Features for behavior, [docs/implementation-plan.md](docs/implementation-plan.md) §7 for status). Everything compiles and builds and the auth flows work against a local Mongo, but nothing has run against live/hosted Resend/Liveblocks/Gemini.
 
 ## Prerequisites
 
 - Node **22.22.2** (pinned in `.nvmrc`). Run `nvm use` before anything — Next 16 refuses to start on <20.9.
-- A MongoDB connection string, plus keys for Resend, Liveblocks, Anthropic, and Vercel Blob (see the `.env` examples below).
+- A MongoDB connection string, plus keys for Resend, Liveblocks, Google Gemini, and Vercel Blob (see the `.env` examples below).
 
 ## Setup
 

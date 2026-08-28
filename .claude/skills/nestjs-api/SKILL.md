@@ -12,7 +12,7 @@ Fastify adapter, Mongoose, Zod at the boundary. `apps/api` owns data, auth, AI, 
 - **`SchemaTypes.ObjectId`, never `Types.ObjectId`, in `@Prop`.** `mongoose.Types.ObjectId` is the value constructor, not a schema type; `@nestjs/mongoose` does not recognise it and the path silently becomes **Mixed**. A Mixed path does no casting, so `findOne({ lessonId })` with a hex string matches nothing — no error, no warning, an empty result. This shipped once and made the AI summary read an empty canvas for weeks. Keep the TS annotation as `Types.ObjectId`; only the `type:` option changes.
 - **Nest answers POST with 201.** Where the contract in `docs/SPEC.md` says 200, add `@HttpCode(200)` — the contract test asserts status, so a mismatch fails there rather than in review.
 - **Mongoose builds indexes on connect**, so connecting is already a write. Never point a test at a real database; go through `test/harness.ts`, which verifies the resolved `MONGODB_URI` _before_ anything connects.
-- **`ai` / `@ai-sdk/anthropic` are ESM-only** and must stay dynamically imported inside `summary.service.ts`. A top-level import breaks the CommonJS build.
+- **`ai` / `@ai-sdk/google` are ESM-only** and must stay dynamically imported inside `summary.service.ts`. A top-level import breaks the CommonJS build.
 
 ## Contracts, not DTOs
 
@@ -28,7 +28,7 @@ Request _and_ response shapes live in `@educatio/shared/api/*` as Zod schemas. V
 
 ## Config
 
-Env is validated at boot in `config/env.schema.ts`. Feature secrets (`LIVEBLOCKS_SECRET_KEY`, `ANTHROPIC_API_KEY`, `BLOB_READ_WRITE_TOKEN`) are **optional**, and their services answer `503 service_unavailable` when unset — the app boots and everything unrelated keeps working. Keep that shape when adding a service: fail at the request, not at startup.
+Env is validated at boot in `config/env.schema.ts`. Feature secrets (`LIVEBLOCKS_SECRET_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `BLOB_READ_WRITE_TOKEN`) are **optional**, and their services answer `503 service_unavailable` when unset — the app boots and everything unrelated keeps working. Keep that shape when adding a service: fail at the request, not at startup.
 
 ## Don't
 

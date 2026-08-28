@@ -25,7 +25,7 @@ educatio/                          ← npm workspaces root
 │           ├── common/             ← guards, decorators, filters, pipes
 │           ├── auth/               ← Resend magic-link, JWT issuance, AuthGuard
 │           ├── lessons/            ← lesson CRUD
-│           ├── summary/            ← Anthropic summary generation
+│           ├── summary/            ← Gemini summary generation
 │           ├── snapshots/          ← periodic canvas snapshots
 │           ├── liveblocks/         ← room token issuance
 │           ├── upload/             ← Vercel Blob upload
@@ -55,13 +55,13 @@ educatio/                          ← npm workspaces root
 
 - Import `mongoose`, any Mongoose model, or any Mongo client
 - Import `@liveblocks/node` (server SDK) — the token comes from api
-- Import `@ai-sdk/anthropic`, `resend`, `@vercel/blob` — those are api-side concerns
+- Import `@ai-sdk/google`, `resend`, `@vercel/blob` — those are api-side concerns
 - Embed business logic that duplicates an api handler
 
 **`apps/api` is the only place that:**
 
 - Talks to Mongo (Mongoose + DB connection pool)
-- Calls Anthropic (`@ai-sdk/anthropic`)
+- Calls Google Gemini (`@ai-sdk/google`)
 - Calls Resend (magic-link send)
 - Mints Liveblocks tokens (`@liveblocks/node`)
 - Writes to Vercel Blob
@@ -178,12 +178,12 @@ Paths live beside the schema they belong to in `@educatio/shared/api/*`, consume
 ## Deployment
 
 - **web** → Vercel (single Next deployment). Env: `AUTH_JWT_SECRET` (shared), `EDUCATIO_API_URL`. The canvas client needs no Liveblocks key of its own — its room token comes from api through `/liveblocks-auth`.
-- **api** → Railway / Fly.io / Render — pick one when we get to deploy. Nest is a long-running process; Vercel's serverless model fights it (cold starts, no shared Mongo pool, request timeouts on AI calls). Env: `AUTH_JWT_SECRET` (shared), `MONGODB_URI`, `RESEND_API_KEY`, `EMAIL_FROM`, `LIVEBLOCKS_SECRET_KEY`, `ANTHROPIC_API_KEY`, `BLOB_READ_WRITE_TOKEN`, `WEB_ORIGIN` (CORS allowlist).
+- **api** → Railway / Fly.io / Render — pick one when we get to deploy. Nest is a long-running process; Vercel's serverless model fights it (cold starts, no shared Mongo pool, request timeouts on AI calls). Env: `AUTH_JWT_SECRET` (shared), `MONGODB_URI`, `RESEND_API_KEY`, `EMAIL_FROM`, `LIVEBLOCKS_SECRET_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `BLOB_READ_WRITE_TOKEN`, `WEB_ORIGIN` (CORS allowlist).
 - Local dev: web on `:3000`, api on `:3001`. Web's `EDUCATIO_API_URL=http://localhost:3001`.
 
 ## Status
 
-The api implements every endpoint listed in `docs/SPEC.md` §API routes; web has the marketing landing, the Edge `proxy.ts` gate, the typed `api-client`, and the auth cookie route handlers (`/auth/callback`, `/auth/signout`). The remaining work is web feature screens (see `docs/SPEC.md` §Features for behavior, `docs/implementation-plan.md` §7 for status), Sentry wiring, and tests. Everything compiles and builds; end-to-end behavior is unverified until both apps run against live Mongo/Resend/Liveblocks/Anthropic.
+The api implements every endpoint listed in `docs/SPEC.md` §API routes; web has the marketing landing, the Edge `proxy.ts` gate, the typed `api-client`, and the auth cookie route handlers (`/auth/callback`, `/auth/signout`). The remaining work is web feature screens (see `docs/SPEC.md` §Features for behavior, `docs/implementation-plan.md` §7 for status), Sentry wiring, and tests. Everything compiles and builds; end-to-end behavior is unverified until both apps run against live Mongo/Resend/Liveblocks/Gemini.
 
 ## Open items
 

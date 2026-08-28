@@ -29,7 +29,7 @@
 | Real-time (server) | `@liveblocks/node` (token issuance only)                                                                   | `apps/api`                                |
 | Auth               | Email + password (bcrypt) or Resend magic-link → JWT by Nest, stored as `httpOnly` cookie by web           | `apps/api` owns; `apps/web` stores cookie |
 | Database           | MongoDB Atlas + Mongoose                                                                                   | `apps/api` only                           |
-| AI                 | Anthropic Claude via Vercel AI SDK (`@ai-sdk/anthropic`)                                                   | `apps/api` only                           |
+| AI                 | Google Gemini via Vercel AI SDK (`@ai-sdk/google`)                                                         | `apps/api` only                           |
 | File storage       | Vercel Blob (`@vercel/blob`)                                                                               | `apps/api` only                           |
 | PDF generation     | `@react-pdf/renderer` (client-side)                                                                        | `apps/web`                                |
 | Email              | Resend                                                                                                     | `apps/api` only                           |
@@ -78,8 +78,8 @@ EMAIL_FROM=noreply@educatio.app
 # Liveblocks (server SDK — token issuance)
 LIVEBLOCKS_SECRET_KEY=
 
-# Anthropic
-ANTHROPIC_API_KEY=
+# Google Gemini (aistudio.google.com/apikey)
+GOOGLE_GENERATIVE_AI_API_KEY=
 
 # Vercel Blob
 BLOB_READ_WRITE_TOKEN=
@@ -169,7 +169,7 @@ educatio/                                  ← workspaces root
 │       │   ├── snapshots/                  # canvas snapshot save/latest
 │       │   ├── liveblocks/                 # token issuance
 │       │   ├── upload/                     # Vercel Blob proxy
-│       │   └── summary/                    # Anthropic call (summary.service.ts)
+│       │   └── summary/                    # Gemini call (summary.service.ts)
 │       ├── nest-cli.json
 │       ├── tsconfig.json
 │       ├── eslint.config.mjs
@@ -230,9 +230,9 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 - [ ] **Authentication** — api endpoints built (`/auth/*` incl. flag-gated `/auth/demo`, authenticated `/auth/password`, `JwtAuthGuard`, `proxy.ts`, `auth/callback`, `auth/signout`). Email + password sign-in added alongside magic-link (password set only post-verification via `/auth/password`; per-account lockout; client-IP forwarding for throttling). Web screens: `/sign-up`, `/sign-in`, `/verify`, and `/set-password` built (+ shared `Input`/`Card`/`AuthShell` primitives, server actions, one-click demo login, stale-tab redirect on `/verify`). **Follow-ups:** (1) `/set-password` is the interim home for password set/change shown after verification — fold it into the profile/settings screen when that's built; (2) deferred security hardening — server-side session revocation (`tokenVersion` / make `/auth/signout` kill live sessions) and full magic-link login-CSRF defense. Remaining: tests. See `docs/SPEC.md` §Authentication.
 - [x] **Tutor dashboard** — api ready (`GET /lessons`). Web page built: lesson list (card + row), search, status filters, pagination, create, delete, empty state, cold-load skeleton, shared `DashboardLayout` + sidebar. Row click uses `lessonHref`, which sends **ended** lessons to `/lesson/:id/summary` — a page that does not exist yet, so those rows 404 until Summary page ships. Remaining: tests. See `docs/SPEC.md` §Tutor dashboard.
 - [x] **Lesson creation** — api endpoint built (`POST /lessons`); web form (`/lesson/new`) + server action built, redirecting to `/lesson/:id`. Remaining: tests. See `docs/SPEC.md` §Lesson creation.
-- [ ] **Lesson canvas** — **the next stage.** Api endpoints built (`/lessons/:id`, `/lessons/:id/snapshot`, `/liveblocks/auth`); `konva`, `react-konva`, `@liveblocks/{client,react}` already in web's deps; `/lesson/[lessonId]` is a placeholder page. Its plumbing is in place and exercised against real Liveblocks: `GET /lessons/:id/snapshot` exposes the latest snapshot, `apps/web/src/app/liveblocks-auth/route.ts` is the `authEndpoint` (the session cookie is httpOnly and api is another origin), and `components/canvas/canvas-room/` mounts `RoomProvider` on an active lesson with `Presence`/`Storage` typed through the global `Liveblocks` augmentation in `lib/liveblocks.config.ts`, seeded from the snapshot so an evicted room reopens with its elements. Room tokens are verified scoped: a student's token authorizes only their own lesson's room, another lesson's room is a 403. Still unbuilt: **the canvas itself** — Konva stage, viewport, element renderers, toolbar, live cursors — and the snapshot loop, since **nothing writes snapshots** (`POST /lessons/:id/snapshot` still has no caller, which is also why the AI summary has nothing to read). Not verifiable without a browser: the websocket connect and storage hydration; everything up to the token is covered. See `docs/SPEC.md` §Lesson canvas.
-- [ ] **Student join** — api endpoint built (`POST /sessions/student`). `proxy.ts` already scopes a `kind: 'student'` claim to its own `/lesson/:id` (+ `/summary`). Web page (`/join/[inviteCode]`) and the route handler that turns the returned student JWT into the httpOnly cookie are not built. See `docs/SPEC.md` §Student join.
-- [ ] **Image upload** — api endpoint built (`POST /upload`). Canvas-tool integration not built. See `docs/SPEC.md` §Image upload.
+- [x] **Lesson canvas** — built. Konva stage with pan/zoom (wheel, a fixed zoom ladder, pinch and two-finger pan on touch), element renderers (text, sticky, shape, path, image, code), the toolbar, colour and stroke pickers, selection with transform/rotate, undo/redo, live cursors, presence, peer selection, live strokes and live transforms through presence, image upload, and the 30s snapshot loop that finally gives the AI summary something to read. Exercised by a Playwright suite against real Liveblocks. Remaining: mobile is read-only by notice only — a one-finger drag still moves an element.
+- [x] **Student join** — built. `/join/[inviteCode]` is public; the server action verifies the returned JWT and takes the lesson id from its claims before setting the student cookie, whose lifetime now follows the token. Share dialog on the lesson page is gated server-side to tutors; a signed-in tutor opening an invite link is warned before their session is replaced. Covered end to end (two browser contexts) in `e2e/join.spec.ts`. See `docs/SPEC.md` §Student join.
+- [x] **Image upload** — built end to end: canvas tool and drag-and-drop, through `POST /upload`. Verified against live Vercel Blob (201 with a real blob URL). See `docs/SPEC.md` §Image upload.
 - [ ] **AI lesson summary** — api endpoint built (`POST /lessons/:id/summary`), and `PATCH /lessons/:id` can end the lesson. End-lesson trigger not wired. Note the endpoint reads `SnapshotsService.latest()`, so **until the canvas snapshot loop exists it summarizes an empty canvas** — generation "works" and says nothing. See `docs/SPEC.md` §AI lesson summary.
 - [ ] **Summary page & export** — web page + PDF/Text/Copy/Email controls not built; the dashboard already links here for ended lessons. Two api-side gaps: "Email to student" has no route in `docs/SPEC.md` §API routes (Resend is already wired in `auth.service.ts`), and the final-canvas thumbnail needs the `GET` snapshot endpoint above. See `docs/SPEC.md` §Summary page & export.
 - [ ] **Session history / replay** — blocked on the same `GET /lessons/:id/snapshot`. See `docs/SPEC.md` §Session history / replay.
@@ -241,8 +241,8 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 - **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing; Edge `proxy.ts` JWT gate via `jose`, gating on the session _kind_ as well as its signature; `auth/callback` + `auth/signout` + flag-gated `auth/demo` route handlers; the `/sign-up` + `/sign-in` + `/verify` + `/set-password` screens on shared `Input`/`Card`/`AuthShell` primitives; the full `/dashboard` and `/lesson/new`; route boundaries; and the finished request layer — one `server-only` `api-client` seam, a mandatory response schema per call, one `ActionResult` shape per Server Action, `ERROR_COPY` keyed on the api's error code); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types, per-endpoint Zod request _and_ response schemas, shared route-path constants, builds to `dist`).
 - **Verified:** `npm run check` passes (format, lint, typecheck, test) and production builds pass for all three workspaces. `apps/api`'s responses are pinned to the shared contract by `test/api-contract.spec.ts`, which boots the real Nest app against an ephemeral mongod. The magic-link sign-up / sign-in / verify / demo flows have been run against **local** Mongo.
-- **Not verified:** all of `apps/web` — it has no tests, so the request layer and `proxy.ts`'s kind gate are type-checked and reasoned about but never exercised. Email + password sign-in and everything added since have not been run in a browser. Nothing has run against live Resend/Liveblocks/Anthropic.
-- **Cross-cutting remaining:** the lesson canvas, student join, image upload, the end-lesson → summary trigger, the summary page + export, and replay — plus a web test harness (none exists), Sentry on both apps, and CI (none).
+- **Not verified:** email + password sign-in has not been run in a browser, and nothing has run against live Resend or Gemini. `apps/web` now has a Vitest suite (33 tests) and a Playwright suite (24 tests, chromium + webkit) covering the canvas, the join flow and session-cookie lifetimes against **live Liveblocks** and local Mongo — but the request layer and `proxy.ts`'s kind gate are still only covered incidentally.
+- **Cross-cutting remaining:** the end-lesson → summary trigger, the summary page + export, and replay — plus Sentry on both apps and CI (none).
 
 ---
 
@@ -342,7 +342,7 @@ Setup notes, each of which cost something to discover:
 - All web→api calls go through `apps/web/src/lib/api-client.ts` (typed wrapper that reads the `educatio_session` cookie and forwards it as a bearer token).
 - All api routes use Zod schemas from `@educatio/shared/api/*` for request/response validation — no ad-hoc types in controllers.
 - All Mongoose models live in `apps/api/src/schemas/` — never imported from `apps/web`.
-- All Anthropic calls go through `apps/api/src/summary/summary.service.ts` (dynamic-imports the ESM-only `ai`/`@ai-sdk/anthropic`) — single point of configuration.
+- All AI calls go through `apps/api/src/summary/summary.service.ts` (dynamic-imports the ESM-only `ai`/`@ai-sdk/google`) — single point of configuration.
 - All Liveblocks **server** calls go through `apps/api/src/liveblocks/` — never `@liveblocks/node` in web.
 - Commit messages: conventional commits (`feat:`, `fix:`, `chore:`, etc.). Scope by app where useful: `feat(api): add lessons module`, `feat(web): wire api-client`.
 

@@ -112,9 +112,10 @@ The centerpiece of the app.
 
 ### AI lesson summary
 
-- Trigger on End: `POST /lessons/:id/summary` (api).
+- Trigger: ending a lesson only sets `status: ended` (`PATCH /lessons/:id`); the tutor is then sent to the summary page, which fires `POST /lessons/:id/summary` on arrival when the lesson has no summary yet. Generation takes 15-30s, so doing it inside the End action blocked the tutor on a spinner and delayed everyone else finding out.
+- Ending broadcasts a `lesson-ended` Liveblocks room event. The lesson's status is read server-side, so without it a student keeps a live canvas until they reload.
 - Serialize all canvas elements into structured text (e.g. `Sticky note: "Quadratic formula"`, `Text block: "Solve for x"`, `Code block (Python): ...`).
-- Send to Claude (`claude-sonnet-4-6`, streaming **disabled** — we want the full response saved at once). The api's single point of configuration is `apps/api/src/summary/summary.service.ts`.
+- Send to Google Gemini (`gemini-3.5-flash` via `GOOGLE_GENERATIVE_AI_API_KEY` — the newest Flash models shed free-tier traffic under load, so this deliberately isn't the latest, streaming **disabled** — we want the full response saved at once). The api's single point of configuration is `apps/api/src/summary/summary.service.ts`. Unset key → 503 `service_unavailable`, and the summary page offers Generate. **Gemini's free tier trains on submitted content** — move to a paid tier before real student data runs through it.
 - Save markdown to `lesson.summary.text`.
 - On error: surface a failure to the caller; the page offers Regenerate.
 - **Prompt template:**
@@ -136,6 +137,8 @@ The centerpiece of the app.
   - **Suggested next steps** (2–3 specific things the student should review or practice before the next lesson)
 
   Keep the summary under 400 words. Use a warm, professional tone — this will be sent to the student.
+
+  Write plain markdown only: headings, bullet lists, numbered lists, and bold. No LaTeX or mathematical notation, no code fences, and no tables — the summary is also sent as plain-text email, where that markup shows up as raw symbols.
   ```
 
 ### Summary page & export
@@ -266,7 +269,7 @@ No `/api/*` surface exists on the web host. The only server-side web routes are 
 
 ## Implementation conventions (binding)
 
-- **Boundary discipline.** `apps/web` is UI; `apps/api` owns data, auth, AI, Liveblocks server SDK, blob, and email. Web never imports `mongoose`, `@liveblocks/node`, `@ai-sdk/anthropic`, `@vercel/blob`, or `resend`. If you need one of those, add the endpoint to api.
+- **Boundary discipline.** `apps/web` is UI; `apps/api` owns data, auth, AI, Liveblocks server SDK, blob, and email. Web never imports `mongoose`, `@liveblocks/node`, `@ai-sdk/google`, `@vercel/blob`, or `resend`. If you need one of those, add the endpoint to api.
 - **Server components by default** in `apps/web`. Client only where interactive (canvas, toolbar, forms, motion wrappers, accordion).
 - **Component style.** Prefer initializing React components as an arrow function assigned to a `const` and exporting them as the file's `export default` at the bottom — `const Section = ({ ... }: Props) => { ... }; export default Section;`. For component props, **start with an `interface`** (`interface Props { ... }`) — it signals an object shape and is open to extension. Reach for a **`type`** only when the shape needs intricate type manipulation — unions, intersections, mapped/conditional types (e.g. `ButtonPrimitive.Props & VariantProps<typeof buttonVariants>`). Non-components keep **named** exports — hooks (`usePrefersReducedMotion`), `cva` variant helpers (`buttonVariants`), types, and constants. **Prefer arrow-function expressions for every function, not just components** — module utilities and lib helpers too (`export const safeInternalPath = (…) => { … }`). Reach for a `function` declaration only where the language requires it: call-before-definition hoisting, TypeScript overload signatures, or generators (`function*`) — plus one convention exception: the HTTP method exports in a `route.ts` (`export async function POST(req: NextRequest)`) keep Next's documented form. Nothing in our code calls them; the framework does, by name, and route files are what we paste from Next's docs and upgrade guides. Next itself is indifferent — its generated validator only checks `typeof import(...)`, which is identical either way — so this is about matching the idiom, not correctness. A page's `export default` is _not_ an exception: the component rule above governs it.
 - **Component structure is folder-per-component.** Each feature component lives in its own kebab-case **folder** with an `index.tsx` holding the component. Co-located non-component code goes in a `helpers/` subfolder — `types.ts`, `constants.ts`, `enums.ts`, `helpers.ts` (only the files that are needed); child components go in a nested `components/` folder (each its own folder, recursively); tests go in `__tests__/`. Example: `components/auth/sign-up-form/{index.tsx, helpers/{types,constants,helpers}.ts}`. The shadcn `base-nova` primitives under `components/ui/` are the exception — they keep their **flat** single-file style (`button.tsx`, `input.tsx`). Existing flat feature components predate this convention and migrate to the folder shape over time.
@@ -277,7 +280,7 @@ No `/api/*` surface exists on the web host. The only server-side web routes are 
 - **All api request/response validation** via Zod schemas in `@educatio/shared/api/*` + Nest's `ZodValidationPipe`. No hand-rolled DTO classes.
 - **`@educatio/shared` holds contract types only** — domain entities, API DTOs (Zod), JWT claim shapes, `ApiError`. Not a junk drawer: utilities, UI helpers, AI prompts, Mongoose schemas, and hooks live in the app that owns them, duplicated rather than shared if a second app needs something similar. The test: _does it define the web↔api contract?_ If not, it doesn't go in shared. (Rationale in `docs/ARCHITECTURE.md` §Scope discipline.)
 - **All DB access in api** through Mongoose models in `apps/api/src/schemas/` — no raw queries.
-- **All Anthropic calls** through `apps/api/src/summary/summary.service.ts` (dynamic-imports the ESM-only `ai`/`@ai-sdk/anthropic`) — single point of configuration.
+- **All AI calls** through `apps/api/src/summary/summary.service.ts` (dynamic-imports the ESM-only `ai`/`@ai-sdk/google`) — single point of configuration.
 - **Liveblocks split:** server SDK (`@liveblocks/node`) lives only in `apps/api/src/liveblocks/`; client SDKs (`@liveblocks/react`, `@liveblocks/client`) live only in `apps/web/src/components/canvas/`.
 - **No `any`** in committed code (strict TypeScript on both apps and the shared package) without an inline justification comment.
 - **Secrets & input safety.** Secrets live only in `apps/api` env (validated in `config/env.schema.ts`), never in the web bundle beyond `NEXT_PUBLIC_*`, and are never committed (`.env*` gitignored). Validate input with Zod at the api boundary **and** sanitize user/AI-generated output: render summary markdown without raw HTML (no `rehype-raw`), never pass untrusted strings to `dangerouslySetInnerHTML`, treat canvas content as untrusted.
