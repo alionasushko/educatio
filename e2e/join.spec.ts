@@ -30,6 +30,7 @@ test("a student joins from an invite link and shares the room", async ({
   const student = await studentContext.newPage();
   await student.goto(`/join/${inviteCode}`);
   await student.getByLabel("Your name").fill("Jordan");
+  await student.getByLabel("Your email").fill("jordan@example.com");
   await student.getByRole("button", { name: "Join lesson" }).click();
 
   await expect(student).toHaveURL(
@@ -59,6 +60,7 @@ test("a student joins from an invite link and shares the room", async ({
 test("an invalid invite code is refused", async ({ page }) => {
   await page.goto("/join/not-a-real-code");
   await page.getByLabel("Your name").fill("Jordan");
+  await page.getByLabel("Your email").fill("jordan@example.com");
   await page.getByRole("button", { name: "Join lesson" }).click();
 
   await expect(page.locator("form [role=alert]")).toContainText(/invite code/i);
@@ -84,4 +86,14 @@ test("a signed-in tutor is warned before their session is replaced", async ({
   await expect(page.getByLabel("Your name")).toBeVisible();
 
   await deleteLesson(lesson);
+});
+
+test("joining requires a usable email address", async ({ page }) => {
+  await page.goto("/join/any-code");
+  await page.getByLabel("Your name").fill("Jordan");
+  await page.getByLabel("Your email").fill("not-an-email");
+  await page.getByRole("button", { name: "Join lesson" }).click();
+
+  await expect(page.getByText(/valid email/i)).toBeVisible();
+  await expect(page).toHaveURL(/\/join\//);
 });

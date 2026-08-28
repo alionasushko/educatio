@@ -55,6 +55,7 @@ declare global {
       elements: LiveMap<string, CanvasElement>;
       metadata: LiveObject<CanvasMetadata>;
     };
+    RoomEvent: { type: "lesson-ended" };
     UserMeta: {
       id: string;
       info: {

@@ -16,7 +16,9 @@ interface Props {
 const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
   const [switching, setSwitching] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [nameError, setNameError] = useState<string>();
+  const [emailError, setEmailError] = useState<string>();
   const [formError, setFormError] = useState<string>();
   const [isPending, startTransition] = useTransition();
 
@@ -27,12 +29,20 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
     const parsed = studentSessionSchema.safeParse({
       inviteCode,
       name: name.trim(),
+      email: email.trim(),
     });
     if (!parsed.success) {
-      setNameError("Add your name so your tutor knows who joined.");
+      const fields = parsed.error.flatten().fieldErrors;
+      setNameError(
+        fields.name
+          ? "Add your name so your tutor knows who joined."
+          : undefined,
+      );
+      setEmailError(fields.email ? "Enter a valid email address." : undefined);
       return;
     }
     setNameError(undefined);
+    setEmailError(undefined);
 
     startTransition(async () => {
       const result = await joinLessonAction(parsed.data);
@@ -52,8 +62,8 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
         Join the lesson
       </h1>
       <p className="text-text-secondary mt-1.5 mb-5.5 text-[13.5px] leading-normal">
-        Add your name so your tutor knows who&apos;s on the board. No account
-        needed.
+        Add your details so your tutor knows who&apos;s on the board and can
+        send you the summary afterwards. No account needed.
       </p>
       <form onSubmit={handleSubmit} noValidate>
         <Input
@@ -66,6 +76,20 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
           onChange={(event) => setName(event.target.value)}
           error={nameError}
         />
+
+        <div className="mt-4">
+          <Input
+            label="Your email"
+            name="email"
+            type="email"
+            maxLength={200}
+            placeholder="you@example.com"
+            helper="Your tutor uses this to send you the lesson summary afterwards."
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            error={emailError}
+          />
+        </div>
 
         {formError && (
           <p

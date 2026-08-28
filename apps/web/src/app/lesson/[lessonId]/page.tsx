@@ -11,13 +11,15 @@ import ConnectionStatus from "@/components/canvas/connection-status";
 import PresenceStack from "@/components/canvas/presence-stack";
 import LessonCanvas from "@/components/canvas/lesson-canvas";
 import ShareLessonButton from "@/components/lesson/share-lesson-button";
+import EndLessonButton from "@/components/lesson/end-lesson-button";
+import LessonEndedWatcher from "@/components/lesson/lesson-ended-watcher";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query, queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
-import { signInRoute } from "@/lib/routes";
+import { lessonSummaryHref, signInRoute } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Lesson",
@@ -54,8 +56,10 @@ const LessonPage = async ({ params }: Props) => {
       ? lesson.videoCallUrl
       : undefined;
 
-  const live = lesson.status !== "ended";
+  if (lesson.status === "ended") redirect(lessonSummaryHref(lessonId));
+
   const isTutor = session.kind === "tutor";
+  const counterpart = isTutor ? lesson.studentName : lesson.tutorName;
 
   const shell = (
     <div className="bg-bg flex h-dvh flex-col overflow-hidden">
@@ -70,22 +74,25 @@ const LessonPage = async ({ params }: Props) => {
             <h1 className="text-text-primary truncate text-sm font-medium">
               {lesson.title}
             </h1>
-            {lesson.studentName && (
+            {counterpart && (
               <p className="text-text-secondary truncate text-xs">
-                with {lesson.studentName}
+                with {counterpart}
               </p>
             )}
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {live && <PresenceStack />}
-          {live && <ConnectionStatus />}
+          <PresenceStack />
+          <ConnectionStatus />
           <Badge variant={variant} dot>
             {label}
           </Badge>
-          {live && isTutor && (
-            <ShareLessonButton inviteCode={lesson.inviteCode} />
+          {isTutor && (
+            <>
+              <ShareLessonButton inviteCode={lesson.inviteCode} />
+              <EndLessonButton lessonId={lesson.id} />
+            </>
           )}
           {videoHref && (
             <a
@@ -116,26 +123,11 @@ const LessonPage = async ({ params }: Props) => {
       </header>
 
       <main className="min-h-0 flex-1">
-        {live ? (
-          <LessonCanvas lessonId={lesson.id} />
-        ) : (
-          <div className="flex h-full items-center justify-center px-6">
-            <div className="max-w-100 text-center">
-              <h2 className="text-text-primary text-lg font-semibold tracking-tight">
-                This lesson has ended
-              </h2>
-              <p className="text-text-secondary mt-2 text-sm leading-relaxed">
-                The canvas is closed for editing. A summary of what you covered
-                is on its way.
-              </p>
-            </div>
-          </div>
-        )}
+        <LessonEndedWatcher lessonId={lesson.id} />
+        <LessonCanvas lessonId={lesson.id} />
       </main>
     </div>
   );
-
-  if (!live) return shell;
 
   return (
     <CanvasRoom

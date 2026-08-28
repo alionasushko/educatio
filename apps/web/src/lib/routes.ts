@@ -8,12 +8,15 @@ export const signInRoute = (callbackUrl?: string): string =>
     ? `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`
     : "/sign-in";
 
+export const lessonSummaryHref = (lessonId: string): string =>
+  `/lesson/${encodeURIComponent(lessonId)}/summary`;
+
 export const lessonHref = (lesson: {
   id: string;
   status: LessonStatus;
 }): string =>
   lesson.status === "ended"
-    ? `/lesson/${lesson.id}/summary`
+    ? lessonSummaryHref(lesson.id)
     : `/lesson/${lesson.id}`;
 
 export interface DashboardQuery {
