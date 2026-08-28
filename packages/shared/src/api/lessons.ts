@@ -44,8 +44,10 @@ export type LessonSummaryResponse = z.infer<typeof lessonSummarySchema>;
 export const lessonSchema = z.object({
   id: z.string(),
   tutorId: z.string(),
+  tutorName: z.string().optional(),
   title: z.string(),
   studentName: z.string().optional(),
+  studentEmail: z.string().optional(),
   videoCallUrl: z.string().optional(),
   inviteCode: z.string(),
   status: z.enum(["scheduled", "active", "ended"]),

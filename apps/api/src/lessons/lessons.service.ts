@@ -5,6 +5,7 @@ import { Model, Types } from "mongoose";
 import { randomUUID } from "node:crypto";
 import { Liveblocks } from "@liveblocks/node";
 import { Lesson, LessonDocument } from "../schemas/lesson.schema";
+import { User, UserDocument } from "../schemas/user.schema";
 import {
   LessonSnapshot,
   LessonSnapshotDocument,
@@ -29,6 +30,7 @@ export class LessonsService {
     @InjectModel(Lesson.name) private readonly lessons: Model<LessonDocument>,
     @InjectModel(LessonSnapshot.name)
     private readonly snapshots: Model<LessonSnapshotDocument>,
+    @InjectModel(User.name) private readonly users: Model<UserDocument>,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -109,7 +111,13 @@ export class LessonsService {
   async getForSession(id: string, session: SessionClaims): Promise<LessonDTO> {
     const lesson = await this.findOr404(id);
     this.assertCanRead(lesson, session);
-    return this.toDTO(lesson);
+
+    const tutor = await this.users
+      .findById(lesson.tutorId)
+      .select("name")
+      .lean<{ name?: string } | null>();
+
+    return { ...this.toDTO(lesson), tutorName: tutor?.name };
   }
 
   async update(
@@ -195,6 +203,7 @@ export class LessonsService {
       tutorId: d.tutorId.toString(),
       title: d.title,
       studentName: d.studentName,
+      studentEmail: d.studentEmail,
       videoCallUrl: d.videoCallUrl,
       inviteCode: d.inviteCode,
       status: d.status,

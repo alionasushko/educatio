@@ -26,8 +26,9 @@ export class SessionsService {
       });
     }
 
-    if (!lesson.studentName) {
-      lesson.studentName = input.name;
+    if (!lesson.studentName || !lesson.studentEmail) {
+      lesson.studentName ??= input.name;
+      lesson.studentEmail ??= input.email;
       await lesson.save();
     }
 

@@ -31,6 +31,9 @@ export class Lesson {
   studentName?: string;
 
   @Prop()
+  studentEmail?: string;
+
+  @Prop()
   videoCallUrl?: string;
 
   @Prop({ required: true, unique: true, index: true })

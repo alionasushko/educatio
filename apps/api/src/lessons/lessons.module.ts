@@ -7,12 +7,14 @@ import {
   LessonSnapshot,
   LessonSnapshotSchema,
 } from "../schemas/lesson-snapshot.schema";
+import { User, UserSchema } from "../schemas/user.schema";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Lesson.name, schema: LessonSchema },
       { name: LessonSnapshot.name, schema: LessonSnapshotSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [LessonsController],

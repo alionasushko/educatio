@@ -8,8 +8,10 @@ export interface LessonSummary {
 export interface Lesson {
   id: string;
   tutorId: string;
+  tutorName?: string;
   title: string;
   studentName?: string;
+  studentEmail?: string;
   videoCallUrl?: string;
   inviteCode: string;
   status: LessonStatus;
