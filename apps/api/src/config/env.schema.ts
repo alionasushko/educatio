@@ -22,7 +22,7 @@ export const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
   LIVEBLOCKS_SECRET_KEY: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
   SENTRY_DSN: z.string().url().optional(),
 });

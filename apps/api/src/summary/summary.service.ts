@@ -1,14 +1,32 @@
-import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { LessonsService } from "../lessons/lessons.service";
 import { SnapshotsService } from "../snapshots/snapshots.service";
 import type { Env } from "../config/env";
 import type { CanvasElement, LessonSummary } from "@educatio/shared";
 
-const SUMMARY_MODEL = "claude-sonnet-4-6";
+export const SUMMARY_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+] as const;
+
+export const isCapacityError = (err: unknown): boolean => {
+  const provider = (err as { lastError?: unknown })?.lastError ?? err;
+  const { statusCode, isRetryable } = (provider ?? {}) as {
+    statusCode?: number;
+    isRetryable?: boolean;
+  };
+  if (typeof isRetryable === "boolean") return isRetryable;
+  return statusCode === 429 || (statusCode !== undefined && statusCode >= 500);
+};
 
 @Injectable()
 export class SummaryService {
+  private readonly logger = new Logger(SummaryService.name);
   constructor(
     private readonly lessonsService: LessonsService,
     private readonly snapshotsService: SnapshotsService,
@@ -33,7 +51,7 @@ export class SummaryService {
       serialized,
     );
 
-    const text = await this.callClaude(prompt);
+    const text = await this.callModel(prompt);
     const summary = await this.lessonsService.saveSummary(lesson, text);
     return { summary };
   }
@@ -103,11 +121,15 @@ Generate a concise lesson summary in markdown format with these sections:
 - **Examples worked through** (problems or examples explored, if identifiable)
 - **Suggested next steps** (2–3 specific things the student should review or practice before the next lesson)
 
-Keep the summary under 400 words. Use a warm, professional tone — this will be sent to the student.`;
+Keep the summary under 400 words. Use a warm, professional tone — this will be sent to the student.
+
+Write plain markdown only: headings, bullet lists, numbered lists, and bold. No LaTeX or mathematical notation, no code fences, and no tables — the summary is also sent as plain-text email, where that markup shows up as raw symbols.`;
   }
 
-  private async callClaude(prompt: string): Promise<string> {
-    const apiKey = this.config.get("ANTHROPIC_API_KEY", { infer: true });
+  private async callModel(prompt: string): Promise<string> {
+    const apiKey = this.config.get("GOOGLE_GENERATIVE_AI_API_KEY", {
+      infer: true,
+    });
     if (!apiKey) {
       throw new ServiceUnavailableException({
         code: "service_unavailable",
@@ -115,12 +137,28 @@ Keep the summary under 400 words. Use a warm, professional tone — this will be
       });
     }
     const { generateText } = await import("ai");
-    const { createAnthropic } = await import("@ai-sdk/anthropic");
-    const anthropic = createAnthropic({ apiKey });
-    const { text } = await generateText({
-      model: anthropic(SUMMARY_MODEL),
-      prompt,
-    });
-    return text;
+    const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+    const google = createGoogleGenerativeAI({ apiKey });
+
+    let lastError: unknown;
+    for (let index = 0; index < SUMMARY_MODELS.length; index++) {
+      const model = SUMMARY_MODELS[index]!;
+      try {
+        const { text } = await generateText({
+          model: google(model),
+          prompt,
+          maxRetries: 1,
+        });
+        return text;
+      } catch (err) {
+        lastError = err;
+        const isLast = index === SUMMARY_MODELS.length - 1;
+        if (isLast || !isCapacityError(err)) throw err;
+        this.logger.warn(
+          `${model} is unavailable, falling back to ${SUMMARY_MODELS[index + 1]}`,
+        );
+      }
+    }
+    throw lastError;
   }
 }

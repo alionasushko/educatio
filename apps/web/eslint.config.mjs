@@ -18,7 +18,7 @@ const BOUNDARY_VIOLATIONS = [
       "@liveblocks/node is the server SDK and lives in apps/api. Use @liveblocks/client / @liveblocks/react on the web.",
   },
   {
-    name: "@ai-sdk/anthropic",
+    name: "@ai-sdk/google",
     message: "AI calls are api-only. Use the api summary endpoint.",
   },
   {
