@@ -127,6 +127,20 @@ export const fitLines = (
     Math.floor(height / (fontSize * LINE_HEIGHT)),
   );
 
+export const arrowHead = (
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  size: number,
+): string => {
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const spread = Math.PI / 7;
+  const left = `${x2 - size * Math.cos(angle - spread)},${y2 - size * Math.sin(angle - spread)}`;
+  const right = `${x2 - size * Math.cos(angle + spread)},${y2 - size * Math.sin(angle + spread)}`;
+  return `${left} ${x2},${y2} ${right}`;
+};
+
 export const safeImageSrc = (src: string): string | null => {
   try {
     const url = new URL(src);

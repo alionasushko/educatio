@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CanvasElement } from "@educatio/shared";
 import {
+  arrowHead,
   boundsOf,
   clampLines,
   extentOf,
@@ -137,5 +138,25 @@ describe("fitLines", () => {
     const lines = fitLines(long, 200, 80, 15);
     expect(lines.length).toBeLessThanOrEqual(Math.floor(80 / (15 * 1.32)));
     expect(lines[lines.length - 1]).toMatch(/…$/);
+  });
+});
+
+describe("arrowHead", () => {
+  it("puts the point at the line's end", () => {
+    const points = arrowHead(0, 0, 100, 0, 10).split(" ");
+    expect(points[1]).toBe("100,0");
+  });
+
+  it("turns with the line", () => {
+    const right = arrowHead(0, 0, 100, 0, 10).split(" ");
+    const down = arrowHead(0, 0, 0, 100, 10).split(" ");
+    expect(right[0]).not.toBe(down[0]);
+  });
+
+  it("keeps the barbs behind the point, not past it", () => {
+    const [left, tip] = arrowHead(0, 0, 100, 0, 12).split(" ");
+    expect(Number(left!.split(",")[0])).toBeLessThan(
+      Number(tip!.split(",")[0]),
+    );
   });
 });

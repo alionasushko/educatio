@@ -3,6 +3,7 @@ import { STICKY_TOKEN } from "@/components/canvas/helpers/constants";
 import {
   LINE_HEIGHT,
   MONO_RATIO,
+  arrowHead,
   boundsOf,
   extentOf,
   fitLines,
@@ -127,17 +128,34 @@ const Element = ({ element }: { element: CanvasElement }) => {
       );
     }
     if (element.shape === "arrow") {
+      const tipX = box.x + box.width;
+      const tipY = box.y + box.height;
       return (
-        <line
-          transform={transform}
-          x1={box.x}
-          y1={box.y}
-          x2={box.x + box.width}
-          y2={box.y + box.height}
-          strokeLinecap="round"
-          strokeWidth={element.strokeWidth}
-          style={stroke}
-        />
+        <g transform={transform}>
+          <line
+            x1={box.x}
+            y1={box.y}
+            x2={tipX}
+            y2={tipY}
+            strokeLinecap="round"
+            strokeWidth={element.strokeWidth}
+            style={stroke}
+          />
+          <polyline
+            points={arrowHead(
+              box.x,
+              box.y,
+              tipX,
+              tipY,
+              Math.max(10, element.strokeWidth * 3),
+            )}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={element.strokeWidth}
+            style={stroke}
+          />
+        </g>
       );
     }
     return (

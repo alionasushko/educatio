@@ -1,9 +1,10 @@
-import type { StickyColor } from "@educatio/shared";
+import type { ShapeKind, StickyColor } from "@educatio/shared";
 import type { CanvasTool } from "@/lib/liveblocks.config";
 
 export interface CanvasSettings {
   tool: CanvasTool;
   inkToken: string;
   stickyColor: StickyColor;
+  shape: ShapeKind;
   strokeWidth: number;
 }

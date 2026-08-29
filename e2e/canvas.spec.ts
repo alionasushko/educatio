@@ -700,7 +700,7 @@ test("a peer sees a resize while it is happening", async ({ browser }) => {
   const box = await tutorPage.locator("canvas").first().boundingBox();
   if (!box) throw new Error("canvas has no box");
 
-  await tutorPage.getByRole("button", { name: "Rectangle (R)" }).click();
+  await tutorPage.getByRole("button", { name: "Shape (R)" }).click();
   await tutorPage.mouse.click(box.x + 200, box.y + 200);
   await tutorPage.mouse.click(box.x + 260, box.y + 240);
 
@@ -760,7 +760,7 @@ test("a peer can see what the other person has selected", async ({
   const box = await tutorPage.locator("canvas").first().boundingBox();
   if (!box) throw new Error("canvas has no box");
 
-  await tutorPage.getByRole("button", { name: "Rectangle (R)" }).click();
+  await tutorPage.getByRole("button", { name: "Shape (R)" }).click();
   await tutorPage.mouse.click(box.x + 240, box.y + 200);
   await tutorPage.keyboard.press("Escape");
 
@@ -868,4 +868,44 @@ test("pinching with the pen tool leaves no stroke", async ({
   await pinch(page, 100, 220);
   await page.waitForTimeout(400);
   expect(await shapeCount(page)).toBe(0);
+});
+
+test("the shape picker chooses which shape gets drawn", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const konvaShapes = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: { stages: { find: (s: string) => unknown[] }[] };
+        }
+      ).Konva?.stages[0];
+      return {
+        rects: stage?.find("Rect").length ?? 0,
+        ellipses: stage?.find("Ellipse").length ?? 0,
+        arrows: stage?.find("Arrow").length ?? 0,
+      };
+    });
+
+  await page.getByRole("button", { name: "Shape (R)" }).click();
+  const picker = page.getByRole("group", { name: "Shape" });
+  await expect(picker).toBeVisible();
+
+  const before = await konvaShapes();
+  await picker.getByRole("button", { name: "Circle" }).click();
+  await canvas.click({ position: { x: 200, y: 200 } });
+  await expect
+    .poll(async () => (await konvaShapes()).ellipses)
+    .toBe(before.ellipses + 1);
+
+  await page.getByRole("button", { name: "Shape (R)" }).click();
+  await picker.getByRole("button", { name: "Arrow" }).click();
+  await canvas.click({ position: { x: 420, y: 260 } });
+  await expect
+    .poll(async () => (await konvaShapes()).arrows)
+    .toBe(before.arrows + 1);
 });

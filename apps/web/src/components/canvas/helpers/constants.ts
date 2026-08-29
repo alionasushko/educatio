@@ -1,4 +1,4 @@
-import type { StickyColor } from "@educatio/shared";
+import type { ShapeKind, StickyColor } from "@educatio/shared";
 import type { CanvasSettings } from "./types";
 
 export const STICKY_TOKEN: Record<StickyColor, string> = {
@@ -16,6 +16,14 @@ export const STICKY_ORDER: StickyColor[] = [
   "green",
   "purple",
 ];
+
+export const SHAPE_ORDER: ShapeKind[] = ["rectangle", "circle", "arrow"];
+
+export const SHAPE_LABEL: Record<ShapeKind, string> = {
+  rectangle: "Rectangle",
+  circle: "Circle",
+  arrow: "Arrow",
+};
 
 export interface InkColor {
   token: string;
@@ -48,5 +56,6 @@ export const DEFAULT_SETTINGS: CanvasSettings = {
   tool: "select",
   inkToken: "--text-primary",
   stickyColor: "yellow",
+  shape: "rectangle",
   strokeWidth: 4,
 };

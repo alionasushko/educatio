@@ -86,7 +86,7 @@ The centerpiece of the app.
 - **Video call button:** opens URL in new tab
 - **End lesson:** confirmation dialog → set `status='ended'`, `endedAt=now` → trigger summary generation → redirect to `/lesson/[lessonId]/summary`
 - Canvas: full remaining viewport, edge-to-edge
-- Toolbar (bottom-center): tool selector + color picker (for pen/text) + zoom controls
+- Toolbar (bottom-center): tool selector + color picker (for pen/text) + stroke picker (pen/shape) + shape picker (rectangle/circle/arrow, shown with the Shape tool) + zoom controls
 - All canvas element types renderable + editable (see Canvas types section)
 - Real-time sync via Liveblocks (multi-user collaborative editing)
 - Live cursors with names

@@ -8,6 +8,7 @@ import type { CanvasSettings } from "../helpers/types";
 import ToolButton from "./components/tool-button";
 import ColorPicker from "./components/color-picker";
 import StrokePicker from "./components/stroke-picker";
+import ShapePicker from "./components/shape-picker";
 import ZoomControls from "./components/zoom-controls";
 import { TOOLS } from "./helpers/constants";
 
@@ -49,6 +50,7 @@ const CanvasToolbar = ({
   const inks = tool === "pen" || tool === "text" || tool === "shape";
   const strokes = tool === "pen" || tool === "shape";
   const stickies = tool === "sticky";
+  const shapes = tool === "shape";
 
   return (
     <div
@@ -72,7 +74,7 @@ const CanvasToolbar = ({
         />
       ))}
 
-      {(inks || stickies) && <Divider />}
+      {(inks || stickies || shapes) && <Divider />}
 
       {inks && (
         <ColorPicker
@@ -84,6 +86,14 @@ const CanvasToolbar = ({
           }))}
           selected={settings.inkToken}
           onSelect={(inkToken) => onChange({ inkToken })}
+          disabled={!ready}
+        />
+      )}
+
+      {shapes && (
+        <ShapePicker
+          selected={settings.shape}
+          onSelect={(shape) => onChange({ shape })}
           disabled={!ready}
         />
       )}

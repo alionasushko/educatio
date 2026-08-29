@@ -59,7 +59,7 @@ export const createElement = (
         type: "shape",
         x,
         y,
-        shape: "rectangle",
+        shape: settings.shape,
         width: 180,
         height: 120,
         stroke: settings.inkToken,
