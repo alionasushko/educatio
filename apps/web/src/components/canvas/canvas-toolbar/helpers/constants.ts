@@ -27,6 +27,10 @@ export const TOOLS: ToolDefinition[] = [
   { tool: "code", label: "Code block", shortcut: "C", Icon: CodeIcon },
 ];
 
+export const INK_TOOLS: CanvasTool[] = ["pen", "text", "shape"];
+
+export const STROKE_TOOLS: CanvasTool[] = ["pen", "shape"];
+
 export const TOOL_BY_SHORTCUT = new Map(
   TOOLS.map(({ tool, shortcut }) => [shortcut.toLowerCase(), tool]),
 );

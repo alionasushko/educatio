@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type DragEvent,
@@ -11,6 +12,7 @@ import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
 import {
   useRedo,
+  useStorage,
   useStorageRoot,
   useUndo,
   useUpdateMyPresence,
@@ -22,10 +24,12 @@ import { useStageSize } from "./helpers/use-stage-size";
 import type { Viewport } from "./helpers/types";
 import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
 import {
+  colorTargetOf,
   useCreateElement,
   useCreateImage,
   useCreatePath,
   useDeleteElement,
+  type ColorTarget,
 } from "./helpers/use-canvas-mutations";
 import { usePen } from "./helpers/use-pen";
 import { useImageUpload } from "./helpers/use-image-upload";
@@ -47,6 +51,7 @@ interface Props {
   panning: boolean;
   spaceHeld: boolean;
   pinching: boolean;
+  onSelectionChange: (target: ColorTarget | null) => void;
   handlers: {
     onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
     onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
@@ -64,6 +69,7 @@ const CanvasStage = ({
   panning,
   spaceHeld,
   pinching,
+  onSelectionChange,
   handlers,
 }: Props) => {
   const { tool } = settings;
@@ -201,6 +207,18 @@ const CanvasStage = ({
     },
     [tool, settings, storageReady, createElement, select, onChange, pickImage],
   );
+
+  const selectedElement = useStorage((root) =>
+    selectedId ? root.elements[selectedId] : undefined,
+  );
+  const colorTarget = useMemo(
+    () => colorTargetOf(selectedElement),
+    [selectedElement],
+  );
+
+  useEffect(() => {
+    onSelectionChange(colorTarget);
+  }, [colorTarget, onSelectionChange]);
 
   const handleDelete = useCallback(() => {
     if (!selectedId || editingId) return;

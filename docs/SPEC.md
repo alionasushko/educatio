@@ -87,6 +87,7 @@ The centerpiece of the app.
 - **End lesson:** confirmation dialog → set `status='ended'`, `endedAt=now` → trigger summary generation → redirect to `/lesson/[lessonId]/summary`
 - Canvas: full remaining viewport, edge-to-edge
 - Toolbar (bottom-center): tool selector + color picker (for pen/text) + stroke picker (pen/shape) + shape picker (rectangle/circle/arrow, shown with the Shape tool) + zoom controls
+- Selecting an element that carries a colour (note, text, stroke, shape) points the colour picker at that element: it shows the element's own colour and changing it recolours the element rather than setting the default for the next one. Deselecting hands the picker back to the tool defaults.
 - All canvas element types renderable + editable (see Canvas types section)
 - Real-time sync via Liveblocks (multi-user collaborative editing)
 - Live cursors with names

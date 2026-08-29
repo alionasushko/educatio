@@ -975,3 +975,86 @@ test("a stroke can be deleted straight after drawing it", async ({
   await page.keyboard.press("Delete");
   await expect.poll(count).toBe(0);
 });
+
+const elementColors = (page: Page) =>
+  page.evaluate(() => {
+    const stage = (
+      window as unknown as {
+        Konva?: {
+          stages: {
+            find: (s: string) => {
+              id(): string;
+              findOne: (s: string) => { fill?: () => string } | undefined;
+            }[];
+          }[];
+        };
+      }
+    ).Konva?.stages[0];
+    const group = stage?.find("Group").find((n) => n.id().length > 0);
+    const rect = group?.findOne("Rect");
+    return rect?.fill?.() ?? "";
+  });
+
+test("a selected note can be recoloured after the fact", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await canvas.click({ position: { x: 240, y: 200 } });
+  await page.keyboard.press("Escape");
+  await expect.poll(() => elementColors(page)).not.toBe("");
+  const before = await elementColors(page);
+
+  // With the note selected the picker acts on it, not on the next note.
+  const picker = page.getByRole("group", { name: "Sticky color", exact: true });
+  await expect(picker).toBeVisible();
+  await picker.getByRole("button", { name: "Blue", exact: true }).click();
+
+  await expect.poll(() => elementColors(page)).not.toBe(before);
+
+  // Deselecting hands the picker back to whatever gets made next.
+  await page.keyboard.press("Escape");
+  await expect(picker).toHaveCount(0);
+});
+
+test("a selected stroke can be recoloured after the fact", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const strokeColor = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: {
+            stages: {
+              find: (s: string) => {
+                id(): string;
+                findOne: (s: string) => { stroke?: () => string } | undefined;
+              }[];
+            }[];
+          };
+        }
+      ).Konva?.stages[0];
+      const group = stage?.find("Group").find((n) => n.id().length > 0);
+      return group?.findOne("Line")?.stroke?.() ?? "";
+    });
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + 150, box.y + 150);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 280, box.y + 230, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(strokeColor).not.toBe("");
+  const before = await strokeColor();
+
+  const picker = page.getByRole("group", { name: "Color", exact: true });
+  await picker.getByRole("button", { name: "Crimson", exact: true }).click();
+  await expect.poll(strokeColor).not.toBe(before);
+});

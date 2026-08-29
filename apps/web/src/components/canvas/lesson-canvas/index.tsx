@@ -13,6 +13,10 @@ import {
 import CanvasToolbar from "../canvas-toolbar";
 import CanvasSnapshot from "../canvas-snapshot";
 import { useViewport } from "../canvas-stage/helpers/use-viewport";
+import {
+  useRecolorElement,
+  type ColorTarget,
+} from "../canvas-stage/helpers/use-canvas-mutations";
 import { DEFAULT_SETTINGS } from "../helpers/constants";
 import type { CanvasSettings } from "../helpers/types";
 
@@ -34,6 +38,8 @@ const LessonCanvas = ({ lessonId }: Props) => {
   const canRedo = useCanRedo();
   const [storageRoot] = useStorageRoot();
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [selection, setSelection] = useState<ColorTarget | null>(null);
+  const recolor = useRecolorElement();
   const {
     viewport,
     panning,
@@ -64,6 +70,7 @@ const LessonCanvas = ({ lessonId }: Props) => {
         panning={panning}
         spaceHeld={spaceHeld}
         pinching={pinching}
+        onSelectionChange={setSelection}
         handlers={handlers}
       />
       <div className="border-border-subtle bg-surface absolute inset-x-3 bottom-3 z-10 rounded-[12px] border p-3 text-center shadow-(--shadow-medium) md:hidden">
@@ -83,6 +90,8 @@ const LessonCanvas = ({ lessonId }: Props) => {
         canUndo={canUndo}
         canRedo={canRedo}
         ready={storageRoot !== null}
+        selection={selection}
+        onRecolor={(value) => selection && recolor(selection.id, value)}
         scale={viewport.scale}
         onZoom={zoomStep}
         onResetZoom={resetZoom}

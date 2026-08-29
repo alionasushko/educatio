@@ -1,7 +1,7 @@
 import { useMutation } from "@liveblocks/react";
 import { nanoid } from "nanoid";
 import type { LiveMap } from "@liveblocks/client";
-import type { CanvasElement } from "@educatio/shared";
+import type { CanvasElement, StickyColor } from "@educatio/shared";
 import type { CanvasSettings } from "../../helpers/types";
 import { MIN_ELEMENT_SIDE } from "./constants";
 import { createElement, type CreatableTool } from "./element-factory";
@@ -25,6 +25,54 @@ export const useDeleteElement = () =>
   useMutation(({ storage }, id: string) => {
     const elements = storage.get("elements");
     if (!elements.delete(id)) return;
+    storage.get("metadata").update({
+      lastEditedAt: Date.now(),
+      elementCount: elements.size,
+    });
+  }, []);
+
+export type ColorKind = "ink" | "sticky";
+
+export interface ColorTarget {
+  id: string;
+  kind: ColorKind;
+  value: string;
+}
+
+export const colorTargetOf = (element: unknown): ColorTarget | null => {
+  if (typeof element !== "object" || element === null) return null;
+  const { id, type, color, stroke } = element as Record<string, unknown>;
+  if (typeof id !== "string") return null;
+
+  if (type === "sticky" && typeof color === "string") {
+    return { id, kind: "sticky", value: color };
+  }
+  if (type === "text" && typeof color === "string") {
+    return { id, kind: "ink", value: color };
+  }
+  if ((type === "path" || type === "shape") && typeof stroke === "string") {
+    return { id, kind: "ink", value: stroke };
+  }
+  return null;
+};
+
+export const useRecolorElement = () =>
+  useMutation(({ storage }, id: string, value: string) => {
+    const elements = storage.get("elements");
+    const element = elements.get(id);
+    if (!element) return;
+
+    const recolored =
+      element.type === "sticky"
+        ? { ...element, color: value as StickyColor }
+        : element.type === "text"
+          ? { ...element, color: value }
+          : element.type === "path" || element.type === "shape"
+            ? { ...element, stroke: value }
+            : null;
+    if (!recolored) return;
+
+    elements.set(id, recolored);
     storage.get("metadata").update({
       lastEditedAt: Date.now(),
       elementCount: elements.size,

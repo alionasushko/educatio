@@ -5,12 +5,13 @@ import type { StickyColor } from "@educatio/shared";
 import { cn } from "@/lib/utils";
 import { INK_COLORS, STICKY_ORDER, STICKY_TOKEN } from "../helpers/constants";
 import type { CanvasSettings } from "../helpers/types";
+import type { ColorTarget } from "../canvas-stage/helpers/use-canvas-mutations";
 import ToolButton from "./components/tool-button";
 import ColorPicker from "./components/color-picker";
 import StrokePicker from "./components/stroke-picker";
 import ShapePicker from "./components/shape-picker";
 import ZoomControls from "./components/zoom-controls";
-import { TOOLS } from "./helpers/constants";
+import { INK_TOOLS, STROKE_TOOLS, TOOLS } from "./helpers/constants";
 
 interface Props {
   settings: CanvasSettings;
@@ -20,6 +21,8 @@ interface Props {
   canUndo: boolean;
   canRedo: boolean;
   ready: boolean;
+  selection: ColorTarget | null;
+  onRecolor: (value: string) => void;
   scale: number;
   onZoom: (direction: 1 | -1) => void;
   onResetZoom: () => void;
@@ -41,15 +44,17 @@ const CanvasToolbar = ({
   canUndo,
   canRedo,
   ready,
+  selection,
+  onRecolor,
   scale,
   onZoom,
   onResetZoom,
   className,
 }: Props) => {
   const { tool } = settings;
-  const inks = tool === "pen" || tool === "text" || tool === "shape";
-  const strokes = tool === "pen" || tool === "shape";
-  const stickies = tool === "sticky";
+  const inks = selection ? selection.kind === "ink" : INK_TOOLS.includes(tool);
+  const stickies = selection ? selection.kind === "sticky" : tool === "sticky";
+  const strokes = STROKE_TOOLS.includes(tool);
   const shapes = tool === "shape";
 
   return (
@@ -84,8 +89,10 @@ const CanvasToolbar = ({
             label,
             value: token,
           }))}
-          selected={settings.inkToken}
-          onSelect={(inkToken) => onChange({ inkToken })}
+          selected={selection ? selection.value : settings.inkToken}
+          onSelect={(inkToken) =>
+            selection ? onRecolor(inkToken) : onChange({ inkToken })
+          }
           disabled={!ready}
         />
       )}
@@ -106,8 +113,12 @@ const CanvasToolbar = ({
             label: `${color[0]?.toUpperCase()}${color.slice(1)}`,
             value: color,
           }))}
-          selected={settings.stickyColor}
-          onSelect={(value) => onChange({ stickyColor: value as StickyColor })}
+          selected={selection ? selection.value : settings.stickyColor}
+          onSelect={(value) =>
+            selection
+              ? onRecolor(value)
+              : onChange({ stickyColor: value as StickyColor })
+          }
           disabled={!ready}
         />
       )}
