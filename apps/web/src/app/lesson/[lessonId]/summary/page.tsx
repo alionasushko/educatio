@@ -6,6 +6,7 @@ import Wordmark from "@/components/brand/wordmark";
 import { buttonVariants } from "@/components/ui/button";
 import LessonSummary from "@/components/lesson/lesson-summary";
 import EmailSummaryButton from "@/components/lesson/email-summary-button";
+import SummaryExports from "@/components/lesson/summary-exports";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { queryOrNotFound } from "@/lib/api-error";
@@ -49,6 +50,9 @@ const LessonSummaryPage = async ({ params }: Props) => {
     : null;
   const length = minutes(lesson.durationSeconds);
   const counterpart = isTutor ? lesson.studentName : lesson.tutorName;
+  const metaLine = [counterpart && `with ${counterpart}`, ended, length]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="bg-bg min-h-dvh">
@@ -79,11 +83,17 @@ const LessonSummaryPage = async ({ params }: Props) => {
         <h1 className="text-text-primary text-[24px] font-semibold tracking-[-0.02em]">
           {lesson.title}
         </h1>
-        <p className="text-text-secondary mt-1.5 text-[13.5px]">
-          {[counterpart && `with ${counterpart}`, ended, length]
-            .filter(Boolean)
-            .join(" · ")}
-        </p>
+        <p className="text-text-secondary mt-1.5 text-[13.5px]">{metaLine}</p>
+
+        {lesson.summary?.text && (
+          <div className="mt-6">
+            <SummaryExports
+              lessonTitle={lesson.title}
+              meta={metaLine}
+              summary={lesson.summary.text}
+            />
+          </div>
+        )}
 
         <div className="mt-8">
           <LessonSummary

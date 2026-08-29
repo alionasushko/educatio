@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toPlainText } from "../helpers/helpers";
+import { toPlainText } from "@/lib/summary-markdown";
 
 describe("toPlainText", () => {
   it("drops heading and bold markers, keeping the words", () => {

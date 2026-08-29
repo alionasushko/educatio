@@ -3,7 +3,7 @@
 import { MailIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toPlainText } from "./helpers/helpers";
+import { toPlainText } from "@/lib/summary-markdown";
 
 interface Props {
   lessonTitle: string;

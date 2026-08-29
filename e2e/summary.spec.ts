@@ -1,4 +1,31 @@
 import { test, expect } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { inflateSync } from "node:zlib";
+
+// react-pdf flate-compresses its content streams and draws text as hex runs
+// inside TJ arrays, so the words are only readable after inflating and decoding.
+// Without this a blank PDF passes every check.
+const pdfText = (pdf: Buffer): string => {
+  const raw = pdf.toString("latin1");
+  const marker = /stream\r?\n/g;
+  let text = "";
+  let match: RegExpExecArray | null;
+  while ((match = marker.exec(raw)) !== null) {
+    const start = match.index + match[0].length;
+    const end = raw.indexOf("endstream", start);
+    if (end < 0) continue;
+    try {
+      text += inflateSync(
+        Buffer.from(raw.slice(start, end), "latin1"),
+      ).toString("latin1");
+    } catch {
+      // not a deflate stream (fonts, metadata) — skip it
+    }
+  }
+  return (text.match(/<([0-9a-fA-F]{2,})>/g) ?? [])
+    .map((run) => Buffer.from(run.slice(1, -1), "hex").toString("latin1"))
+    .join("");
+};
 import { createDemoLesson, deleteLesson, signIn } from "./helpers/session";
 
 const API = process.env.E2E_API_URL ?? "http://localhost:3001";
@@ -107,8 +134,10 @@ test("the student's email carries through to a prefilled mail draft", async ({
     .click();
   await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
 
+  // The button only appears once the summary exists, and generation now runs
+  // on this page rather than inside the end action.
   const mail = page.getByRole("link", { name: /email to student/i });
-  await expect(mail).toBeVisible();
+  await expect(mail).toBeVisible({ timeout: 90_000 });
   const href = await mail.getAttribute("href");
   expect(href).toContain("mailto:jordan%40example.com");
   expect(href).toContain("subject=");
@@ -178,5 +207,51 @@ test("a student sees the lesson end without reloading", async ({
   await expect(student.getByRole("link", { name: /email/i })).toHaveCount(0);
 
   await studentContext.close();
+  await deleteLesson(lesson);
+});
+
+test("the summary exports as a real PDF and as plain text", async ({
+  page,
+  context,
+}) => {
+  const lesson = await createDemoLesson("E2E exports");
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+  await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
+
+  const exportBar = page.getByRole("button", { name: "Download PDF" });
+  await expect(exportBar).toBeVisible({ timeout: 90_000 });
+
+  const [pdfDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    exportBar.click(),
+  ]);
+  expect(pdfDownload.suggestedFilename()).toMatch(/e2e-exports-summary\.pdf$/);
+  const pdfPath = await pdfDownload.path();
+  const pdf = await readFile(pdfPath);
+  // A real PDF, not an empty or error blob.
+  expect(pdf.subarray(0, 5).toString()).toBe("%PDF-");
+  // The summary itself must be drawn into the page, not just a valid shell.
+  const drawn = pdfText(pdf);
+  expect(drawn).toContain("Lesson Summary");
+  expect(drawn).toContain("E2E exports");
+  const words = (await page.locator("main").innerText())
+    .split(/\s+/)
+    .filter((word) => word.length > 6);
+  expect(drawn).toContain(words[words.length - 1]!);
+
+  const [txtDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Download text" }).click(),
+  ]);
+  const txt = await readFile(await txtDownload.path(), "utf8");
+  expect(txt.length).toBeGreaterThan(50);
+  expect(txt).not.toMatch(/\*\*|^#{1,6}\s/m);
+
   await deleteLesson(lesson);
 });
