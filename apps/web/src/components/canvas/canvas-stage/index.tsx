@@ -21,6 +21,7 @@ import { ALLOWED_UPLOAD_TYPES } from "@educatio/shared/api/upload";
 import type { CanvasSettings } from "../helpers/types";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
+import { useCanEdit } from "./helpers/use-can-edit";
 import type { Viewport } from "./helpers/types";
 import { useCanvasShortcuts } from "./helpers/use-canvas-shortcuts";
 import {
@@ -83,6 +84,7 @@ const CanvasStage = ({
   const dropPoint = useRef<{ x: number; y: number } | null>(null);
 
   const [storageRoot] = useStorageRoot();
+  const canEdit = useCanEdit();
   const storageReady = storageRoot !== null;
 
   const updateMyPresence = useUpdateMyPresence();
@@ -106,7 +108,10 @@ const CanvasStage = ({
     select(null);
     setEditingId(null);
   }, [select]);
-  const handleEdit = useCallback((id: string) => setEditingId(id), []);
+  const handleEdit = useCallback(
+    (id: string) => canEdit && setEditingId(id),
+    [canEdit],
+  );
 
   const placeImage = useCallback(
     ({
@@ -195,7 +200,7 @@ const CanvasStage = ({
         return;
       }
 
-      if (!storageReady) return;
+      if (!storageReady || !canEdit) return;
 
       const point = stage?.getRelativePointerPosition();
       if (!point) return;
@@ -205,7 +210,16 @@ const CanvasStage = ({
       setEditingId(id);
       onChange({ tool: "select" });
     },
-    [tool, settings, storageReady, createElement, select, onChange, pickImage],
+    [
+      tool,
+      settings,
+      storageReady,
+      canEdit,
+      createElement,
+      select,
+      onChange,
+      pickImage,
+    ],
   );
 
   const selectedElement = useStorage((root) =>
@@ -244,7 +258,7 @@ const CanvasStage = ({
     container,
     viewport,
     tool,
-    enabled: storageReady && !spaceHeld && !pinching,
+    enabled: storageReady && canEdit && !spaceHeld && !pinching,
     stroke: settings.inkToken,
     strokeWidth: settings.strokeWidth,
     onCommit: commitStroke,
@@ -337,9 +351,13 @@ const CanvasStage = ({
           onTap={handleStageClick}
         >
           <Layer listening={tool === "select"}>
-            <CanvasElements onSelect={handleSelect} onEdit={handleEdit} />
+            <CanvasElements
+              onSelect={handleSelect}
+              onEdit={handleEdit}
+              canEdit={canEdit}
+            />
             <SelectionTransformer
-              selectedId={selectedId}
+              selectedId={canEdit ? selectedId : null}
               scale={viewport.scale}
             />
             <PeerDrafts />

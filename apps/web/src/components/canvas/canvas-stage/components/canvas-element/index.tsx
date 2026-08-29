@@ -28,9 +28,10 @@ interface Props {
   id: string;
   onSelect: (id: string) => void;
   onEdit: (id: string) => void;
+  canEdit: boolean;
 }
 
-const CanvasElementNode = ({ id, onSelect, onEdit }: Props) => {
+const CanvasElementNode = ({ id, onSelect, onEdit, canEdit }: Props) => {
   const element = useStorage((root) => root.elements[id]);
   const peerTransforms = useOthersMapped(
     (other) =>
@@ -204,7 +205,7 @@ const CanvasElementNode = ({ id, onSelect, onEdit }: Props) => {
       rotation={live?.rotation ?? element.rotation}
       scaleX={live?.scaleX ?? 1}
       scaleY={live?.scaleY ?? 1}
-      draggable
+      draggable={canEdit}
       onClick={handleSelect}
       onTap={handleSelect}
       onDblClick={handleEdit}

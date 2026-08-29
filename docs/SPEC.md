@@ -15,7 +15,7 @@ Where this spec says "API route", the route lives in `apps/api` (NestJS controll
 - A tutor can sign up → create a lesson → share the invite link → work with a student on the canvas → end the lesson → view the AI summary → export as PDF — without errors and without leaving Educatio (except to open their separate video call).
 - A student can join via invite link without an account, contribute to the canvas, and download the summary after the lesson.
 - Landing page communicates the product clearly and converts visitors to signups.
-- All routes responsive at 1280px and 768px (mobile editing out of scope; viewing still renders).
+- All routes responsive at 1280px and 768px (mobile editing out of scope; viewing still renders). Below 768px the lesson canvas is read-only in behaviour, not only in wording: elements cannot be dragged or edited, taps create nothing, and the pen is off. Pinch-zoom and two-finger pan stay on, since viewing a board means moving around it.
 - Deployed to Vercel with custom domain. Sentry receiving error events. No `any` types in committed code (strict TypeScript).
 
 ## Features
@@ -152,7 +152,7 @@ The centerpiece of the app.
   - **Download as PDF** — client-side via `@react-pdf/renderer`; Educatio brand header + metadata + summary content (layout in `docs/DESIGN.md` §PDF export)
   - **Download as Text (.txt)** — markdown stripped
   - **Copy to clipboard** — plain text, same conversion as the .txt export (the point is pasting into an email or notes, where markdown syntax is noise)
-  - **Email to student** (tutor only) — via Resend to a specified email
+  - **Email to student** (tutor only) — opens the tutor's own mail client with the student's address, a subject and the summary as plain text already filled in. `mailto:` has no attachment field, so the PDF is attached by hand. Server-side sending via Resend is **out of scope for v1**: it buys delivery records and real formatting, at the cost of an api endpoint and a shared schema.
 - Failed-summary state: "Regenerate" button (re-runs `POST /lessons/:id/summary`).
 - Thumbnail of final canvas state, rendered from the snapshot as inline SVG on the server — no canvas library reaches this page, and the elements' colour tokens resolve through `var()` so it follows the viewer's theme. Image elements are restricted to http(s) sources: canvas content is untrusted.
 

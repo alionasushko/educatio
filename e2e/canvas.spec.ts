@@ -1058,3 +1058,48 @@ test("a selected stroke can be recoloured after the fact", async ({
   await picker.getByRole("button", { name: "Crimson", exact: true }).click();
   await expect.poll(strokeColor).not.toBe(before);
 });
+
+test("a phone can look at the canvas but not change it", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const board = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: {
+            stages: {
+              find: (s: string) => { id(): string; draggable(): boolean }[];
+            }[];
+          };
+        }
+      ).Konva?.stages[0];
+      const owned = stage?.find("Group").filter((n) => n.id().length > 0) ?? [];
+      return {
+        total: owned.length,
+        draggable: owned.filter((n) => n.draggable()).length,
+      };
+    });
+
+  // Leave the sticky tool armed, then narrow the window: this is the only way
+  // a tap could still create, since the toolbar is hidden on a phone.
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await canvas.click({ position: { x: 240, y: 200 } });
+  await page.keyboard.press("Escape");
+  await expect.poll(async () => (await board()).total).toBe(1);
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+
+  await page.setViewportSize({ width: 390, height: 780 });
+  await expect(page.getByText(/switch to a larger screen/i)).toBeVisible();
+
+  // The notice promises read-only, so nothing may be dragged...
+  await expect.poll(async () => (await board()).draggable).toBe(0);
+
+  // ...and the armed tool must not plant anything on tap.
+  await canvas.click({ position: { x: 120, y: 300 } });
+  await page.waitForTimeout(600);
+  expect((await board()).total).toBe(1);
+});
