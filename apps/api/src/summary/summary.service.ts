@@ -115,11 +115,12 @@ Duration: ${durationMinutes} minutes
 Canvas contents (in spatial order, top-to-bottom, left-to-right):
 ${serializedElements}
 
-Generate a concise lesson summary in markdown format with these sections:
-- **Topics covered** (bullet list of main topics, inferred from canvas content)
-- **Key concepts** (3–5 main ideas or formulas discussed)
-- **Examples worked through** (problems or examples explored, if identifiable)
-- **Suggested next steps** (2–3 specific things the student should review or practice before the next lesson)
+Generate a concise lesson summary in markdown with exactly these four sections. Write each section name as a level-2 heading — "## Topics covered" — never as a bullet or a bold line, and put its content underneath:
+
+1. Topics covered — a bullet list of the main topics, inferred from the canvas content
+2. Key concepts — 3–5 main ideas or formulas discussed
+3. Examples worked through — problems or examples explored, if identifiable
+4. Suggested next steps — 2–3 specific things the student should review or practice before the next lesson
 
 Keep the summary under 400 words. Use a warm, professional tone — this will be sent to the student.
 

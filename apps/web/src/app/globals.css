@@ -309,3 +309,74 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+.prose-summary h2,
+.prose-summary h3 {
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.75em;
+  margin-bottom: 0.6em;
+}
+
+.prose-summary h2 {
+  font-size: 1.05em;
+}
+
+.prose-summary h3 {
+  font-size: 1em;
+}
+
+.prose-summary > :first-child {
+  margin-top: 0;
+}
+
+.prose-summary p {
+  margin-bottom: 0.85em;
+}
+
+.prose-summary ul,
+.prose-summary ol {
+  margin-bottom: 0.85em;
+  padding-left: 1.35em;
+}
+
+.prose-summary ul {
+  list-style: disc;
+}
+
+.prose-summary ol {
+  list-style: decimal;
+}
+
+.prose-summary li {
+  margin-bottom: 0.3em;
+  padding-left: 0.15em;
+}
+
+.prose-summary li::marker {
+  color: var(--text-tertiary);
+}
+
+.prose-summary strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.prose-summary em {
+  font-style: italic;
+}
+
+.prose-summary a {
+  color: var(--accent-brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-summary code {
+  background: var(--surface-sunken, var(--surface));
+  border-radius: 4px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+}

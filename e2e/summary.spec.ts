@@ -255,3 +255,149 @@ test("the summary exports as a real PDF and as plain text", async ({
 
   await deleteLesson(lesson);
 });
+
+test("the summary renders sections as headings, not bullets", async ({
+  page,
+  context,
+}) => {
+  const lesson = await createDemoLesson("E2E headings");
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+  await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
+  await expect(page.getByRole("button", { name: "Download PDF" })).toBeVisible({
+    timeout: 90_000,
+  });
+
+  const body = page.locator(".prose-summary");
+  const heading = body.locator("h2, h3").first();
+  await expect(heading).toBeVisible();
+
+  // A heading that renders at body weight reads as an unstyled paragraph.
+  const style = await heading.evaluate((node) => {
+    const computed = getComputedStyle(node);
+    const para = node.parentElement?.querySelector("p, li");
+    return {
+      weight: Number(computed.fontWeight),
+      size: parseFloat(computed.fontSize),
+      bodySize: para ? parseFloat(getComputedStyle(para).fontSize) : 0,
+    };
+  });
+  expect(style.weight).toBeGreaterThanOrEqual(600);
+  expect(style.size).toBeGreaterThan(style.bodySize);
+
+  // The section names must not come through as list items, which is what the
+  // prompt's own bulleted wording used to produce.
+  const bulletText = await body.locator("li").allInnerTexts();
+  for (const name of [
+    "Topics covered",
+    "Key concepts",
+    "Suggested next steps",
+  ]) {
+    expect(bulletText.some((item) => item.trim().startsWith(name))).toBe(false);
+  }
+
+  await deleteLesson(lesson);
+});
+
+test("a waiting student sees the summary appear without reloading", async ({
+  page,
+  context,
+  browser,
+}) => {
+  const lesson = await createDemoLesson("E2E waiting student");
+  const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
+    headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
+  });
+  const { inviteCode } = (await res.json()) as { inviteCode: string };
+
+  const studentContext = await browser.newContext();
+  const student = await studentContext.newPage();
+  await student.goto(`/join/${inviteCode}`);
+  await student.getByLabel("Your name").fill("Jordan");
+  await student.getByLabel("Your email").fill("jordan@example.com");
+  await student.getByRole("button", { name: "Join lesson" }).click();
+  await expect(student.locator("canvas").first()).toBeVisible();
+
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+
+  // The student lands on the summary before the tutor's generation finishes.
+  await expect(student).toHaveURL(/\/summary/, { timeout: 30_000 });
+  await expect(
+    student.getByText(/tutor is writing the summary/i),
+  ).toBeVisible();
+
+  // No reload here on purpose — the summary must arrive on its own.
+  await expect(student.locator(".prose-summary")).toBeVisible({
+    timeout: 120_000,
+  });
+
+  await studentContext.close();
+  await deleteLesson(lesson);
+});
+
+test("ending with unsaved edits does not fault the student's screen", async ({
+  page,
+  context,
+  browser,
+}) => {
+  const lesson = await createDemoLesson("E2E unsaved edits");
+  const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
+    headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
+  });
+  const { inviteCode } = (await res.json()) as { inviteCode: string };
+
+  const studentContext = await browser.newContext();
+  const student = await studentContext.newPage();
+  const errors: string[] = [];
+  student.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text().slice(0, 200));
+  });
+
+  await student.goto(`/join/${inviteCode}`);
+  await student.getByLabel("Your name").fill("Jordan");
+  await student.getByLabel("Your email").fill("jordan@example.com");
+  await student.getByRole("button", { name: "Join lesson" }).click();
+  await expect(student.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  // Draw and end immediately: the snapshot loop has not run, so the canvas
+  // still has unsaved edits when the lesson closes.
+  await student.getByRole("button", { name: "Pen (P)" }).click();
+  const box = (await student.locator("canvas").first().boundingBox())!;
+  await student.mouse.move(box.x + 120, box.y + 120);
+  await student.mouse.down();
+  await student.mouse.move(box.x + 260, box.y + 220, { steps: 10 });
+  await student.mouse.up();
+  await student.waitForTimeout(600);
+  errors.length = 0;
+
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+
+  await expect(student).toHaveURL(/\/summary/, { timeout: 30_000 });
+  await student.waitForTimeout(6000);
+
+  expect(errors.join(" | ")).not.toMatch(/unexpected response/i);
+  expect(errors).toHaveLength(0);
+
+  await studentContext.close();
+  await deleteLesson(lesson);
+});

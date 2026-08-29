@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Markdown from "react-markdown";
 import { Loader2Icon, SparklesIcon } from "lucide-react";
 import Button from "@/components/ui/button";
 import { generateSummaryAction } from "@/app/lesson/[lessonId]/actions";
+
+const POLL_MS = 4_000;
+const POLL_GIVE_UP_MS = 5 * 60_000;
 
 interface Props {
   lessonId: string;
@@ -13,6 +17,7 @@ interface Props {
 }
 
 const LessonSummary = ({ lessonId, text, canGenerate }: Props) => {
+  const router = useRouter();
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
   const requested = useRef(false);
@@ -31,6 +36,22 @@ const LessonSummary = ({ lessonId, text, canGenerate }: Props) => {
     generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, canGenerate]);
+
+  useEffect(() => {
+    if (text || canGenerate) return;
+
+    let elapsed = 0;
+    const timer = setInterval(() => {
+      elapsed += POLL_MS;
+      if (elapsed >= POLL_GIVE_UP_MS) {
+        clearInterval(timer);
+        return;
+      }
+      router.refresh();
+    }, POLL_MS);
+
+    return () => clearInterval(timer);
+  }, [text, canGenerate, router]);
 
   if (text) {
     return (
