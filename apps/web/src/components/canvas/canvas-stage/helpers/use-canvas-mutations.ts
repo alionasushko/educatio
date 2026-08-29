@@ -87,6 +87,7 @@ export const useCreatePath = () =>
         lastEditedAt: Date.now(),
         elementCount: elements.size,
       });
+      return element.id;
     },
     [],
   );

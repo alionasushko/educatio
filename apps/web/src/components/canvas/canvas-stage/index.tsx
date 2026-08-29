@@ -209,9 +209,17 @@ const CanvasStage = ({
   }, [selectedId, editingId, deleteElement, select]);
 
   const commitStroke = useCallback(
-    (x: number, y: number, points: number[]) =>
-      createPath(x, y, points, settings.inkToken, settings.strokeWidth),
-    [createPath, settings.inkToken, settings.strokeWidth],
+    (x: number, y: number, points: number[]) => {
+      const id = createPath(
+        x,
+        y,
+        points,
+        settings.inkToken,
+        settings.strokeWidth,
+      );
+      if (id) select(id);
+    },
+    [createPath, select, settings.inkToken, settings.strokeWidth],
   );
 
   const pen = usePen({

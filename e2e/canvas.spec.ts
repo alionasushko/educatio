@@ -909,3 +909,69 @@ test("the shape picker chooses which shape gets drawn", async ({
     .poll(async () => (await konvaShapes()).arrows)
     .toBe(before.arrows + 1);
 });
+
+test("the keyboard deletes the selected element", async ({ page, context }) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const count = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: { stages: { find: (s: string) => { id(): string }[] }[] };
+        }
+      ).Konva?.stages[0];
+      return stage?.find("Group").filter((n) => n.id().length > 0).length ?? -1;
+    });
+
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await canvas.click({ position: { x: 240, y: 200 } });
+  await expect.poll(count).toBe(1);
+
+  // The editor opens on a new note, so typing must not delete it.
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(300);
+  expect(await count()).toBe(1);
+
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Delete");
+  await expect.poll(count).toBe(0);
+
+  // Backspace is the same gesture on a keyboard without a Delete key.
+  await page.getByRole("button", { name: "Sticky note (S)" }).click();
+  await canvas.click({ position: { x: 300, y: 260 } });
+  await expect.poll(count).toBe(1);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Backspace");
+  await expect.poll(count).toBe(0);
+});
+
+test("a stroke can be deleted straight after drawing it", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+
+  const count = () =>
+    page.evaluate(() => {
+      const stage = (
+        window as unknown as {
+          Konva?: { stages: { find: (s: string) => { id(): string }[] }[] };
+        }
+      ).Konva?.stages[0];
+      return stage?.find("Group").filter((n) => n.id().length > 0).length ?? -1;
+    });
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  const box = (await canvas.boundingBox())!;
+  await page.mouse.move(box.x + 150, box.y + 150);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 280, box.y + 230, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(count).toBe(1);
+
+  // No tool switch, no second click: what you just drew is what Delete removes.
+  await page.keyboard.press("Delete");
+  await expect.poll(count).toBe(0);
+});
