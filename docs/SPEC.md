@@ -153,7 +153,7 @@ The centerpiece of the app.
   - **Copy to clipboard** — plain text, same conversion as the .txt export (the point is pasting into an email or notes, where markdown syntax is noise)
   - **Email to student** (tutor only) — via Resend to a specified email
 - Failed-summary state: "Regenerate" button (re-runs `POST /lessons/:id/summary`).
-- Thumbnail of final canvas state (rendered from snapshot)
+- Thumbnail of final canvas state, rendered from the snapshot as inline SVG on the server — no canvas library reaches this page, and the elements' colour tokens resolve through `var()` so it follows the viewer's theme. Image elements are restricted to http(s) sources: canvas content is untrusted.
 
 ### Session history / replay (read-only)
 

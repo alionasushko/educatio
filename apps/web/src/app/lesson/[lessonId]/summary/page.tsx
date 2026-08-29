@@ -7,9 +7,12 @@ import { buttonVariants } from "@/components/ui/button";
 import LessonSummary from "@/components/lesson/lesson-summary";
 import EmailSummaryButton from "@/components/lesson/email-summary-button";
 import SummaryExports from "@/components/lesson/summary-exports";
+import CanvasThumbnail from "@/components/lesson/canvas-thumbnail";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
-import { queryOrNotFound } from "@/lib/api-error";
+import { getLatestSnapshot } from "@/lib/api-snapshots";
+import { snapshotElements } from "@/lib/canvas-elements";
+import { query, queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
 import { signInRoute } from "@/lib/routes";
 import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
@@ -39,6 +42,9 @@ const LessonSummaryPage = async ({ params }: Props) => {
 
   const lesson = await queryOrNotFound(() => getLesson(lessonId));
   if (lesson.status !== "ended") redirect(`/lesson/${lessonId}`);
+
+  const snapshot = await query(() => getLatestSnapshot(lessonId));
+  const board = snapshotElements(snapshot.data?.snapshot ?? null);
 
   const isTutor = session.kind === "tutor";
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
@@ -92,6 +98,15 @@ const LessonSummaryPage = async ({ params }: Props) => {
               meta={metaLine}
               summary={lesson.summary.text}
             />
+          </div>
+        )}
+
+        {board.length > 0 && (
+          <div className="mt-8">
+            <CanvasThumbnail elements={board} />
+            <figcaption className="text-text-tertiary mt-2 text-[12.5px]">
+              The whiteboard at the end of the lesson
+            </figcaption>
           </div>
         )}
 

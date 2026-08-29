@@ -401,3 +401,120 @@ test("ending with unsaved edits does not fault the student's screen", async ({
   await studentContext.close();
   await deleteLesson(lesson);
 });
+
+test("the summary shows the whiteboard as it was left", async ({
+  page,
+  context,
+}) => {
+  const lesson = await createDemoLesson("E2E thumbnail");
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  const box = (await page.locator("canvas").first().boundingBox())!;
+  await page.mouse.move(box.x + 140, box.y + 140);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 300, box.y + 240, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+  await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
+
+  const board = page.getByRole("img", {
+    name: /whiteboard as it was left/i,
+  });
+  await expect(board).toBeVisible({ timeout: 30_000 });
+
+  // The stroke itself must be drawn, not just an empty frame.
+  await expect(board.locator("polyline")).toHaveCount(1);
+  const points = await board.locator("polyline").getAttribute("points");
+  expect((points ?? "").split(" ").length).toBeGreaterThan(3);
+
+  await deleteLesson(lesson);
+});
+
+test("long note and text content wraps inside the thumbnail", async ({
+  page,
+  context,
+}) => {
+  const lesson = await createDemoLesson("E2E wrapping");
+  const auth = { Authorization: `Bearer ${lesson.sessionJwt}` };
+  const headers = { ...auth, "Content-Type": "application/json" };
+
+  // Seeded through the api so the content is exact: the UI path cannot type a
+  // paragraph into a sticky reliably.
+  const long =
+    "Backed by science, powered by people. Developed by our world-class team of in-house cosmetic chemists, every product is tested.";
+  await fetch(`${API}/lessons/${lesson.lessonId}/snapshot`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      canvasState: {
+        s1: {
+          id: "s1",
+          type: "sticky",
+          x: 0,
+          y: 0,
+          width: 180,
+          height: 180,
+          rotation: 0,
+          zIndex: 0,
+          createdBy: "t",
+          createdAt: 0,
+          content: "hello, this is the first lesson",
+          color: "blue",
+        },
+        t1: {
+          id: "t1",
+          type: "text",
+          x: 260,
+          y: 0,
+          width: 320,
+          height: 160,
+          rotation: 0,
+          zIndex: 1,
+          createdBy: "t",
+          createdAt: 0,
+          content: long,
+          fontSize: 16,
+          fontWeight: "normal",
+          fontStyle: "normal",
+          color: "--text-primary",
+        },
+      },
+    }),
+  });
+  await fetch(`${API}/lessons/${lesson.lessonId}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ status: "ended" }),
+  });
+
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}/summary`);
+  const board = page.getByRole("img", { name: /whiteboard as it was left/i });
+  await expect(board).toBeVisible({ timeout: 30_000 });
+
+  // Both blocks must be broken into lines rather than run off their box.
+  const texts = board.locator("text");
+  await expect(texts).toHaveCount(2);
+  for (const index of [0, 1]) {
+    expect(await texts.nth(index).locator("tspan").count()).toBeGreaterThan(1);
+  }
+
+  // And every line must start back at its own left edge.
+  const xs = await board
+    .locator("text")
+    .nth(1)
+    .locator("tspan")
+    .evaluateAll((spans) => spans.map((span) => span.getAttribute("x")));
+  expect(new Set(xs).size).toBe(1);
+
+  await deleteLesson(lesson);
+});
