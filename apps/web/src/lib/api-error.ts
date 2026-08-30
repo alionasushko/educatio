@@ -1,5 +1,5 @@
 import "server-only";
-import { notFound, unstable_rethrow } from "next/navigation";
+import { notFound, redirect, unstable_rethrow } from "next/navigation";
 import { z, type ZodType } from "zod";
 import type { ErrorCode } from "@educatio/shared/api/errors";
 import { ApiClientError, ApiResponseError, isApiFailure } from "./api-client";
@@ -21,6 +21,13 @@ export interface QueryResult<T> {
   code?: ClientErrorCode;
 }
 
+const DEAD_SESSION: ClientErrorCode[] = ["session_expired", "unauthorized"];
+
+/** Via a route handler: only one can clear the cookie, and /sign-in loops without that. */
+const redirectIfSessionIsDead = (code: ClientErrorCode): void => {
+  if (DEAD_SESSION.includes(code)) redirect("/auth/expired");
+};
+
 const failureCode = (err: unknown): ClientErrorCode => {
   if (err instanceof ApiClientError) return err.body.code;
   if (err instanceof ApiResponseError) return "malformed_response";
@@ -40,8 +47,12 @@ export const query = async <T>(
   } catch (err) {
     unstable_rethrow(err);
     if (!isApiFailure(err)) throw err;
+
+    const code = failureCode(err);
+    redirectIfSessionIsDead(code);
+
     console.error(err);
-    return { data: null, code: failureCode(err) };
+    return { data: null, code };
   }
 };
 
@@ -56,11 +67,11 @@ export const queryOrNotFound = async <T>(
     return await call();
   } catch (err) {
     unstable_rethrow(err);
-    if (
-      err instanceof ApiClientError &&
-      (err.body.code === "not_found" || err.body.code === "forbidden")
-    ) {
-      notFound();
+    if (err instanceof ApiClientError) {
+      redirectIfSessionIsDead(err.body.code);
+      if (err.body.code === "not_found" || err.body.code === "forbidden") {
+        notFound();
+      }
     }
     throw err;
   }

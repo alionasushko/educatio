@@ -6,6 +6,9 @@ const src = fileURLToPath(new URL("./src", import.meta.url));
 const sharedSrc = fileURLToPath(
   new URL("../../packages/shared/src", import.meta.url),
 );
+const serverOnlyStub = fileURLToPath(
+  new URL("./test-stubs/server-only.ts", import.meta.url),
+);
 
 export default defineConfig({
   plugins: [react()],
@@ -23,6 +26,7 @@ export default defineConfig({
       },
       { find: /^@educatio\/shared$/, replacement: `${sharedSrc}/index.ts` },
       { find: /^@\/(.*)$/, replacement: `${src}/$1` },
+      { find: /^server-only$/, replacement: serverOnlyStub },
     ],
   },
 });
