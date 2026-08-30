@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Format, lint, types, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Both apps import the built output of @educatio/shared, so a fresh
+      # checkout has to build it before anything can typecheck or run.
+      - name: Build shared package
+        run: npm run build -w @educatio/shared
+
+      - name: Check
+        run: npm run check
+
+      - name: Production build
+        run: npm run build
+        env:
+          # Read at request time, never at build time. Present so the build
+          # cannot fail on a missing variable rather than on real breakage.
+          EDUCATIO_API_URL: http://localhost:3001
+          AUTH_JWT_SECRET: ci-placeholder-not-a-real-secret
