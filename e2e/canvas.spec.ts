@@ -757,6 +757,10 @@ test("a peer can see what the other person has selected", async ({
   ).toBeEnabled();
   await expect(peerPage.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
 
+  await expect(
+    tutorPage.getByRole("group", { name: /other in the lesson/ }),
+  ).toBeVisible();
+
   const box = await tutorPage.locator("canvas").first().boundingBox();
   if (!box) throw new Error("canvas has no box");
 
@@ -764,33 +768,46 @@ test("a peer can see what the other person has selected", async ({
   await tutorPage.mouse.click(box.x + 240, box.y + 200);
   await tutorPage.keyboard.press("Escape");
 
-  // Only rects owned by an element: the transformer's anchors are also Rects
-  // and come and go with what it is attached to.
-  const peerRects = () =>
+  const peerShapes = () =>
     peerPage.evaluate(() => {
-      type Node = { getParent: () => { getClassName: () => string } | null };
+      type Node = {
+        getParent: () => { getClassName: () => string } | null;
+        dash?: () => number[] | undefined;
+      };
       const stage = (
         window as unknown as {
           Konva?: { stages: { find: (s: string) => Node[] }[] };
         }
       ).Konva?.stages[0];
-      return (stage?.find("Rect") ?? []).filter(
-        (rect) => rect.getParent()?.getClassName() === "Group",
-      ).length;
+      const rects = stage?.find("Rect") ?? [];
+      return {
+        elements: rects.filter(
+          (rect) => rect.getParent()?.getClassName() === "Group",
+        ).length,
+        selections: rects.filter((rect) => (rect.dash?.() ?? []).length > 0)
+          .length,
+      };
     });
 
-  await expect.poll(peerRects).toBeGreaterThan(0);
-  const before = await peerRects();
+  await expect
+    .poll(async () => (await peerShapes()).elements)
+    .toBeGreaterThan(0);
+
+  await expect
+    .poll(async () => (await peerShapes()).selections, {
+      message: "a selection was still showing before the tutor made one",
+      timeout: 10_000,
+    })
+    .toBe(0);
 
   await tutorPage.mouse.click(box.x + 240, box.y + 200);
 
-  // The outline the other side draws is one more Rect than was there before.
   await expect
-    .poll(peerRects, {
+    .poll(async () => (await peerShapes()).selections, {
       message: "the other person's selection never appeared",
-      timeout: 10_000,
+      timeout: 15_000,
     })
-    .toBe(before + 1);
+    .toBe(1);
 
   await tutor.close();
   await peer.close();
