@@ -159,7 +159,7 @@ The centerpiece of the app.
 ### Session history / replay (read-only)
 
 - Ended lesson opened from dashboard → `/lesson/[lessonId]/summary`
-- "View canvas" toggle shows final snapshot (read-only, pan/zoom enabled, no editing)
+- "View canvas" opens the final snapshot in a dialog: drag to pan, wheel or the zoom controls to scale, pinch on touch. The same server-rendered SVG the thumbnail uses, so no canvas library and no Liveblocks room is involved — and the board takes no pointer events, so there is nothing to select, move or edit.
 
 ## Data models (Mongoose; schemas live in `apps/api/src/schemas/`, **api only**)
 

@@ -8,6 +8,7 @@ import LessonSummary from "@/components/lesson/lesson-summary";
 import EmailSummaryButton from "@/components/lesson/email-summary-button";
 import SummaryExports from "@/components/lesson/summary-exports";
 import CanvasThumbnail from "@/components/lesson/canvas-thumbnail";
+import CanvasViewer from "@/components/lesson/canvas-viewer";
 import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
@@ -104,9 +105,12 @@ const LessonSummaryPage = async ({ params }: Props) => {
         {board.length > 0 && (
           <div className="mt-8">
             <CanvasThumbnail elements={board} />
-            <figcaption className="text-text-tertiary mt-2 text-[12.5px]">
-              The whiteboard at the end of the lesson
-            </figcaption>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <figcaption className="text-text-tertiary text-[12.5px]">
+                The whiteboard at the end of the lesson
+              </figcaption>
+              <CanvasViewer elements={board} />
+            </div>
           </div>
         )}
 

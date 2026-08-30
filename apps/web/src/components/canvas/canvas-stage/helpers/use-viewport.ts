@@ -22,7 +22,14 @@ const midpointOf = (a: Point, b: Point): Point => ({
 const distanceOf = (a: Point, b: Point): number =>
   Math.hypot(b.x - a.x, b.y - a.y);
 
-export const useViewport = (container: HTMLDivElement | null) => {
+interface Options {
+  panWithPrimary?: boolean;
+}
+
+export const useViewport = (
+  container: HTMLDivElement | null,
+  { panWithPrimary = false }: Options = {},
+) => {
   const [viewport, setViewport] = useState<Viewport>(INITIAL_VIEWPORT);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [panning, setPanning] = useState(false);
@@ -117,14 +124,14 @@ export const useViewport = (container: HTMLDivElement | null) => {
       }
 
       const middleClick = event.button === 1;
-      const spaceDrag = event.button === 0 && spaceHeld;
+      const spaceDrag = event.button === 0 && (spaceHeld || panWithPrimary);
       if (!middleClick && !spaceDrag) return;
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
       last.current = { x: event.clientX, y: event.clientY };
       setPanning(true);
     },
-    [spaceHeld, localPoint],
+    [spaceHeld, panWithPrimary, localPoint],
   );
 
   const onPointerMove = useCallback(

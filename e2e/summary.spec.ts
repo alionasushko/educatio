@@ -518,3 +518,70 @@ test("long note and text content wraps inside the thumbnail", async ({
 
   await deleteLesson(lesson);
 });
+
+test("the final canvas can be opened and panned read-only", async ({
+  page,
+  context,
+}) => {
+  const lesson = await createDemoLesson("E2E replay");
+  await signIn(context, lesson.sessionJwt);
+  await page.goto(`/lesson/${lesson.lessonId}`);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Pen (P)" }).click();
+  const box = (await page.locator("canvas").first().boundingBox())!;
+  await page.mouse.move(box.x + 140, box.y + 140);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 300, box.y + 240, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+
+  await page.getByRole("button", { name: "End lesson" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End lesson" })
+    .click();
+  await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
+
+  await page.getByRole("button", { name: "View canvas" }).click();
+  const viewer = page.getByRole("dialog");
+  await expect(viewer).toBeVisible();
+  await expect(viewer.locator("polyline")).toHaveCount(1);
+
+  const surface = viewer.locator("[style*='translate']").first();
+  const transformOf = () => surface.getAttribute("style");
+  const atRest = await transformOf();
+
+  const area = (await viewer.boundingBox())!;
+  await page.mouse.move(area.x + area.width / 2, area.y + area.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    area.x + area.width / 2 + 120,
+    area.y + area.height / 2 + 60,
+    { steps: 8 },
+  );
+  await page.mouse.up();
+  await expect.poll(transformOf).not.toBe(atRest);
+
+  const panned = await transformOf();
+  await viewer.getByRole("button", { name: /zoom in/i }).click();
+  await expect.poll(transformOf).not.toBe(panned);
+
+  const clipping = await page.evaluate(() => {
+    const svg = document.querySelector("[role=dialog] svg[role=img]");
+    const layer = svg?.parentElement as HTMLElement | null;
+    const frame = svg?.closest(".overflow-hidden");
+    if (!layer || !frame) return "missing";
+    return layer.offsetParent === frame ? "clipped" : "escapes";
+  });
+  expect(clipping).toBe("clipped");
+
+  await expect(
+    viewer.getByRole("toolbar", { name: "Canvas tools" }),
+  ).toHaveCount(0);
+  await expect(viewer.locator("svg[role=img]")).toHaveClass(
+    /pointer-events-none/,
+  );
+
+  await deleteLesson(lesson);
+});
