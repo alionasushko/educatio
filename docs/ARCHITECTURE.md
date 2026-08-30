@@ -177,7 +177,7 @@ Paths live beside the schema they belong to in `@educatio/shared/api/*`, consume
 
 ## Deployment
 
-- **web** → Vercel (single Next deployment). Env: `AUTH_JWT_SECRET` (shared), `EDUCATIO_API_URL`. The canvas client needs no Liveblocks key of its own — its room token comes from api through `/liveblocks-auth`.
+- **web** → Vercel (single Next deployment). Env: `AUTH_JWT_SECRET` (shared), `EDUCATIO_API_URL`, `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` (optional — Sentry stays uninitialised without them). The canvas client needs no Liveblocks key of its own — its room token comes from api through `/liveblocks-auth`.
 - **api** → Railway / Fly.io / Render — pick one when we get to deploy. Nest is a long-running process; Vercel's serverless model fights it (cold starts, no shared Mongo pool, request timeouts on AI calls). Env: `AUTH_JWT_SECRET` (shared), `MONGODB_URI`, `RESEND_API_KEY`, `EMAIL_FROM`, `LIVEBLOCKS_SECRET_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `BLOB_READ_WRITE_TOKEN`, `WEB_ORIGIN` (CORS allowlist).
 - Local dev: web on `:3000`, api on `:3001`. The session cookie is `Secure` in production only — WebKit refuses a `Secure` cookie over `http://localhost`, which silently breaks every authenticated request in Safari while Chromium accepts it. `e2e/webkit.spec.ts` runs in the `webkit` Playwright project to keep that from regressing unnoticed. Web's `EDUCATIO_API_URL=http://localhost:3001`.
 
