@@ -29,6 +29,7 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/throttler": "^6.5.0",
+    "@sentry/nestjs": "^10.72.0",
     "@vercel/blob": "^2.4.0",
     "ai": "^6.0.191",
     "bcrypt": "^5.1.1",

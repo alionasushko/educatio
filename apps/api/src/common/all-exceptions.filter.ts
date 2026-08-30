@@ -7,6 +7,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
+import * as Sentry from "@sentry/nestjs";
 import {
   errorCodeSchema,
   errorCodeFromStatus,
@@ -46,15 +47,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
         };
       }
       if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-        this.logger.error(exception.stack ?? exception.message);
+        this.report(exception);
         body = { code: body.code, message: "Something went wrong" };
       }
     } else {
-      this.logger.error(
-        exception instanceof Error ? exception.stack : exception,
-      );
+      this.report(exception);
     }
 
     void res.status(status).send(body);
+  }
+
+  private report(exception: unknown): void {
+    this.logger.error(exception instanceof Error ? exception.stack : exception);
+    Sentry.captureException(exception);
   }
 }
