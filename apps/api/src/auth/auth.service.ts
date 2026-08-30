@@ -243,6 +243,10 @@ export class AuthService {
     return existing;
   }
 
+  async revokeSessions(userId: string): Promise<void> {
+    await this.users.updateOne({ _id: userId }, { $inc: { tokenVersion: 1 } });
+  }
+
   private signSession(
     user: UserDocument,
     ttl: JwtSignOptions["expiresIn"] = SESSION_TTL,
@@ -251,6 +255,7 @@ export class AuthService {
       kind: "tutor",
       sub: user.id,
       email: user.email,
+      tokenVersion: user.tokenVersion ?? 0,
     };
     return this.jwt.signAsync(claims, { expiresIn: ttl });
   }

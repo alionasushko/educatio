@@ -5,6 +5,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { User, UserDocument } from "../schemas/user.schema";
 import type { FastifyRequest } from "fastify";
 import { sessionClaimsSchema, type SessionClaims } from "@educatio/shared";
 
@@ -14,7 +17,10 @@ export interface AuthedRequest extends FastifyRequest {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(
+    private readonly jwt: JwtService,
+    @InjectModel(User.name) private readonly users: Model<UserDocument>,
+  ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<AuthedRequest>();
@@ -39,6 +45,23 @@ export class JwtAuthGuard implements CanActivate {
         message: "Invalid session claims",
       });
     }
+    if (parsed.data.kind === "tutor") {
+      const user = await this.users
+        .findById(parsed.data.sub)
+        .select("tokenVersion")
+        .lean<{ tokenVersion?: number } | null>();
+
+      if (
+        !user ||
+        (user.tokenVersion ?? 0) !== (parsed.data.tokenVersion ?? 0)
+      ) {
+        throw new UnauthorizedException({
+          code: "session_expired",
+          message: "Invalid or expired session",
+        });
+      }
+    }
+
     req.session = parsed.data;
     return true;
   }

@@ -17,6 +17,8 @@ export interface Harness {
   tutorId: string;
   /** A second, unrelated tutor — for asserting one tutor cannot reach another's rows. */
   otherTutorJwt: string;
+  /** A throwaway tutor, for tests that invalidate the session they use. */
+  newTutorJwt: () => Promise<string>;
   close: () => Promise<void>;
 }
 
@@ -87,10 +89,16 @@ export const startApi = async (): Promise<Harness> => {
   );
   const otherTutorJwt = await signTutor("other@example.com", "Other Tutor");
 
+  let spare = 0;
+
   return {
     baseUrl: await app.getUrl(),
     tutorJwt,
     otherTutorJwt,
+    newTutorJwt: () => {
+      spare += 1;
+      return signTutor(`spare-${spare}@example.com`, `Spare Tutor ${spare}`);
+    },
     tutorId: tutor.id,
     close: async () => {
       await app.close();

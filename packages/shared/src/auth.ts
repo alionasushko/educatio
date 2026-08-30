@@ -4,6 +4,7 @@ export const tutorSessionClaimsSchema = z.object({
   kind: z.literal("tutor"),
   sub: z.string(),
   email: z.string(),
+  tokenVersion: z.number().optional(),
   iat: z.number(),
   exp: z.number(),
 });

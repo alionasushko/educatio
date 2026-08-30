@@ -90,8 +90,10 @@ export class AuthController {
   @Post(AUTH_ACTIONS.signout)
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  signout(): { ok: true } {
-    // v1 sessions are stateless; the web clears its cookie. Placeholder for future revocation.
+  async signout(
+    @CurrentTutor() tutor: TutorSessionClaims,
+  ): Promise<{ ok: true }> {
+    await this.auth.revokeSessions(tutor.sub);
     return { ok: true };
   }
 

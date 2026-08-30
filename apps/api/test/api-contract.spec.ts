@@ -226,3 +226,40 @@ describe("api errors match the shared envelope", () => {
     await call(lessonPath(id), { method: "DELETE" });
   });
 });
+
+describe("signing out ends the session everywhere", () => {
+  it("stops the token that signed out from being used again", async () => {
+    const token = await api.newTutorJwt();
+
+    const before = await call(authPath(AUTH_ACTIONS.me), { token });
+    expect(before.status).toBe(200);
+
+    const out = await call(authPath(AUTH_ACTIONS.signout), {
+      method: "POST",
+      token,
+    });
+    expect(out.status).toBe(200);
+
+    const after = await call(authPath(AUTH_ACTIONS.me), { token });
+    expect(after.status).toBe(401);
+    expect(after.data).toMatchObject({ code: "session_expired" });
+  });
+
+  it("leaves other people's sessions alone", async () => {
+    const mine = await api.newTutorJwt();
+    const theirs = await api.newTutorJwt();
+
+    await call(authPath(AUTH_ACTIONS.signout), { method: "POST", token: mine });
+
+    const other = await call(authPath(AUTH_ACTIONS.me), { token: theirs });
+    expect(other.status).toBe(200);
+  });
+
+  it("keeps a student's session working — it has no user to revoke", async () => {
+    const lesson = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Revocation" },
+    });
+    expect(lesson.status).toBe(201);
+  });
+});
