@@ -23,10 +23,12 @@ export const verifySessionToken = async (
   }
 };
 
+const secureCookies = process.env.NODE_ENV === "production";
+
 export const sessionCookieOptions = {
   httpOnly: true as const,
   sameSite: "lax" as const,
-  secure: true,
+  secure: secureCookies,
   path: "/",
   maxAge: 60 * 60 * 24 * 30,
 };
@@ -39,7 +41,7 @@ export const sessionCookieOptionsFor = (expSeconds: number) => ({
 export const postLoginCookieOptions = {
   httpOnly: true as const,
   sameSite: "lax" as const,
-  secure: true,
+  secure: secureCookies,
   path: "/",
   maxAge: 60 * 10,
 };
