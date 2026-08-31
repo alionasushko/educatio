@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { MailIcon } from "lucide-react";
 import AuthShell from "@/components/auth/auth-shell";
 import Card from "@/components/ui/card";
@@ -50,22 +50,13 @@ const VerifyPage = async ({ searchParams }: Props) => {
           ) : (
             <span className="text-text-tertiary">Resend link</span>
           )}
-          <Link
-            href="/sign-in"
-            className="text-text-secondary font-medium no-underline"
-          >
+          <Link href="/sign-in" className="link-muted">
             Use a different email
           </Link>
         </div>
 
         <p className="text-text-tertiary mt-4 text-center text-[13px] leading-normal">
-          New to Educatio?{" "}
-          <Link
-            href="/sign-up"
-            className="text-accent-brand font-medium no-underline"
-          >
-            Create a tutor account
-          </Link>
+          New to Educatio? <Link href="/sign-up">Create a tutor account</Link>
         </p>
       </Card>
     </AuthShell>

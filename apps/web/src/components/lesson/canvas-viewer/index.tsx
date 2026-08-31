@@ -4,12 +4,11 @@ import { useState } from "react";
 import { ExpandIcon } from "lucide-react";
 import type { CanvasElement } from "@educatio/shared";
 import Dialog from "@/components/ui/dialog";
-import { buttonVariants } from "@/components/ui/button";
+import Button from "@/components/ui/button";
 import { useViewport } from "@/components/canvas/canvas-stage/helpers/use-viewport";
 import ZoomControls from "@/components/canvas/canvas-toolbar/components/zoom-controls";
 import Board from "@/components/lesson/canvas-thumbnail/components/board";
 import { BOARD_LABEL } from "@/components/lesson/canvas-thumbnail";
-import { cn } from "@/lib/utils";
 
 interface Props {
   elements: CanvasElement[];
@@ -20,17 +19,15 @@ const CanvasViewer = ({ elements }: Props) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() => setOpen(true)}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "h-9 gap-1.5 px-3 text-sm",
-        )}
+        className="h-9 gap-1.5 px-3 text-sm"
       >
         <ExpandIcon className="size-4" aria-hidden="true" />
         View canvas
-      </button>
+      </Button>
 
       {open && (
         <ViewerDialog elements={elements} onClose={() => setOpen(false)} />

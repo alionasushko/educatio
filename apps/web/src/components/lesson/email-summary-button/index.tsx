@@ -1,8 +1,7 @@
 "use client";
 
 import { MailIcon } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ButtonLink } from "@/components/ui/button";
 import { toPlainText } from "@/lib/summary-markdown";
 
 interface Props {
@@ -19,16 +18,14 @@ const EmailSummaryButton = ({ lessonTitle, studentEmail, summary }: Props) => {
   )}&body=${encodeURIComponent(body)}`;
 
   return (
-    <a
+    <ButtonLink
       href={href}
-      className={cn(
-        buttonVariants({ variant: "outline" }),
-        "h-9 gap-1.5 px-3 text-sm no-underline",
-      )}
+      variant="outline"
+      className="h-9 gap-1.5 px-3 text-sm"
     >
       <MailIcon className="size-4" aria-hidden="true" />
       {studentEmail ? "Email to student" : "Email summary"}
-    </a>
+    </ButtonLink>
   );
 };
 

@@ -3,9 +3,8 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2Icon } from "lucide-react";
-import Button, { buttonVariants } from "@/components/ui/button";
+import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { createLessonSchema } from "@educatio/shared/api/lessons";
 import { createLessonAction } from "@/app/lesson/new/actions";
 
@@ -108,16 +107,14 @@ const NewLessonForm = ({ onCancel }: Props) => {
       )}
 
       <div className="mt-6 flex items-center justify-end gap-2">
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={handleCancel}
-          className={cn(
-            buttonVariants({ variant: "ghost" }),
-            "h-10 px-4 text-sm",
-          )}
+          className="h-10 px-4 text-sm"
         >
           Cancel
-        </button>
+        </Button>
         <Button
           type="submit"
           disabled={isPending}

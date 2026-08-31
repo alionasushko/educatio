@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { CheckIcon, CopyIcon, Share2Icon } from "lucide-react";
 import Dialog from "@/components/ui/dialog";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Button from "@/components/ui/button";
 
 interface Props {
   inviteCode: string;
@@ -31,17 +30,15 @@ const ShareLessonButton = ({ inviteCode }: Props) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={open}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "h-9 gap-1.5 px-3 text-sm",
-        )}
+        className="h-9 gap-1.5 px-3 text-sm"
       >
         <Share2Icon className="size-4" aria-hidden="true" />
         <span className="hidden sm:inline">Share</span>
-      </button>
+      </Button>
 
       {link && (
         <Dialog
@@ -61,13 +58,11 @@ const ShareLessonButton = ({ inviteCode }: Props) => {
             <span className="text-text-secondary min-w-0 flex-1 truncate font-mono text-[13px]">
               {link}
             </span>
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={copy}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-8 shrink-0 gap-1.5 px-2.5 text-[13px]",
-              )}
+              className="h-8 shrink-0 gap-1.5 px-2.5 text-[13px]"
             >
               {copied ? (
                 <CheckIcon className="size-3.5" aria-hidden="true" />
@@ -75,7 +70,7 @@ const ShareLessonButton = ({ inviteCode }: Props) => {
                 <CopyIcon className="size-3.5" aria-hidden="true" />
               )}
               {copied ? "Copied" : "Copy"}
-            </button>
+            </Button>
           </div>
 
           <p aria-live="polite" className="sr-only">

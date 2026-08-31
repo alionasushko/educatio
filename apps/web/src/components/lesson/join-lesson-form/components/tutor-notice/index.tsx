@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import Button, { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Button, { ButtonLink } from "@/components/ui/button";
 
 interface Props {
   email: string;
@@ -21,15 +19,9 @@ const TutorNotice = ({ email, onContinue }: Props) => (
     </p>
 
     <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
-      <Link
-        href="/dashboard"
-        className={cn(
-          buttonVariants({ variant: "default" }),
-          "h-10 flex-1 px-4 text-sm no-underline",
-        )}
-      >
+      <ButtonLink href="/dashboard" className="h-10 flex-1 px-4 text-sm">
         Back to my dashboard
-      </Link>
+      </ButtonLink>
       <Button
         type="button"
         variant="outline"

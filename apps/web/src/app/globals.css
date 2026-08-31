@@ -186,9 +186,24 @@
   --accent-brand: #818cf8;
 }
 
+@utility link {
+  @apply text-accent-brand hover:text-accent-brand/80 focus-visible:outline-accent-brand cursor-pointer rounded-xs font-medium no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
+@utility link-muted {
+  @apply text-text-secondary hover:text-text-primary no-underline;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  a {
+    @apply link;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
   }
   html {
     @apply font-sans;

@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { cn, isPlainClick } from "@/lib/utils";
 import type { LessonFilter } from "../../helpers/constants";
 import { dashboardHref } from "@/lib/routes";
@@ -24,10 +23,7 @@ const LessonsPagination = ({
 }: Props) => {
   const prevDisabled = page <= 1;
   const nextDisabled = page >= totalPages;
-  const linkCls = cn(
-    buttonVariants({ variant: "outline" }),
-    "h-8 gap-1 px-3 text-[13px]",
-  );
+  const sizing = "h-8 gap-1 px-3 text-[13px]";
   const disabledCls = "text-text-tertiary pointer-events-none opacity-50";
 
   const handleClick = (
@@ -48,26 +44,28 @@ const LessonsPagination = ({
         Page {page} of {totalPages}
       </span>
       <div className="flex items-center gap-2">
-        <Link
+        <ButtonLink
+          variant="outline"
           href={prevHref}
           onClick={(event) => handleClick(event, prevHref)}
           aria-disabled={prevDisabled}
           tabIndex={prevDisabled ? -1 : undefined}
-          className={cn(linkCls, prevDisabled && disabledCls)}
+          className={cn(sizing, prevDisabled && disabledCls)}
         >
           <ChevronLeftIcon className="size-3.5" aria-hidden="true" />
           Previous
-        </Link>
-        <Link
+        </ButtonLink>
+        <ButtonLink
+          variant="outline"
           href={nextHref}
           onClick={(event) => handleClick(event, nextHref)}
           aria-disabled={nextDisabled}
           tabIndex={nextDisabled ? -1 : undefined}
-          className={cn(linkCls, nextDisabled && disabledCls)}
+          className={cn(sizing, nextDisabled && disabledCls)}
         >
           Next
           <ChevronRightIcon className="size-3.5" aria-hidden="true" />
-        </Link>
+        </ButtonLink>
       </div>
     </div>
   );

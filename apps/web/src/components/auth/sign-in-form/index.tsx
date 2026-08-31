@@ -122,17 +122,19 @@ const SignInForm = ({ callbackUrl }: Props) => {
         {isPending ? "Signing in…" : "Sign in"}
       </Button>
 
-      <div className="mt-4 text-center">
-        <button
+      <div className="mt-4 text-center text-[13px]">
+        {!magicPending && (
+          <span className="text-text-secondary">Forgot your password? </span>
+        )}
+        <Button
           type="button"
+          variant="text"
+          size="text"
           onClick={handleMagicLink}
           disabled={busy}
-          className="text-text-secondary text-[13px] font-medium disabled:opacity-50"
         >
-          {magicPending
-            ? "Sending link…"
-            : "Forgot your password? Email me a magic link"}
-        </button>
+          {magicPending ? "Sending link…" : "Email me a magic link"}
+        </Button>
       </div>
     </form>
   );

@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
-import Button, { buttonVariants } from "@/components/ui/button";
+import Button, { ButtonLink } from "@/components/ui/button";
 import ProductPreview from "./product-preview";
 import CascadeUp from "@/components/motion/cascade-up";
 
@@ -38,15 +37,13 @@ const HeroSection = () => {
 
         <CascadeUp delay={380}>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
+            <ButtonLink
               href="/sign-up"
-              className={buttonVariants({
-                size: "lg",
-                className: "h-12 px-5 text-[15px]",
-              })}
+              size="lg"
+              className="h-12 px-5 text-[15px]"
             >
               Get started free
-            </Link>
+            </ButtonLink>
             <Button variant="ghost" size="lg" className="h-12 px-3 text-[15px]">
               See a sample lesson
               <ArrowRightIcon

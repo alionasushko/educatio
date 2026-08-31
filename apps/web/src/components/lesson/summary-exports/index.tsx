@@ -8,8 +8,7 @@ import {
   Loader2Icon,
   DownloadIcon,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Button from "@/components/ui/button";
 import { parseSummaryBlocks, toPlainText } from "@/lib/summary-markdown";
 
 interface Props {
@@ -34,10 +33,7 @@ const save = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const control = cn(
-  buttonVariants({ variant: "outline" }),
-  "h-9 gap-1.5 px-3 text-sm",
-);
+const control = "h-9 gap-1.5 px-3 text-sm";
 
 const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
   const [busy, setBusy] = useState(false);
@@ -90,8 +86,9 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={downloadPdf}
         disabled={busy}
         className={control}
@@ -102,21 +99,31 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
           <DownloadIcon className="size-4" aria-hidden="true" />
         )}
         {busy ? "Building…" : "Download PDF"}
-      </button>
+      </Button>
 
-      <button type="button" onClick={downloadText} className={control}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={downloadText}
+        className={control}
+      >
         <FileTextIcon className="size-4" aria-hidden="true" />
         Download text
-      </button>
+      </Button>
 
-      <button type="button" onClick={copy} className={control}>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={copy}
+        className={control}
+      >
         {copied ? (
           <CheckIcon className="size-4" aria-hidden="true" />
         ) : (
           <CopyIcon className="size-4" aria-hidden="true" />
         )}
         {copied ? "Copied" : "Copy"}
-      </button>
+      </Button>
 
       {error && (
         <p role="alert" className="text-destructive text-[13px]">

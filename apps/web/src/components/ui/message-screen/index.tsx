@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import Wordmark from "@/components/brand/wordmark";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ButtonLink } from "@/components/ui/button";
 
 interface Props {
   title: string;
@@ -28,15 +26,13 @@ const MessageScreen = ({ title, body, href, linkLabel, action }: Props) => (
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           {action}
-          <Link
+          <ButtonLink
             href={href}
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "h-10 px-4 text-sm",
-            )}
+            variant="outline"
+            className="h-10 px-4 text-sm"
           >
             {linkLabel}
-          </Link>
+          </ButtonLink>
         </div>
       </div>
     </main>

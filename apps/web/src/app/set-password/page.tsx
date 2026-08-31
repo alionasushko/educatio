@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import type { Metadata } from "next";
 import AuthShell from "@/components/auth/auth-shell";
 import Card from "@/components/ui/card";
 import SetPasswordForm from "@/components/auth/set-password-form";
@@ -32,10 +32,7 @@ const SetPasswordPage = async () => {
         <SetPasswordForm hasPassword={hasPassword} />
 
         <p className="border-border-subtle mt-5.5 border-t pt-4.5 text-center text-[13px]">
-          <Link
-            href="/dashboard"
-            className="text-text-secondary font-medium no-underline"
-          >
+          <Link href="/dashboard" className="link-muted">
             {hasPassword ? "Back to dashboard" : "Skip for now"}
           </Link>
         </p>

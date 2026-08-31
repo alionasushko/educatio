@@ -21,11 +21,7 @@ const LandingFooter = () => {
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px]">
           {LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-text-secondary hover:text-text-primary font-medium no-underline transition-colors"
-            >
+            <Link key={link.href} href={link.href} className="link-muted">
               {link.label}
             </Link>
           ))}

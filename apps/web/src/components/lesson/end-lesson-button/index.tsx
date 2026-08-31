@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useBroadcastEvent } from "@liveblocks/react";
 import { SquareIcon } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Button from "@/components/ui/button";
 import { endLessonAction } from "@/app/lesson/[lessonId]/actions";
 import { lessonSummaryHref } from "@/lib/routes";
 
@@ -36,20 +35,18 @@ const EndLessonButton = ({ lessonId }: Props) => {
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={() => {
           setError(undefined);
           setOpen(true);
         }}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "h-9 gap-1.5 px-3 text-sm",
-        )}
+        className="h-9 gap-1.5 px-3 text-sm"
       >
         <SquareIcon className="size-3.5" aria-hidden="true" />
         <span className="hidden sm:inline">End lesson</span>
-      </button>
+      </Button>
 
       {open && (
         <ConfirmDialog

@@ -1,6 +1,6 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
 import { CheckIcon } from "lucide-react";
 import AuthShell from "@/components/auth/auth-shell";
 import SignUpForm from "@/components/auth/sign-up-form";
@@ -21,13 +21,7 @@ const SignUpPage = async () => {
     <AuthShell
       footer={
         <>
-          Already have an account?{" "}
-          <Link
-            href="/sign-in"
-            className="text-accent-brand font-medium no-underline"
-          >
-            Sign in
-          </Link>
+          Already have an account? <Link href="/sign-in">Sign in</Link>
         </>
       }
     >

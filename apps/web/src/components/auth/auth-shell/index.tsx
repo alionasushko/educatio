@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Wordmark from "@/components/brand/wordmark";
 import CascadeUp from "@/components/motion/cascade-up";
 
@@ -24,19 +25,13 @@ const AuthShell = ({ children, footer }: Props) => {
       <footer className="text-text-tertiary px-6 pt-6 pb-8 text-center text-[12.5px] md:px-12">
         {footer ?? (
           <>
-            <a
-              href="#"
-              className="text-text-secondary font-medium no-underline"
-            >
+            <Link href="#" className="link-muted">
               Privacy
-            </a>
+            </Link>
             <span className="mx-2 opacity-50">·</span>
-            <a
-              href="#"
-              className="text-text-secondary font-medium no-underline"
-            >
+            <Link href="#" className="link-muted">
               Terms
-            </a>
+            </Link>
           </>
         )}
       </footer>

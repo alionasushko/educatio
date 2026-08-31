@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { VideoIcon } from "lucide-react";
 import Wordmark from "@/components/brand/wordmark";
 import Badge from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import CanvasRoom from "@/components/canvas/canvas-room";
 import ConnectionStatus from "@/components/canvas/connection-status";
@@ -13,7 +12,6 @@ import LessonCanvas from "@/components/canvas/lesson-canvas";
 import ShareLessonButton from "@/components/lesson/share-lesson-button";
 import EndLessonButton from "@/components/lesson/end-lesson-button";
 import LessonEndedWatcher from "@/components/lesson/lesson-ended-watcher";
-import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { fetchCurrentUser } from "@/lib/api-auth";
@@ -95,29 +93,25 @@ const LessonPage = async ({ params }: Props) => {
             </>
           )}
           {videoHref && (
-            <a
+            <ButtonLink
               href={videoHref}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "h-9 gap-1.5 px-3 text-sm",
-              )}
+              variant="outline"
+              className="h-9 gap-1.5 px-3 text-sm"
             >
               <VideoIcon className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Join video call</span>
-            </a>
+            </ButtonLink>
           )}
           {isTutor && (
-            <Link
+            <ButtonLink
               href="/dashboard"
-              className={cn(
-                buttonVariants({ variant: "ghost" }),
-                "h-9 px-3 text-sm",
-              )}
+              variant="ghost"
+              className="h-9 px-3 text-sm"
             >
               Back
-            </Link>
+            </ButtonLink>
           )}
         </div>
       </header>

@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Wordmark from "@/components/brand/wordmark";
-import { buttonVariants } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import LessonSummary from "@/components/lesson/lesson-summary";
 import EmailSummaryButton from "@/components/lesson/email-summary-button";
 import SummaryExports from "@/components/lesson/summary-exports";
 import CanvasThumbnail from "@/components/lesson/canvas-thumbnail";
 import CanvasViewer from "@/components/lesson/canvas-viewer";
-import { cn } from "@/lib/utils";
 import { getLesson } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { snapshotElements } from "@/lib/canvas-elements";
@@ -74,15 +72,13 @@ const LessonSummaryPage = async ({ params }: Props) => {
           />
         )}
         {isTutor && (
-          <Link
+          <ButtonLink
             href="/dashboard"
-            className={cn(
-              buttonVariants({ variant: "ghost" }),
-              "h-9 px-3 text-sm",
-            )}
+            variant="ghost"
+            className="h-9 px-3 text-sm"
           >
             Back
-          </Link>
+          </ButtonLink>
         )}
       </header>
 

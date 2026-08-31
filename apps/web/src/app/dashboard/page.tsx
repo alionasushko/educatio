@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardLayout from "@/components/dashboard/dashboard-layout";
@@ -7,8 +6,7 @@ import LessonsView from "@/components/dashboard/lessons-view";
 import DashboardEmptyState from "@/components/dashboard/dashboard-empty-state";
 import NewLessonButton from "@/components/lesson/new-lesson-button";
 import TimezoneBootstrap from "@/components/timezone-bootstrap";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ButtonLink } from "@/components/ui/button";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { listLessons } from "@/lib/api-lessons";
 import { query } from "@/lib/api-error";
@@ -86,15 +84,13 @@ const DashboardPage = async ({ searchParams }: Props) => {
               <p className="text-text-tertiary mt-1 text-sm">
                 {ERROR_COPY[lessons.code ?? "internal_error"]}
               </p>
-              <Link
+              <ButtonLink
                 href={currentHref}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "mt-4 h-9 px-4 text-sm",
-                )}
+                variant="outline"
+                className="mt-4 h-9 px-4 text-sm"
               >
                 Retry
-              </Link>
+              </ButtonLink>
             </div>
           </div>
         ) : isEmpty ? (

@@ -1,6 +1,6 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Link from "next/link";
 import AuthShell from "@/components/auth/auth-shell";
 import SignInForm from "@/components/auth/sign-in-form";
 import AuthErrorBanner from "@/components/auth/auth-error-banner";
@@ -38,13 +38,7 @@ const SignInPage = async ({ searchParams }: Props) => {
         <SignInForm callbackUrl={target} />
 
         <p className="border-border-subtle text-text-secondary mt-5.5 border-t pt-4.5 text-center text-[13px] leading-normal">
-          New to Educatio?{" "}
-          <Link
-            href="/sign-up"
-            className="text-accent-brand font-medium no-underline"
-          >
-            Create a tutor account
-          </Link>
+          New to Educatio? <Link href="/sign-up">Create a tutor account</Link>
         </p>
       </Card>
     </AuthShell>
