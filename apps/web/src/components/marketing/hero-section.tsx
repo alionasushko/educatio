@@ -1,5 +1,4 @@
-import { ArrowRightIcon } from "lucide-react";
-import Button, { ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import ProductPreview from "./product-preview";
 import CascadeUp from "@/components/motion/cascade-up";
 
@@ -44,14 +43,6 @@ const HeroSection = () => {
             >
               Get started free
             </ButtonLink>
-            <Button variant="ghost" size="lg" className="h-12 px-3 text-[15px]">
-              See a sample lesson
-              <ArrowRightIcon
-                className="size-3.5"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
-            </Button>
           </div>
         </CascadeUp>
 
