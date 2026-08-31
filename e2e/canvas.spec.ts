@@ -800,7 +800,7 @@ test("a peer can see what the other person has selected", async ({
     })
     .toBe(0);
 
-  await tutorPage.mouse.click(box.x + 240, box.y + 200);
+  await tutorPage.mouse.click(box.x + 330, box.y + 260);
 
   await expect
     .poll(async () => (await peerShapes()).selections, {
