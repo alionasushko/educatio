@@ -18,6 +18,15 @@ test.afterEach(async () => {
   await deleteLesson(lesson);
 });
 
+const STORAGE_READY_MS = 15_000;
+
+// Tools stay disabled until room storage has loaded; drawing before that would
+// throw inside the mutation and silently lose the stroke.
+const awaitStorage = (page: Page, tool = "Pen (P)") =>
+  expect(page.getByRole("button", { name: tool })).toBeEnabled({
+    timeout: STORAGE_READY_MS,
+  });
+
 const openCanvas = async (page: Page) => {
   await page.goto(`/lesson/${lesson.lessonId}`);
   await expect(
@@ -25,9 +34,7 @@ const openCanvas = async (page: Page) => {
   ).toBeVisible();
   const canvas = page.locator("canvas").first();
   await expect(canvas).toBeVisible();
-  // Tools stay disabled until room storage has loaded; drawing before that
-  // would throw inside the mutation and silently lose the stroke.
-  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await awaitStorage(page);
   return canvas;
 };
 
@@ -592,7 +599,7 @@ test("leaving the lesson persists the canvas", async ({ page, context }) => {
   await signIn(context, lesson.sessionJwt);
 
   await page.goto(`/lesson/${lesson.lessonId}`);
-  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await awaitStorage(page);
 
   await page.getByRole("button", { name: "Sticky note (S)" }).click();
   const box = await page.locator("canvas").first().boundingBox();
@@ -658,10 +665,8 @@ test("each person sees the other's cursor and name", async ({ browser }) => {
   const peerPage = await peer.newPage();
   await tutorPage.goto(`/lesson/${lesson.lessonId}`);
   await peerPage.goto(`/lesson/${lesson.lessonId}`);
-  await expect(
-    tutorPage.getByRole("button", { name: "Pen (P)" }),
-  ).toBeEnabled();
-  await expect(peerPage.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await awaitStorage(tutorPage);
+  await awaitStorage(peerPage);
 
   // Each side shows the other in the presence stack.
   await expect(
@@ -692,10 +697,8 @@ test("a peer sees a resize while it is happening", async ({ browser }) => {
   const peerPage = await peer.newPage();
   await tutorPage.goto(`/lesson/${lesson.lessonId}`);
   await peerPage.goto(`/lesson/${lesson.lessonId}`);
-  await expect(
-    tutorPage.getByRole("button", { name: "Pen (P)" }),
-  ).toBeEnabled();
-  await expect(peerPage.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await awaitStorage(tutorPage);
+  await awaitStorage(peerPage);
 
   const box = await tutorPage.locator("canvas").first().boundingBox();
   if (!box) throw new Error("canvas has no box");
@@ -752,10 +755,8 @@ test("a peer can see what the other person has selected", async ({
   const peerPage = await peer.newPage();
   await tutorPage.goto(`/lesson/${lesson.lessonId}`);
   await peerPage.goto(`/lesson/${lesson.lessonId}`);
-  await expect(
-    tutorPage.getByRole("button", { name: "Pen (P)" }),
-  ).toBeEnabled();
-  await expect(peerPage.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
+  await awaitStorage(tutorPage);
+  await awaitStorage(peerPage);
 
   await expect(
     tutorPage.getByRole("group", { name: /other in the lesson/ }),
@@ -790,7 +791,10 @@ test("a peer can see what the other person has selected", async ({
     });
 
   await expect
-    .poll(async () => (await peerShapes()).elements)
+    .poll(async () => (await peerShapes()).elements, {
+      message: "the other person's shape never reached the peer",
+      timeout: STORAGE_READY_MS,
+    })
     .toBeGreaterThan(0);
 
   await expect
@@ -826,9 +830,7 @@ test("a peer sees what the other person draws", async ({ browser }) => {
   await peerPage.goto(`/lesson/${lesson.lessonId}`);
   const peerCanvas = peerPage.locator("canvas").first();
   await expect(peerCanvas).toBeVisible();
-  await expect(
-    tutorPage.getByRole("button", { name: "Sticky note (S)" }),
-  ).toBeEnabled();
+  await awaitStorage(tutorPage, "Sticky note (S)");
 
   const before = await peerCanvas.screenshot();
 
