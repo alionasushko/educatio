@@ -65,8 +65,7 @@ const LessonsView = ({
             >
               <span>Lesson</span>
               <span>Student</span>
-              <span>When</span>
-              <span className="text-right">Duration</span>
+              <span>Created</span>
               <span>Status</span>
               <span />
             </div>

@@ -24,15 +24,6 @@ interface Props {
   params: Promise<{ lessonId: string }>;
 }
 
-const minutes = (seconds?: number): string | null => {
-  if (!seconds || seconds < 60) return null;
-  const total = Math.round(seconds / 60);
-  if (total < 60) return `${total} min`;
-  const hours = Math.floor(total / 60);
-  const rest = total % 60;
-  return rest ? `${hours}h ${rest}m` : `${hours}h`;
-};
-
 const LessonSummaryPage = async ({ params }: Props) => {
   const { lessonId } = await params;
 
@@ -53,9 +44,8 @@ const LessonSummaryPage = async ({ params }: Props) => {
         timeZone,
       }).format(new Date(lesson.endedAt))
     : null;
-  const length = minutes(lesson.durationSeconds);
   const counterpart = isTutor ? lesson.studentName : lesson.tutorName;
-  const metaLine = [counterpart && `with ${counterpart}`, ended, length]
+  const metaLine = [counterpart && `with ${counterpart}`, ended]
     .filter(Boolean)
     .join(" · ");
 

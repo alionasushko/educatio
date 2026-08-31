@@ -126,7 +126,6 @@ The centerpiece of the app.
 
   Lesson title: {title}
   Student: {studentName}
-  Duration: {durationMinutes} minutes
 
   Canvas contents (in spatial order, top-to-bottom, left-to-right):
   {serializedElements}
@@ -164,7 +163,7 @@ The centerpiece of the app.
 ## Data models (Mongoose; schemas live in `apps/api/src/schemas/`, **api only**)
 
 - **`User`** — `email` (unique) · `name` · `image?` · `emailVerified` (Date) · `teaches?` (free-text, captured at sign-up) · timestamps.
-- **`Lesson`** — `tutorId` (ref User) · `title` · `studentName?` · `videoCallUrl?` · `inviteCode` (unique) · `status: 'scheduled' | 'active' | 'ended'` · `startedAt?` · `endedAt?` · `durationSeconds?` · `liveblocksRoomId` (unique) · `summary?: { text, generatedAt }` · timestamps.
+- **`Lesson`** — `tutorId` (ref User) · `title` · `studentName?` · `videoCallUrl?` · `inviteCode` (unique) · `status: 'active' | 'ended'` · `endedAt?` · `liveblocksRoomId` (unique) · `summary?: { text, generatedAt }` · timestamps.
 - **`LessonSnapshot`** — `lessonId` (ref) · `canvasState` (Mixed JSON) · `snapshotAt`. Liveblocks holds live state; this is the persistent backup for replay.
 - **`MagicLink`** — `userId` (ref) · `tokenHash` (sha256 of the raw token) · `expiresAt` (TTL index, 10 min) · `usedAt?`. One-time tokens for the email magic-link flow.
 

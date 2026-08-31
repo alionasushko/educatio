@@ -1,4 +1,4 @@
-export type LessonStatus = "scheduled" | "active" | "ended";
+export type LessonStatus = "active" | "ended";
 
 export interface LessonSummary {
   text: string;
@@ -15,9 +15,7 @@ export interface Lesson {
   videoCallUrl?: string;
   inviteCode: string;
   status: LessonStatus;
-  startedAt?: Date | string;
   endedAt?: Date | string;
-  durationSeconds?: number;
   liveblocksRoomId: string;
   summary?: LessonSummary;
   createdAt: Date | string;

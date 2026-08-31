@@ -40,14 +40,9 @@ export class SummaryService {
     const lesson = await this.lessonsService.getOwnedOr403(lessonId, tutorId);
     const canvasState = await this.snapshotsService.latest(lessonId);
     const serialized = this.serialize(this.extractElements(canvasState));
-    const durationMinutes = lesson.durationSeconds
-      ? Math.round(lesson.durationSeconds / 60)
-      : 0;
-
     const prompt = this.buildPrompt(
       lesson.title,
       lesson.studentName ?? "the student",
-      durationMinutes,
       serialized,
     );
 
@@ -103,14 +98,12 @@ export class SummaryService {
   private buildPrompt(
     title: string,
     studentName: string,
-    durationMinutes: number,
     serializedElements: string,
   ): string {
     return `You are summarizing a tutoring lesson based on the contents of a collaborative whiteboard.
 
 Lesson title: ${title}
 Student: ${studentName}
-Duration: ${durationMinutes} minutes
 
 Canvas contents (in spatial order, top-to-bottom, left-to-right):
 ${serializedElements}

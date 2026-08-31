@@ -37,7 +37,6 @@ const DashboardLoading = () => (
             <div className="edu-shimmer h-4 w-3/4 rounded" />
             <div className="edu-shimmer h-4 w-20 rounded" />
             <div className="edu-shimmer h-4 w-24 rounded" />
-            <div className="edu-shimmer h-4 w-12 rounded" />
             <div className="edu-shimmer h-5 w-16 rounded-full" />
             <div className="edu-shimmer size-8 rounded-md" />
           </div>

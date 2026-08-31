@@ -47,7 +47,7 @@ export class LessonsService {
       videoCallUrl: input.videoCallUrl,
       inviteCode,
       liveblocksRoomId,
-      status: "scheduled",
+      status: "active",
     });
     return { id: lesson.id, inviteCode, liveblocksRoomId };
   }
@@ -136,17 +136,7 @@ export class LessonsService {
       lesson.videoCallUrl = input.videoCallUrl;
 
     if (input.status !== undefined && input.status !== lesson.status) {
-      if (input.status === "active" && !lesson.startedAt) {
-        lesson.startedAt = new Date();
-      }
-      if (input.status === "ended") {
-        lesson.endedAt = new Date();
-        if (lesson.startedAt) {
-          lesson.durationSeconds = Math.round(
-            (lesson.endedAt.getTime() - lesson.startedAt.getTime()) / 1000,
-          );
-        }
-      }
+      if (input.status === "ended") lesson.endedAt = new Date();
       lesson.status = input.status;
     }
 
@@ -207,9 +197,7 @@ export class LessonsService {
       videoCallUrl: d.videoCallUrl,
       inviteCode: d.inviteCode,
       status: d.status,
-      startedAt: d.startedAt?.toISOString(),
       endedAt: d.endedAt?.toISOString(),
-      durationSeconds: d.durationSeconds,
       liveblocksRoomId: d.liveblocksRoomId,
       summary: d.summary
         ? {

@@ -41,20 +41,14 @@ export class Lesson {
 
   @Prop({
     type: String,
-    enum: ["scheduled", "active", "ended"],
-    default: "scheduled",
+    enum: ["active", "ended"],
+    default: "active",
     index: true,
   })
   status: LessonStatus;
 
   @Prop({ type: Date })
-  startedAt?: Date;
-
-  @Prop({ type: Date })
   endedAt?: Date;
-
-  @Prop({ type: Number })
-  durationSeconds?: number;
 
   @Prop({ required: true, unique: true })
   liveblocksRoomId: string;

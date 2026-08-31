@@ -3,8 +3,7 @@ import type { Lesson } from "@educatio/shared";
 import Avatar from "@/components/ui/avatar";
 import Badge from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatWhen, statusMeta } from "../../helpers/helpers";
-import LessonTimer from "../lesson-timer";
+import { formatCreated, statusMeta } from "../../helpers/helpers";
 import DeleteLessonButton from "../delete-lesson-button";
 import { lessonHref } from "@/lib/routes";
 
@@ -16,7 +15,6 @@ interface Props {
 const LessonCard = ({ lesson, timeZone }: Props) => {
   const { variant, label } = statusMeta(lesson.status);
   const href = lessonHref(lesson);
-  const duration = formatDuration(lesson);
 
   return (
     <div className="group border-border-subtle bg-surface hover:bg-accent-tint has-[a:focus-visible]:ring-accent-brand/60 relative flex flex-col gap-2.5 rounded-xl border p-4 transition-colors has-[a:focus-visible]:ring-2">
@@ -48,20 +46,7 @@ const LessonCard = ({ lesson, timeZone }: Props) => {
       </div>
 
       <div className="text-text-tertiary flex items-center gap-2 text-[12.5px]">
-        <span>{formatWhen(lesson, timeZone)}</span>
-        {lesson.status === "active" && lesson.startedAt ? (
-          <>
-            <span aria-hidden="true">·</span>
-            <LessonTimer startedAt={lesson.startedAt} />
-          </>
-        ) : (
-          duration !== "—" && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{duration}</span>
-            </>
-          )
-        )}
+        <span>{formatCreated(lesson, timeZone)}</span>
       </div>
     </div>
   );

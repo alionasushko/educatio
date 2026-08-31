@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { VideoIcon } from "lucide-react";
 import Wordmark from "@/components/brand/wordmark";
-import Badge from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { statusMeta } from "@/components/dashboard/lessons-view/helpers/helpers";
 import CanvasRoom from "@/components/canvas/canvas-room";
 import ConnectionStatus from "@/components/canvas/connection-status";
 import PresenceStack from "@/components/canvas/presence-stack";
@@ -41,8 +39,6 @@ const LessonPage = async ({ params }: Props) => {
     query(() => getLatestSnapshot(lessonId)),
     session.kind === "tutor" ? query(() => fetchCurrentUser()) : null,
   ]);
-
-  const { variant, label } = statusMeta(lesson.status);
 
   const displayName =
     session.kind === "student"
@@ -83,9 +79,6 @@ const LessonPage = async ({ params }: Props) => {
         <div className="flex shrink-0 items-center gap-2">
           <PresenceStack />
           <ConnectionStatus />
-          <Badge variant={variant} dot>
-            {label}
-          </Badge>
           {isTutor && (
             <>
               <ShareLessonButton inviteCode={lesson.inviteCode} />

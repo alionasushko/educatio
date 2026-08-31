@@ -4,8 +4,7 @@ import Avatar from "@/components/ui/avatar";
 import Badge from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { LESSON_GRID } from "../../helpers/constants";
-import { formatDuration, formatWhen, statusMeta } from "../../helpers/helpers";
-import LessonTimer from "../lesson-timer";
+import { formatCreated, statusMeta } from "../../helpers/helpers";
 import DeleteLessonButton from "../delete-lesson-button";
 import { lessonHref } from "@/lib/routes";
 
@@ -51,15 +50,7 @@ const LessonRow = ({ lesson, last, timeZone }: Props) => {
       </div>
 
       <div className="text-text-secondary text-[13.5px]">
-        {formatWhen(lesson, timeZone)}
-      </div>
-
-      <div className="text-text-secondary text-right font-features-['tnum'] text-[13.5px]">
-        {lesson.status === "active" && lesson.startedAt ? (
-          <LessonTimer startedAt={lesson.startedAt} />
-        ) : (
-          formatDuration(lesson)
-        )}
+        {formatCreated(lesson, timeZone)}
       </div>
 
       <div>

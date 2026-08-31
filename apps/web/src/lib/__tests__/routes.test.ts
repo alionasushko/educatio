@@ -10,7 +10,7 @@ describe("lessonHref", () => {
 
   it("sends a live lesson to its canvas", () => {
     expect(lessonHref({ id: "abc", status: "active" })).toBe("/lesson/abc");
-    expect(lessonHref({ id: "abc", status: "scheduled" })).toBe("/lesson/abc");
+    expect(lessonHref({ id: "abc", status: "active" })).toBe("/lesson/abc");
   });
 });
 

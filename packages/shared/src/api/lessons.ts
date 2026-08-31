@@ -20,7 +20,7 @@ export const updateLessonSchema = z
     title: z.string().min(1).max(200).optional(),
     studentName: z.string().max(120).optional(),
     videoCallUrl: videoCallUrlSchema.optional(),
-    status: z.enum(["scheduled", "active", "ended"]).optional(),
+    status: z.enum(["active", "ended"]).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {
     message: "At least one field must be provided",
@@ -50,10 +50,8 @@ export const lessonSchema = z.object({
   studentEmail: z.string().optional(),
   videoCallUrl: z.string().optional(),
   inviteCode: z.string(),
-  status: z.enum(["scheduled", "active", "ended"]),
-  startedAt: z.iso.datetime().optional(),
+  status: z.enum(["active", "ended"]),
   endedAt: z.iso.datetime().optional(),
-  durationSeconds: z.number().optional(),
   liveblocksRoomId: z.string(),
   summary: lessonSummarySchema.optional(),
   createdAt: z.iso.datetime(),
