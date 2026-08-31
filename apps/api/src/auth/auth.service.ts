@@ -287,6 +287,11 @@ export class AuthService {
     return existing;
   }
 
+  async signout(claims: TutorSessionClaims): Promise<{ ok: true }> {
+    if (claims.email !== DEMO_EMAIL) await this.revokeSessions(claims.sub);
+    return { ok: true };
+  }
+
   async revokeSessions(userId: string): Promise<void> {
     await this.users.updateOne({ _id: userId }, { $inc: { tokenVersion: 1 } });
   }

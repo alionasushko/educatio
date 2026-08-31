@@ -97,8 +97,7 @@ export class AuthController {
   async signout(
     @CurrentTutor() tutor: TutorSessionClaims,
   ): Promise<{ ok: true }> {
-    await this.auth.revokeSessions(tutor.sub);
-    return { ok: true };
+    return this.auth.signout(tutor);
   }
 
   @Get(AUTH_ACTIONS.me)
