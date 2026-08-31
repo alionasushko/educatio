@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./helpers/test";
 import { createDemoLesson, deleteLesson } from "./helpers/session";
 
 const API = process.env.E2E_API_URL ?? "http://localhost:3001";
