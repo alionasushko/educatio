@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { setPasswordSchema } from "@educatio/shared/api/auth";
@@ -16,13 +17,11 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
-  const [done, setDone] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError(undefined);
-    setDone(false);
 
     const parsed = setPasswordSchema.safeParse({ password });
     if (!parsed.success) {
@@ -36,9 +35,8 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
         setError(result.fieldErrors?.password ?? result.error);
         return;
       }
-      setDone(true);
-      setPassword("");
-      router.refresh();
+      toast.success(hasPassword ? "Password changed" : "Password set");
+      router.push("/dashboard");
     });
   };
 
@@ -53,17 +51,9 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
         value={password}
         onChange={(event) => {
           setPassword(event.target.value);
-          setDone(false);
         }}
         error={error}
       />
-
-      {done && (
-        <p className="text-accent-brand mb-3 flex items-center gap-1.5 text-[13px]">
-          <CheckIcon className="size-4" aria-hidden="true" />
-          Password saved — you can sign in with it next time.
-        </p>
-      )}
 
       <Button
         type="submit"
