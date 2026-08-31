@@ -10,9 +10,10 @@ import { updateNameAction } from "@/app/settings/actions";
 
 interface Props {
   name: string;
+  readOnly?: boolean;
 }
 
-const ProfileForm = ({ name: initialName }: Props) => {
+const ProfileForm = ({ name: initialName, readOnly = false }: Props) => {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
@@ -47,6 +48,7 @@ const ProfileForm = ({ name: initialName }: Props) => {
         name="name"
         autoComplete="name"
         helper="The name your students see on the whiteboard."
+        disabled={readOnly}
         value={name}
         onChange={(event) => {
           setName(event.target.value);
@@ -56,7 +58,7 @@ const ProfileForm = ({ name: initialName }: Props) => {
 
       <Button
         type="submit"
-        disabled={isPending || unchanged}
+        disabled={isPending || unchanged || readOnly}
         className="mt-4 h-10 px-4 text-sm"
       >
         {isPending && (

@@ -1,4 +1,5 @@
 import { ButtonLink } from "@/components/ui/button";
+import TryDemoButton from "@/components/auth/try-demo-button";
 import ProductPreview from "./product-preview";
 import CascadeUp from "@/components/motion/cascade-up";
 
@@ -43,6 +44,10 @@ const HeroSection = () => {
             >
               Get started free
             </ButtonLink>
+            <TryDemoButton
+              label="Explore the demo"
+              className="h-12 w-auto px-5 text-[15px]"
+            />
           </div>
         </CascadeUp>
 

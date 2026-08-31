@@ -3,6 +3,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import type { ArgumentsHost } from "@nestjs/common";
 import { AllExceptionsFilter } from "./all-exceptions.filter";
@@ -50,6 +51,19 @@ describe("errors worth waking someone for", () => {
   it("reports a deliberate 500", () => {
     filter.catch(new InternalServerErrorException("nope"), host);
     expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a coded 5xx's code so the caller can tell them apart", () => {
+    filter.catch(
+      new ServiceUnavailableException({
+        code: "service_unavailable",
+        message: "Email delivery is not configured",
+      }),
+      host,
+    );
+
+    expect(sent.status).toBe(503);
+    expect(sent.body).toMatchObject({ code: "service_unavailable" });
   });
 
   it("hides the detail of a 500 from the caller", () => {

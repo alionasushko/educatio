@@ -22,7 +22,10 @@ export const signupAction = async (
       linkBindingCookieOptions,
     );
   } catch (err) {
-    return actionError(err);
+    return actionError(err, {
+      service_unavailable:
+        "New accounts aren\u2019t available here yet \u2014 use \u201cExplore the demo\u201d to look around.",
+    });
   }
 
   redirect(`/verify?email=${encodeURIComponent(parsed.data.email)}`);

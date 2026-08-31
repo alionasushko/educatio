@@ -323,6 +323,7 @@ export class AuthService {
       image: user.image,
       teaches: user.teaches,
       hasPassword: !!user.passwordHash,
+      isDemo: user.email === DEMO_EMAIL,
     };
   }
 
@@ -344,9 +345,10 @@ export class AuthService {
 
     if (!apiKey || !from) {
       if (this.config.get("NODE_ENV", { infer: true }) === "production") {
-        throw new ServiceUnavailableException(
-          "Email delivery is not configured",
-        );
+        throw new ServiceUnavailableException({
+          code: "service_unavailable",
+          message: "Email delivery is not configured",
+        });
       }
       // Dev-only fallback: log the link rather than failing when email isn't configured.
       this.logger.warn(

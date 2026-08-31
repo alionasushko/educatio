@@ -7,9 +7,10 @@ import { deleteAccountAction } from "@/app/settings/actions";
 
 interface Props {
   email: string;
+  disabled?: boolean;
 }
 
-const DeleteAccountButton = ({ email }: Props) => {
+const DeleteAccountButton = ({ email, disabled = false }: Props) => {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
@@ -31,6 +32,7 @@ const DeleteAccountButton = ({ email }: Props) => {
       <Button
         type="button"
         variant="destructive"
+        disabled={disabled}
         onClick={() => {
           setError(undefined);
           setOpen(true);

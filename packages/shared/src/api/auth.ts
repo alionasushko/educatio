@@ -82,6 +82,7 @@ export const publicUserSchema = z.object({
   image: z.string().optional(),
   teaches: z.string().optional(),
   hasPassword: z.boolean(),
+  isDemo: z.boolean(),
 });
 
 export const meResponseSchema = z.object({ user: publicUserSchema });

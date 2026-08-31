@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import ProfileForm from "@/components/settings/profile-form";
 import DeleteAccountButton from "@/components/settings/delete-account-button";
 import Card from "@/components/ui/card";
-import { ButtonLink } from "@/components/ui/button";
+import Button, { ButtonLink } from "@/components/ui/button";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
@@ -59,6 +59,13 @@ const SettingsPage = async () => {
         </div>
       ) : (
         <div className="flex max-w-140 flex-col gap-5 p-6 md:p-10">
+          {user.isDemo && (
+            <p className="border-accent-soft-border bg-accent-tint text-text-secondary rounded-[10px] border px-4 py-3.5 text-[13px] leading-normal">
+              You&apos;re exploring as the shared demo account, so these
+              settings are read-only.
+            </p>
+          )}
+
           <Card padding={24}>
             <h2 className="text-text-primary text-[15px] font-medium">
               Profile
@@ -76,7 +83,7 @@ const SettingsPage = async () => {
               </p>
             </div>
 
-            <ProfileForm name={user.name} />
+            <ProfileForm name={user.name} readOnly={user.isDemo} />
           </Card>
 
           <Card padding={24}>
@@ -88,13 +95,19 @@ const SettingsPage = async () => {
                 ? "Sign in with a password as well as a magic link."
                 : "You sign in by magic link. Add a password for a faster way in."}
             </p>
-            <ButtonLink
-              href="/set-password?next=/settings"
-              variant="outline"
-              className="h-10 px-4 text-sm"
-            >
-              {user.hasPassword ? "Change password" : "Set a password"}
-            </ButtonLink>
+            {user.isDemo ? (
+              <Button variant="outline" disabled className="h-10 px-4 text-sm">
+                Set a password
+              </Button>
+            ) : (
+              <ButtonLink
+                href="/set-password?next=/settings"
+                variant="outline"
+                className="h-10 px-4 text-sm"
+              >
+                {user.hasPassword ? "Change password" : "Set a password"}
+              </ButtonLink>
+            )}
           </Card>
 
           <Card padding={24}>
@@ -105,7 +118,7 @@ const SettingsPage = async () => {
               Removes your account and every lesson, canvas and summary in it.
               This can&apos;t be undone.
             </p>
-            <DeleteAccountButton email={user.email} />
+            <DeleteAccountButton email={user.email} disabled={user.isDemo} />
           </Card>
         </div>
       )}

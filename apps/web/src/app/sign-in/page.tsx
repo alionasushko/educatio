@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import AuthShell from "@/components/auth/auth-shell";
 import SignInForm from "@/components/auth/sign-in-form";
+import TryDemoButton from "@/components/auth/try-demo-button";
 import AuthErrorBanner from "@/components/auth/auth-error-banner";
 import Card from "@/components/ui/card";
 import { redirectSignedInTutor } from "@/lib/session-server";
@@ -36,6 +37,14 @@ const SignInPage = async ({ searchParams }: Props) => {
         </Suspense>
 
         <SignInForm callbackUrl={target} />
+
+        <div className="my-5 flex items-center gap-3">
+          <span className="bg-border h-px flex-1" />
+          <span className="text-text-tertiary text-xs">or</span>
+          <span className="bg-border h-px flex-1" />
+        </div>
+
+        <TryDemoButton />
 
         <p className="border-border-subtle text-text-secondary mt-5.5 border-t pt-4.5 text-center text-[13px] leading-normal">
           New to Educatio? <Link href="/sign-up">Create a tutor account</Link>
