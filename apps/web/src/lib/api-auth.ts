@@ -12,6 +12,7 @@ import {
   type CallbackInput,
   type SessionResponse,
   type SetPasswordInput,
+  type UpdateProfileInput,
   type SigninInput,
   type SignupInput,
 } from "@educatio/shared/api/auth";
@@ -19,6 +20,15 @@ import { api } from "./api-client";
 
 export const fetchCurrentUser = () =>
   api.get<MeResponse>(authPath(AUTH_ACTIONS.me), { schema: meResponseSchema });
+
+export const updateProfile = (input: UpdateProfileInput) =>
+  api.patch<MeResponse>(authPath(AUTH_ACTIONS.me), {
+    schema: meResponseSchema,
+    body: input,
+  });
+
+export const deleteAccount = () =>
+  api.del<OkResponse>(authPath(AUTH_ACTIONS.me), { schema: okResponseSchema });
 
 export const signup = (input: SignupInput) =>
   api.post<SentResponse>(authPath(AUTH_ACTIONS.signup), {

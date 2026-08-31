@@ -51,6 +51,15 @@ export const setPasswordSchema = z.object({
 });
 export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Enter your name.")
+    .max(120, "Name must be at most 120 characters."),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
 export const callbackSchema = z.object({
   token: z.string().min(1),
   binding: z.string().min(1),

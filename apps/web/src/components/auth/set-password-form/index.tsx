@@ -11,9 +11,10 @@ import { setPasswordAction } from "@/app/set-password/actions";
 
 interface Props {
   hasPassword: boolean;
+  next: string;
 }
 
-const SetPasswordForm = ({ hasPassword }: Props) => {
+const SetPasswordForm = ({ hasPassword, next }: Props) => {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string>();
@@ -36,7 +37,7 @@ const SetPasswordForm = ({ hasPassword }: Props) => {
         return;
       }
       toast.success(hasPassword ? "Password changed" : "Password set");
-      router.push("/dashboard");
+      router.push(next);
     });
   };
 

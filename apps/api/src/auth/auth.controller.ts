@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
+  Patch,
   Post,
   UseGuards,
 } from "@nestjs/common";
@@ -16,11 +18,13 @@ import {
   signinSchema,
   passwordSigninSchema,
   setPasswordSchema,
+  updateProfileSchema,
   callbackSchema,
   type SignupInput,
   type SigninInput,
   type PasswordSigninInput,
   type SetPasswordInput,
+  type UpdateProfileInput,
   type CallbackInput,
 } from "@educatio/shared/api/auth";
 import type { TutorSessionClaims } from "@educatio/shared";
@@ -101,5 +105,24 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async me(@CurrentTutor() tutor: TutorSessionClaims) {
     return { user: await this.auth.me(tutor) };
+  }
+
+  @Patch(AUTH_ACTIONS.me)
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  async updateProfile(
+    @CurrentTutor() tutor: TutorSessionClaims,
+    @Body(new ZodValidationPipe(updateProfileSchema)) body: UpdateProfileInput,
+  ) {
+    return { user: await this.auth.updateProfile(tutor, body.name) };
+  }
+
+  @Delete(AUTH_ACTIONS.me)
+  @UseGuards(JwtAuthGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  async deleteAccount(
+    @CurrentTutor() tutor: TutorSessionClaims,
+  ): Promise<{ ok: true }> {
+    return this.auth.deleteAccount(tutor);
   }
 }

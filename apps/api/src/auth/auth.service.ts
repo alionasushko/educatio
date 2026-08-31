@@ -18,6 +18,7 @@ import { generateOpaqueToken } from "../common/ids";
 import type { Env } from "../config/env";
 import type { PublicUser, TutorSessionClaims } from "@educatio/shared";
 import type { SignupInput } from "@educatio/shared/api/auth";
+import { LessonsService } from "../lessons/lessons.service";
 
 const MAGIC_LINK_TTL_MIN = 10;
 const SESSION_TTL = "30d";
@@ -50,6 +51,7 @@ export class AuthService {
     private readonly magicLinks: Model<MagicLinkDocument>,
     private readonly jwt: JwtService,
     private readonly config: ConfigService<Env, true>,
+    private readonly lessonsService: LessonsService,
   ) {}
 
   async signup(input: SignupInput): Promise<{ binding: string }> {
@@ -231,6 +233,39 @@ export class AuthService {
     user.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     await user.save();
     return { ok: true };
+  }
+
+  async updateProfile(
+    claims: TutorSessionClaims,
+    name: string,
+  ): Promise<PublicUser> {
+    const user = await this.demoSafeUser(claims, "rename the demo account");
+    user.name = name;
+    await user.save();
+    return this.toPublic(user);
+  }
+
+  async deleteAccount(claims: TutorSessionClaims): Promise<{ ok: true }> {
+    const user = await this.demoSafeUser(claims, "delete the demo account");
+    await this.lessonsService.deleteAllForTutor(user.id);
+    await this.magicLinks.deleteMany({ userId: user._id });
+    await user.deleteOne();
+    return { ok: true };
+  }
+
+  private async demoSafeUser(
+    claims: TutorSessionClaims,
+    action: string,
+  ): Promise<UserDocument> {
+    if (claims.email === DEMO_EMAIL) {
+      throw new ForbiddenException({
+        code: "demo_readonly",
+        message: `You can't ${action}.`,
+      });
+    }
+    const user = await this.users.findById(claims.sub);
+    if (!user) throw new UnauthorizedException();
+    return user;
   }
 
   private async upsertUser(

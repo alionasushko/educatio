@@ -11,5 +11,5 @@ export const SIDEBAR_FRAME =
 
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Lessons", icon: NotebookTextIcon },
-  { href: "/set-password", label: "Settings", icon: SettingsIcon },
+  { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];

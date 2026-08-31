@@ -61,6 +61,21 @@ export class LessonsService {
     return { ok: true };
   }
 
+  async deleteAllForTutor(tutorId: string): Promise<void> {
+    const owned = await this.lessons
+      .find({ tutorId })
+      .select("_id liveblocksRoomId");
+    if (!owned.length) return;
+
+    await this.snapshots.deleteMany({
+      lessonId: { $in: owned.map((l) => l._id) },
+    });
+    await this.lessons.deleteMany({ tutorId });
+    for (const lesson of owned) {
+      await this.deleteRoomBestEffort(lesson.liveblocksRoomId);
+    }
+  }
+
   private async deleteRoomBestEffort(roomId: string): Promise<void> {
     const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
     if (!secret) return;
