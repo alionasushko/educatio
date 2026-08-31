@@ -52,27 +52,28 @@ export class AuthService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  async signup(input: SignupInput): Promise<void> {
+  async signup(input: SignupInput): Promise<{ binding: string }> {
     const email = input.email.toLowerCase().trim();
+    const binding = generateOpaqueToken();
 
-    if (email === DEMO_EMAIL) return;
+    if (email === DEMO_EMAIL) return { binding };
 
-    // No password here: signup only creates the (unverified) account and sends
-    // the verification magic link. A password is set later, once authenticated,
-    // via setPassword — so an unauthenticated caller can never plant one.
     const user = await this.upsertUser(email, {
       email,
       name: input.name,
       teaches: input.teaches,
     });
-    await this.sendMagicLink(user);
+    await this.sendMagicLink(user, binding);
+    return { binding };
   }
 
-  async signin(emailRaw: string): Promise<void> {
+  async signin(emailRaw: string): Promise<{ binding: string }> {
     const email = emailRaw.toLowerCase().trim();
-    if (email === DEMO_EMAIL) return;
+    const binding = generateOpaqueToken();
+    if (email === DEMO_EMAIL) return { binding };
     const user = await this.users.findOne({ email });
-    if (user) await this.sendMagicLink(user);
+    if (user) await this.sendMagicLink(user, binding);
+    return { binding };
   }
 
   async signinWithPassword(
@@ -156,10 +157,18 @@ export class AuthService {
     }
   }
 
-  async callback(rawToken: string): Promise<{ sessionJwt: string }> {
+  async callback(
+    rawToken: string,
+    binding: string,
+  ): Promise<{ sessionJwt: string }> {
     const tokenHash = this.hash(rawToken);
     const link = await this.magicLinks.findOneAndUpdate(
-      { tokenHash, usedAt: { $exists: false }, expiresAt: { $gt: new Date() } },
+      {
+        tokenHash,
+        bindingHash: this.hash(binding),
+        usedAt: { $exists: false },
+        expiresAt: { $gt: new Date() },
+      },
       { $set: { usedAt: new Date() } },
       { new: true },
     );
@@ -277,11 +286,15 @@ export class AuthService {
     };
   }
 
-  private async sendMagicLink(user: UserDocument): Promise<void> {
+  private async sendMagicLink(
+    user: UserDocument,
+    binding: string,
+  ): Promise<void> {
     const raw = generateOpaqueToken();
     await this.magicLinks.create({
       userId: user._id,
       tokenHash: this.hash(raw),
+      bindingHash: this.hash(binding),
       expiresAt: new Date(Date.now() + MAGIC_LINK_TTL_MIN * 60_000),
     });
 

@@ -4,6 +4,7 @@ import { sessionClaimsSchema, type SessionClaims } from "@educatio/shared";
 export const SESSION_COOKIE = "educatio_session";
 
 export const POST_LOGIN_COOKIE = "educatio_post_login";
+export const LINK_BINDING_COOKIE = "educatio_link_binding";
 
 export const verifySessionToken = async (
   token: string,
@@ -44,4 +45,9 @@ export const postLoginCookieOptions = {
   secure: secureCookies,
   path: "/",
   maxAge: 60 * 10,
+};
+
+export const linkBindingCookieOptions = {
+  ...postLoginCookieOptions,
+  maxAge: 15 * 60,
 };

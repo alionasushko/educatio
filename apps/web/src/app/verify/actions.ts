@@ -1,7 +1,10 @@
 "use server";
 
+import { cookies } from "next/headers";
+
 import { signinSchema } from "@educatio/shared/api/auth";
 import { requestMagicLink } from "@/lib/api-auth";
+import { LINK_BINDING_COOKIE, linkBindingCookieOptions } from "@/lib/session";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
 
@@ -15,7 +18,12 @@ export const resendAction = async (email: string): Promise<ActionResult> => {
   if (!parsed.ok) return { ...parsed, error: "Enter a valid email address." };
 
   try {
-    await requestMagicLink(parsed.data);
+    const { binding } = await requestMagicLink(parsed.data);
+    (await cookies()).set(
+      LINK_BINDING_COOKIE,
+      binding,
+      linkBindingCookieOptions,
+    );
   } catch (err) {
     // Previously `{ ok: false }` with no message, so a failure showed nothing.
     return actionError(err);

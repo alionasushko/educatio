@@ -35,9 +35,9 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signup(
     @Body(new ZodValidationPipe(signupSchema)) body: SignupInput,
-  ): Promise<{ sent: true }> {
-    await this.auth.signup(body);
-    return { sent: true };
+  ): Promise<{ sent: true; binding: string }> {
+    const { binding } = await this.auth.signup(body);
+    return { sent: true, binding };
   }
 
   @Post(AUTH_ACTIONS.signin)
@@ -45,9 +45,9 @@ export class AuthController {
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   async signin(
     @Body(new ZodValidationPipe(signinSchema)) body: SigninInput,
-  ): Promise<{ sent: true }> {
-    await this.auth.signin(body.email);
-    return { sent: true };
+  ): Promise<{ sent: true; binding: string }> {
+    const { binding } = await this.auth.signin(body.email);
+    return { sent: true, binding };
   }
 
   @Post(AUTH_ACTIONS.signinPassword)
@@ -77,7 +77,7 @@ export class AuthController {
   async callback(
     @Body(new ZodValidationPipe(callbackSchema)) body: CallbackInput,
   ): Promise<{ sessionJwt: string }> {
-    return this.auth.callback(body.token);
+    return this.auth.callback(body.token, body.binding);
   }
 
   @Post(AUTH_ACTIONS.demo)

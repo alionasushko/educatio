@@ -8,6 +8,7 @@ import {
   type SessionResponse,
 } from "@educatio/shared/api/auth";
 import { requestMagicLink, signinWithPassword } from "@/lib/api-auth";
+import { LINK_BINDING_COOKIE, linkBindingCookieOptions } from "@/lib/session";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
 import {
@@ -27,7 +28,12 @@ export const signinAction = async (
   if (!parsed.ok) return { ...parsed, error: "Enter a valid email address." };
 
   try {
-    await requestMagicLink(parsed.data);
+    const { binding } = await requestMagicLink(parsed.data);
+    (await cookies()).set(
+      LINK_BINDING_COOKIE,
+      binding,
+      linkBindingCookieOptions,
+    );
   } catch (err) {
     return actionError(err);
   }

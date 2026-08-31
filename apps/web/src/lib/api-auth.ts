@@ -9,6 +9,7 @@ import {
   type MeResponse,
   type PasswordSigninInput,
   type SentResponse,
+  type CallbackInput,
   type SessionResponse,
   type SetPasswordInput,
   type SigninInput,
@@ -47,10 +48,10 @@ export const setPassword = (input: SetPasswordInput) =>
     ip: true,
   });
 
-export const exchangeMagicLink = (token: string) =>
+export const exchangeMagicLink = (input: CallbackInput) =>
   api.post<SessionResponse>(authPath(AUTH_ACTIONS.callback), {
     schema: sessionResponseSchema,
-    body: { token },
+    body: input,
     ip: true,
   });
 

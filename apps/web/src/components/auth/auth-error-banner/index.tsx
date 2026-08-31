@@ -8,6 +8,8 @@ const MESSAGES: Record<string, string> = {
     "That sign-in link was invalid or has expired — request a fresh one below.",
   "demo-unavailable":
     "The demo isn’t available right now — create an account to continue.",
+  "wrong-device":
+    "Open that link in the browser you asked for it from — sign-in links don’t travel between devices.",
   "session-expired":
     "You were signed out — sign in again to pick up where you left off.",
 };

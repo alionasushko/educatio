@@ -16,6 +16,9 @@ export class MagicLink {
   @Prop({ required: true, unique: true, index: true })
   tokenHash: string;
 
+  @Prop({ required: true })
+  bindingHash: string;
+
   @Prop({ type: Date, required: true })
   expiresAt: Date;
 

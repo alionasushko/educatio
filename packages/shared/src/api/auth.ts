@@ -53,10 +53,14 @@ export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
 export const callbackSchema = z.object({
   token: z.string().min(1),
+  binding: z.string().min(1),
 });
 export type CallbackInput = z.infer<typeof callbackSchema>;
 
-export const sentResponseSchema = z.object({ sent: z.literal(true) });
+export const sentResponseSchema = z.object({
+  sent: z.literal(true),
+  binding: z.string(),
+});
 export type SentResponse = z.infer<typeof sentResponseSchema>;
 
 export const sessionResponseSchema = z.object({ sessionJwt: z.string() });

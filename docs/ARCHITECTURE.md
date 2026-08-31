@@ -84,8 +84,8 @@ Tutor sign-up (email verification; password set later):
   (a password is set only post-verification via authenticated POST /auth/password)
 
 Magic-link callback:
-  Browser → web GET /auth/callback?token=…
-  web → api POST /auth/callback { token }
+  Browser → web GET /auth/callback?token=…  (needs its own binding cookie)
+  web → api POST /auth/callback { token, binding }
   api validates token, marks User.emailVerified, mints session JWT
   api → web returns { sessionJwt } in the response body
   web → sets `educatio_session` httpOnly cookie on its own domain, redirects to /dashboard
@@ -183,7 +183,7 @@ Paths live beside the schema they belong to in `@educatio/shared/api/*`, consume
 
 ## Status
 
-The api implements every endpoint listed in `docs/SPEC.md` §API routes; web has the marketing landing, the Edge `proxy.ts` gate, the typed `api-client`, and the auth cookie route handlers (`/auth/callback`, `/auth/signout`). The remaining work is web feature screens (see `docs/SPEC.md` §Features for behavior, `docs/implementation-plan.md` §7 for status), Sentry wiring, and tests. Everything compiles and builds; end-to-end behavior is unverified until both apps run against live Mongo/Resend/Liveblocks/Gemini.
+The api implements every endpoint listed in `docs/SPEC.md` §API routes; web has the marketing landing, the Edge `proxy.ts` gate, the typed `api-client`, and the auth cookie route handlers (`/auth/callback`, `/auth/signout`, `/auth/expired`). The remaining work is web feature screens (see `docs/SPEC.md` §Features for behavior, `docs/implementation-plan.md` §7 for status), Sentry wiring, and tests. Everything compiles and builds; end-to-end behavior is unverified until both apps run against live Mongo/Resend/Liveblocks/Gemini.
 
 ## Open items
 
