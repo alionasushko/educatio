@@ -11,6 +11,14 @@ const fail = (status: number, body: ApiError) =>
   NextResponse.json(body, { status });
 
 export async function POST(req: NextRequest) {
+  const lessonId = req.nextUrl.searchParams.get("lessonId");
+  if (!lessonId) {
+    return fail(400, {
+      code: "invalid_id",
+      message: "That link doesn't look right.",
+    });
+  }
+
   let form: FormData;
   try {
     form = await req.formData();
@@ -42,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    return NextResponse.json(await uploadImage(form));
+    return NextResponse.json(await uploadImage(form, lessonId));
   } catch (err) {
     if (err instanceof ApiClientError) return fail(err.status, err.body);
     if (isApiFailure(err)) {

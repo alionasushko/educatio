@@ -8,6 +8,7 @@ import {
   LessonSnapshotSchema,
 } from "../schemas/lesson-snapshot.schema";
 import { User, UserSchema } from "../schemas/user.schema";
+import { Upload, UploadSchema } from "../schemas/upload.schema";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { User, UserSchema } from "../schemas/user.schema";
       { name: Lesson.name, schema: LessonSchema },
       { name: LessonSnapshot.name, schema: LessonSnapshotSchema },
       { name: User.name, schema: UserSchema },
+      { name: Upload.name, schema: UploadSchema },
     ]),
   ],
   controllers: [LessonsController],

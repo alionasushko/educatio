@@ -7,6 +7,7 @@ import {
 } from "@educatio/shared/api/upload";
 import { apiErrorSchema } from "@educatio/shared/api/errors";
 import { ERROR_COPY } from "@/lib/error-messages";
+import { useParams } from "next/navigation";
 import { UPLOAD_ROUTE } from "@/lib/routes";
 import { MAX_IMAGE_SIDE } from "./constants";
 
@@ -44,6 +45,7 @@ const fitted = (width: number, height: number) => {
 };
 
 export const useImageUpload = (onPlaced: (placed: Placed) => void) => {
+  const { lessonId } = useParams<{ lessonId: string }>();
   const [uploading, setUploading] = useState(false);
 
   const upload = useCallback(
@@ -63,7 +65,10 @@ export const useImageUpload = (onPlaced: (placed: Placed) => void) => {
         const body = new FormData();
         body.append("file", file);
 
-        const response = await fetch(UPLOAD_ROUTE, { method: "POST", body });
+        const response = await fetch(
+          `${UPLOAD_ROUTE}?lessonId=${encodeURIComponent(lessonId)}`,
+          { method: "POST", body },
+        );
         const payload: unknown = await response.json();
 
         if (!response.ok) {
@@ -96,7 +101,7 @@ export const useImageUpload = (onPlaced: (placed: Placed) => void) => {
         setUploading(false);
       }
     },
-    [onPlaced],
+    [onPlaced, lessonId],
   );
 
   return { uploading, upload };

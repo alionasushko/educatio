@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Post,
+  Query,
   Req,
   UseGuards,
 } from "@nestjs/common";
@@ -10,6 +11,7 @@ import "@fastify/multipart";
 import { Throttle } from "@nestjs/throttler";
 import { UploadService } from "./upload.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
+import { ObjectIdPipe } from "../common/object-id.pipe";
 import { UPLOAD_SEGMENT } from "@educatio/shared/api/upload";
 
 @Controller(UPLOAD_SEGMENT)
@@ -19,7 +21,10 @@ export class UploadController {
 
   @Post()
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
-  async handle(@Req() req: FastifyRequest) {
+  async handle(
+    @Req() req: FastifyRequest,
+    @Query("lessonId", ObjectIdPipe) lessonId: string,
+  ) {
     const file = await req.file();
     if (!file) {
       throw new BadRequestException({
@@ -27,6 +32,6 @@ export class UploadController {
         message: "No file was provided.",
       });
     }
-    return this.upload.put(file);
+    return this.upload.put(file, lessonId);
   }
 }

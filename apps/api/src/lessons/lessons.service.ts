@@ -4,8 +4,10 @@ import { ConfigService } from "@nestjs/config";
 import { Model, Types } from "mongoose";
 import { randomUUID } from "node:crypto";
 import { Liveblocks } from "@liveblocks/node";
+import { del } from "@vercel/blob";
 import { Lesson, LessonDocument } from "../schemas/lesson.schema";
 import { User, UserDocument } from "../schemas/user.schema";
+import { Upload, UploadDocument } from "../schemas/upload.schema";
 import {
   LessonSnapshot,
   LessonSnapshotDocument,
@@ -19,6 +21,8 @@ import type {
   UpdateLessonInput,
 } from "@educatio/shared/api/lessons";
 
+const BLOB_DELETE_BATCH = 100;
+
 const escapeRegex = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -31,6 +35,7 @@ export class LessonsService {
     @InjectModel(LessonSnapshot.name)
     private readonly snapshots: Model<LessonSnapshotDocument>,
     @InjectModel(User.name) private readonly users: Model<UserDocument>,
+    @InjectModel(Upload.name) private readonly uploads: Model<UploadDocument>,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -56,6 +61,7 @@ export class LessonsService {
     const lesson = await this.getOwnedOr403(id, tutorId);
     const roomId = lesson.liveblocksRoomId;
     await this.snapshots.deleteMany({ lessonId: lesson._id });
+    await this.deleteUploads([lesson._id]);
     await lesson.deleteOne();
     await this.deleteRoomBestEffort(roomId);
     return { ok: true };
@@ -67,13 +73,37 @@ export class LessonsService {
       .select("_id liveblocksRoomId");
     if (!owned.length) return;
 
-    await this.snapshots.deleteMany({
-      lessonId: { $in: owned.map((l) => l._id) },
-    });
+    const lessonIds = owned.map((l) => l._id);
+    await this.snapshots.deleteMany({ lessonId: { $in: lessonIds } });
+    await this.deleteUploads(lessonIds);
     await this.lessons.deleteMany({ tutorId });
     for (const lesson of owned) {
       await this.deleteRoomBestEffort(lesson.liveblocksRoomId);
     }
+  }
+
+  private async deleteUploads(lessonIds: Types.ObjectId[]): Promise<void> {
+    const rows = await this.uploads
+      .find({ lessonId: { $in: lessonIds } })
+      .select("url");
+    if (!rows.length) return;
+
+    const token = this.config.get("BLOB_READ_WRITE_TOKEN", { infer: true });
+    if (token) {
+      const urls = rows.map((row) => row.url);
+      for (let i = 0; i < urls.length; i += BLOB_DELETE_BATCH) {
+        const batch = urls.slice(i, i + BLOB_DELETE_BATCH);
+        try {
+          await del(batch, { token });
+        } catch (err) {
+          this.logger.warn(
+            `Failed to delete ${batch.length} blobs: ${String(err)}`,
+          );
+        }
+      }
+    }
+
+    await this.uploads.deleteMany({ lessonId: { $in: lessonIds } });
   }
 
   private async deleteRoomBestEffort(roomId: string): Promise<void> {
