@@ -248,6 +248,40 @@ test("the image tool refuses a file that is not an image", async ({
   await expect(page.getByText("That file type isn't supported.")).toBeVisible();
 });
 
+test("the image tool hands the canvas back after placing one", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, lesson.sessionJwt);
+  const canvas = await openCanvas(page);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error("canvas has no box");
+
+  const image = page.getByRole("button", { name: "Image (I)" });
+  await image.click();
+  await expect(image).toHaveAttribute("aria-pressed", "true");
+
+  const chooser = page.waitForEvent("filechooser");
+  await page.mouse.click(box.x + 300, box.y + 240);
+  await (
+    await chooser
+  ).setFiles({
+    name: "dot.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+      "base64",
+    ),
+  });
+
+  // Otherwise the crosshair stays and the next click on the canvas reopens the
+  // file picker instead of selecting what was just placed.
+  await expect(
+    page.getByRole("button", { name: "Select (V)" }),
+  ).toHaveAttribute("aria-pressed", "true", { timeout: 15_000 });
+  await expect(image).toHaveAttribute("aria-pressed", "false");
+});
+
 test("resizing a sticky changes its stored size, in one undo step", async ({
   page,
   context,

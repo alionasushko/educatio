@@ -126,8 +126,11 @@ const CanvasStage = ({
       y: number;
       width: number;
       height: number;
-    }) => createImage(src, x, y, width, height),
-    [createImage],
+    }) => {
+      createImage(src, x, y, width, height);
+      onChange({ tool: "select" });
+    },
+    [createImage, onChange],
   );
 
   const { uploading, upload } = useImageUpload(placeImage);
