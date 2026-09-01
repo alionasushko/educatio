@@ -35,8 +35,15 @@ const throwsOnce = (err: Error) =>
 const resolvesOnce = (text: string) =>
   generateText.mockImplementationOnce(() => ({ text }));
 
+const headroom = { increment: async () => ({ isBlocked: false }) } as never;
+
 const service = (key: string | undefined) =>
-  new SummaryService({} as never, {} as never, { get: () => key } as never);
+  new SummaryService(
+    {} as never,
+    {} as never,
+    { get: () => key } as never,
+    headroom,
+  );
 
 const callModel = (svc: SummaryService) =>
   (svc as unknown as { callModel: (p: string) => Promise<string> }).callModel(
@@ -105,5 +112,40 @@ describe("summary model fallback", () => {
     const err = await rejection(() => callModel(service(undefined)));
     expect((err as { status: number }).status).toBe(503);
     expect(generateText).not.toHaveBeenCalled();
+  });
+});
+
+describe("a lesson that already has a summary", () => {
+  const withStoredSummary = () => {
+    generateText.mockClear();
+    const generatedAt = new Date("2026-03-04T10:00:00.000Z");
+    const lesson = { summary: { text: "stored summary", generatedAt } };
+    const latest = vi.fn();
+    const svc = new SummaryService(
+      { getOwnedOr403: async () => lesson } as never,
+      { latest } as never,
+      { get: () => "key" } as never,
+      headroom,
+    );
+    return { svc, latest, generatedAt };
+  };
+
+  it("returns what was stored instead of paying for it again", async () => {
+    const { svc, generatedAt } = withStoredSummary();
+
+    await expect(svc.generate("lesson", "tutor")).resolves.toEqual({
+      summary: {
+        text: "stored summary",
+        generatedAt: generatedAt.toISOString(),
+      },
+    });
+    expect(generateText).not.toHaveBeenCalled();
+  });
+
+  it("does not even read the canvas", async () => {
+    const { svc, latest } = withStoredSummary();
+
+    await svc.generate("lesson", "tutor");
+    expect(latest).not.toHaveBeenCalled();
   });
 });

@@ -6,8 +6,11 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { LessonsService } from "../lessons/lessons.service";
 import { SnapshotsService } from "../snapshots/snapshots.service";
+import { MongoThrottlerStorage } from "../common/mongo-throttler.storage";
 import type { Env } from "../config/env";
 import type { CanvasElement, LessonSummary } from "@educatio/shared";
+
+export const SUMMARY_DAILY_LIMIT = 200;
 
 export const SUMMARY_MODELS = [
   "gemini-3.5-flash",
@@ -31,6 +34,7 @@ export class SummaryService {
     private readonly lessonsService: LessonsService,
     private readonly snapshotsService: SnapshotsService,
     private readonly config: ConfigService<Env, true>,
+    private readonly counters: MongoThrottlerStorage,
   ) {}
 
   async generate(
@@ -38,6 +42,16 @@ export class SummaryService {
     tutorId: string,
   ): Promise<{ summary: LessonSummary }> {
     const lesson = await this.lessonsService.getOwnedOr403(lessonId, tutorId);
+
+    if (lesson.summary) {
+      return {
+        summary: {
+          text: lesson.summary.text,
+          generatedAt: lesson.summary.generatedAt.toISOString(),
+        },
+      };
+    }
+
     const canvasState = await this.snapshotsService.latest(lessonId);
     const serialized = this.serialize(this.extractElements(canvasState));
     const prompt = this.buildPrompt(
@@ -46,9 +60,28 @@ export class SummaryService {
       serialized,
     );
 
+    await this.assertDailyHeadroom();
+
     const text = await this.callModel(prompt);
     const summary = await this.lessonsService.saveSummary(lesson, text);
     return { summary };
+  }
+
+  private async assertDailyHeadroom(): Promise<void> {
+    const day = 24 * 60 * 60_000;
+    const { isBlocked } = await this.counters.increment(
+      "gemini",
+      day,
+      SUMMARY_DAILY_LIMIT,
+      day,
+      "summary",
+    );
+    if (isBlocked) {
+      throw new ServiceUnavailableException({
+        code: "service_unavailable",
+        message: "Summaries are paused for today.",
+      });
+    }
   }
 
   private extractElements(
