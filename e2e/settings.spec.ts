@@ -105,3 +105,62 @@ test("a demo visitor gets their own account, not a shared one", async ({
   ).toBeEnabled();
   await expect(page.getByRole("link", { name: /password/i })).toBeVisible();
 });
+
+test("a demo account arrives with lessons to look at", async ({
+  page,
+  context,
+}) => {
+  const demo = await demoSession();
+  await signIn(context, demo.sessionJwt);
+  await page.goto("/dashboard");
+
+  await expect(
+    page.getByText("Quadratic equations").filter({ visible: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Trigonometry").filter({ visible: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("main").getByText("Ended").first()).toBeVisible();
+  await expect(
+    page.getByRole("main").getByText("Active").first(),
+  ).toBeVisible();
+
+  // An ended lesson opens on a real summary, not an empty page waiting on Gemini.
+  await page.getByText("Quadratic equations").filter({ visible: true }).click();
+  await expect(page).toHaveURL(/\/summary/);
+  await expect(
+    page.getByRole("heading", { name: "Topics covered" }),
+  ).toBeVisible();
+  await expect(page.getByText("The whiteboard at the end")).toBeVisible();
+});
+
+test("a seeded active lesson opens with its canvas already drawn", async ({
+  page,
+  context,
+}) => {
+  const demo = await demoSession();
+  await signIn(context, demo.sessionJwt);
+  await page.goto("/dashboard");
+
+  await page.getByText("Trigonometry").filter({ visible: true }).click();
+  await expect(page).toHaveURL(/\/lesson\//);
+  await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled({
+    timeout: 15_000,
+  });
+
+  // Storage was seeded server-side, so the board is not blank on arrival.
+  await expect
+    .poll(
+      async () =>
+        page.evaluate(() => {
+          const stage = (
+            window as unknown as {
+              Konva?: { stages: { find: (s: string) => unknown[] }[] };
+            }
+          ).Konva?.stages[0];
+          return stage?.find("Text").length ?? 0;
+        }),
+      { message: "the seeded canvas never rendered", timeout: 15_000 },
+    )
+    .toBeGreaterThan(0);
+});

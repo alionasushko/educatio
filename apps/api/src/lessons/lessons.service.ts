@@ -18,8 +18,13 @@ import {
   LessonSnapshotDocument,
 } from "../schemas/lesson-snapshot.schema";
 import { generateInviteCode } from "../common/ids";
+import { demoLessonSeeds } from "./demo-seed";
 import type { Env } from "../config/env";
-import type { Lesson as LessonDTO, SessionClaims } from "@educatio/shared";
+import type {
+  CanvasElement,
+  Lesson as LessonDTO,
+  SessionClaims,
+} from "@educatio/shared";
 import type {
   CreateLessonInput,
   ListLessonsQuery,
@@ -87,6 +92,80 @@ export class LessonsService {
     await this.lessons.deleteMany({ tutorId });
     for (const lesson of owned) {
       await this.deleteRoomBestEffort(lesson.liveblocksRoomId);
+    }
+  }
+
+  async seedDemoLessons(tutorId: string): Promise<void> {
+    const now = Date.now();
+    const seeds = demoLessonSeeds();
+
+    const prepared = await Promise.all(
+      seeds.map(async (seed) => ({
+        seed,
+        inviteCode: await this.uniqueInviteCode(),
+        liveblocksRoomId: `lesson_${randomUUID()}`,
+        createdAt: new Date(now - seed.daysAgo * 24 * 60 * 60_000),
+      })),
+    );
+
+    const docs = await this.lessons.insertMany(
+      prepared.map(({ seed, inviteCode, liveblocksRoomId, createdAt }) => ({
+        tutorId: new Types.ObjectId(tutorId),
+        title: seed.title,
+        studentName: seed.studentName,
+        inviteCode,
+        liveblocksRoomId,
+        status: seed.status,
+        endedAt: seed.status === "ended" ? createdAt : undefined,
+        summary: seed.summary
+          ? { text: seed.summary, generatedAt: createdAt }
+          : undefined,
+        createdAt,
+        updatedAt: createdAt,
+      })),
+      { timestamps: false },
+    );
+
+    await Promise.all(
+      docs.map(async (doc, index) => {
+        const { seed, liveblocksRoomId } = prepared[index]!;
+        const canvasState: Record<string, CanvasElement> = {};
+        for (const element of seed.elements) canvasState[element.id] = element;
+
+        if (seed.status === "ended") {
+          await this.snapshots.create({ lessonId: doc._id, canvasState });
+          return;
+        }
+        await this.seedRoomBestEffort(liveblocksRoomId, canvasState);
+      }),
+    );
+  }
+
+  private async seedRoomBestEffort(
+    roomId: string,
+    canvasState: Record<string, CanvasElement>,
+  ): Promise<void> {
+    const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
+    if (!secret) return;
+
+    try {
+      const liveblocks = new Liveblocks({ secret });
+      await liveblocks.createRoom(roomId, { defaultAccesses: [] });
+      await liveblocks.initializeStorageDocument(roomId, {
+        liveblocksType: "LiveObject",
+        data: {
+          elements: { liveblocksType: "LiveMap", data: canvasState },
+          metadata: {
+            liveblocksType: "LiveObject",
+            data: {
+              lastEditedAt: Date.now(),
+              elementCount: Object.keys(canvasState).length,
+            },
+          },
+        },
+      });
+    } catch (err) {
+      this.logger.warn(`Failed to seed room ${roomId}: ${String(err)}`);
     }
   }
 

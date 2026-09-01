@@ -204,6 +204,8 @@ export class AuthService {
       expiresAt: new Date(Date.now() + DEMO_TTL_HOURS * 60 * 60_000),
     });
 
+    await this.lessonsService.seedDemoLessons(user.id);
+
     return { sessionJwt: await this.signSession(user, DEMO_SESSION_TTL) };
   }
 
