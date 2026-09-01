@@ -78,7 +78,7 @@ const SettingsPage = async () => {
               <p className="text-text-primary mb-1.5 text-[13px] font-medium tracking-[-0.005em]">
                 Email
               </p>
-              <p className="text-text-secondary text-sm tracking-[-0.005em]">
+              <p className="text-text-secondary text-sm tracking-[-0.005em] wrap-anywhere">
                 {user.email}
               </p>
             </div>

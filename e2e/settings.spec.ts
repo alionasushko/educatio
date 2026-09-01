@@ -164,3 +164,23 @@ test("a seeded active lesson opens with its canvas already drawn", async ({
     )
     .toBeGreaterThan(0);
 });
+
+test("a long demo address wraps inside its card", async ({ page, context }) => {
+  const demo = await demoSession();
+  await signIn(context, demo.sessionJwt);
+  await page.setViewportSize({ width: 900, height: 900 });
+  await page.goto("/settings");
+
+  const overflow = await page
+    .getByRole("main")
+    .getByText(demo.email)
+    .evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return (
+        range.getBoundingClientRect().right - el.getBoundingClientRect().right
+      );
+    });
+
+  expect(overflow).toBeLessThanOrEqual(0);
+});
