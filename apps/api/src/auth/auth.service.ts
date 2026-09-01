@@ -23,7 +23,8 @@ import { LessonsService } from "../lessons/lessons.service";
 const MAGIC_LINK_TTL_MIN = 10;
 const SESSION_TTL = "30d";
 const DEMO_SESSION_TTL = "1d";
-const DEMO_EMAIL = "demo@educatio.app";
+const DEMO_TTL_HOURS = 24;
+const DEMO_SWEEP_BATCH = 50;
 const BCRYPT_ROUNDS = 12;
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCKOUT_MINUTES = 15;
@@ -58,8 +59,6 @@ export class AuthService {
     const email = input.email.toLowerCase().trim();
     const binding = generateOpaqueToken();
 
-    if (email === DEMO_EMAIL) return { binding };
-
     const user = await this.upsertUser(email, {
       email,
       name: input.name,
@@ -72,7 +71,6 @@ export class AuthService {
   async signin(emailRaw: string): Promise<{ binding: string }> {
     const email = emailRaw.toLowerCase().trim();
     const binding = generateOpaqueToken();
-    if (email === DEMO_EMAIL) return { binding };
     const user = await this.users.findOne({ email });
     if (user) await this.sendMagicLink(user, binding);
     return { binding };
@@ -83,15 +81,6 @@ export class AuthService {
     password: string,
   ): Promise<{ sessionJwt: string }> {
     const email = emailRaw.toLowerCase().trim();
-
-    // The demo account is reachable only via the flag-gated demoLogin — it must
-    // never carry a password or be sign-in-able here (kill-switch integrity).
-    if (email === DEMO_EMAIL) {
-      throw new UnauthorizedException({
-        code: "invalid_credentials",
-        message: "Invalid email or password.",
-      });
-    }
 
     const user = await this.users.findOne({ email }).select("+passwordHash");
 
@@ -204,11 +193,15 @@ export class AuthService {
       });
     }
 
-    const user = await this.upsertUser(DEMO_EMAIL, {
-      email: DEMO_EMAIL,
+    void this.sweepExpiredDemoAccounts();
+
+    const user = await this.users.create({
+      email: `demo-${generateOpaqueToken()}@educatio.invalid`,
       name: "Demo Tutor",
       teaches: "Mathematics",
       emailVerified: new Date(),
+      isDemo: true,
+      expiresAt: new Date(Date.now() + DEMO_TTL_HOURS * 60 * 60_000),
     });
 
     return { sessionJwt: await this.signSession(user, DEMO_SESSION_TTL) };
@@ -222,12 +215,6 @@ export class AuthService {
     claims: TutorSessionClaims,
     password: string,
   ): Promise<{ ok: true }> {
-    if (claims.email === DEMO_EMAIL) {
-      throw new ForbiddenException({
-        code: "demo_readonly",
-        message: "The demo account can't set a password.",
-      });
-    }
     const user = await this.users.findById(claims.sub);
     if (!user) throw new UnauthorizedException();
     user.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -239,30 +226,21 @@ export class AuthService {
     claims: TutorSessionClaims,
     name: string,
   ): Promise<PublicUser> {
-    const user = await this.demoSafeUser(claims, "rename the demo account");
+    const user = await this.ownUser(claims);
     user.name = name;
     await user.save();
     return this.toPublic(user);
   }
 
   async deleteAccount(claims: TutorSessionClaims): Promise<{ ok: true }> {
-    const user = await this.demoSafeUser(claims, "delete the demo account");
+    const user = await this.ownUser(claims);
     await this.lessonsService.deleteAllForTutor(user.id);
     await this.magicLinks.deleteMany({ userId: user._id });
     await user.deleteOne();
     return { ok: true };
   }
 
-  private async demoSafeUser(
-    claims: TutorSessionClaims,
-    action: string,
-  ): Promise<UserDocument> {
-    if (claims.email === DEMO_EMAIL) {
-      throw new ForbiddenException({
-        code: "demo_readonly",
-        message: `You can't ${action}.`,
-      });
-    }
+  private async ownUser(claims: TutorSessionClaims): Promise<UserDocument> {
     const user = await this.users.findById(claims.sub);
     if (!user) throw new UnauthorizedException();
     return user;
@@ -288,8 +266,29 @@ export class AuthService {
   }
 
   async signout(claims: TutorSessionClaims): Promise<{ ok: true }> {
-    if (claims.email !== DEMO_EMAIL) await this.revokeSessions(claims.sub);
+    await this.revokeSessions(claims.sub);
     return { ok: true };
+  }
+
+  async sweepExpiredDemoAccounts(): Promise<number> {
+    const expired = await this.users
+      .find({ isDemo: true, expiresAt: { $lt: new Date() } })
+      .limit(DEMO_SWEEP_BATCH);
+
+    for (const user of expired) {
+      if (!user.isDemo) {
+        this.logger.error(`refusing to sweep non-demo account ${user.id}`);
+        continue;
+      }
+      try {
+        await this.lessonsService.deleteAllForTutor(user.id);
+        await this.magicLinks.deleteMany({ userId: user._id });
+        await user.deleteOne();
+      } catch (err) {
+        this.logger.warn(`Failed to sweep demo account: ${String(err)}`);
+      }
+    }
+    return expired.length;
   }
 
   async revokeSessions(userId: string): Promise<void> {
@@ -323,7 +322,7 @@ export class AuthService {
       image: user.image,
       teaches: user.teaches,
       hasPassword: !!user.passwordHash,
-      isDemo: user.email === DEMO_EMAIL,
+      isDemo: user.isDemo,
     };
   }
 

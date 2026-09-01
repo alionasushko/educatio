@@ -14,9 +14,7 @@ export const updateNameAction = async (name: string): Promise<ActionResult> => {
   try {
     await updateProfile(parsed.data);
   } catch (err) {
-    return actionError(err, {
-      demo_readonly: "The demo account can't be renamed.",
-    });
+    return actionError(err);
   }
 
   revalidatePath("/settings");
@@ -28,9 +26,7 @@ export const deleteAccountAction = async (): Promise<ActionResult> => {
   try {
     await deleteAccount();
   } catch (err) {
-    return actionError(err, {
-      demo_readonly: "The demo account can't be deleted.",
-    });
+    return actionError(err);
   }
 
   (await cookies()).delete(SESSION_COOKIE);

@@ -4,16 +4,12 @@ import mongoose from "mongoose";
 const MONGODB_URI =
   process.env.E2E_MONGODB_URI ?? "mongodb://localhost:27017/educatio";
 
-const DEMO_EMAIL = "demo@educatio.app";
-
 export interface SeededLink {
   token: string;
   binding: string;
 }
 
-export const seedMagicLink = async (
-  email: string = DEMO_EMAIL,
-): Promise<SeededLink> => {
+export const seedMagicLink = async (email: string): Promise<SeededLink> => {
   const connection = await mongoose.createConnection(MONGODB_URI).asPromise();
 
   try {

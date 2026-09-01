@@ -20,7 +20,7 @@ export const ERROR_COPY: Record<ClientErrorCode, string> = {
   invalid_id: "That link doesn't look right.",
   invalid_invite: "That invite code is invalid or has expired.",
   demo_disabled: "The demo isn't available right now.",
-  demo_readonly: "The demo account can't make changes.",
+  limit_reached: "You've reached the limit for a demo account.",
   no_file: "Please choose a file to upload.",
   file_too_large: "That file is too large.",
   unsupported_type: "That file type isn't supported.",

@@ -10,6 +10,21 @@ import {
 
 const API_URL = process.env.E2E_API_URL ?? "http://localhost:3001";
 
+const demoSession = async (): Promise<{
+  sessionJwt: string;
+  email: string;
+}> => {
+  const { sessionJwt } = (await (
+    await fetch(`${API_URL}/auth/demo`, { method: "POST" })
+  ).json()) as { sessionJwt: string };
+  const { user } = (await (
+    await fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${sessionJwt}` },
+    })
+  ).json()) as { user: { email: string } };
+  return { sessionJwt, email: user.email };
+};
+
 const me = (sessionJwt: string) =>
   fetch(`${API_URL}/auth/me`, {
     headers: { Authorization: `Bearer ${sessionJwt}` },
@@ -71,24 +86,22 @@ test("deleting the account takes the lessons with it", async ({
   }
 });
 
-test("the shared demo account cannot change its settings", async ({
+test("a demo visitor gets their own account, not a shared one", async ({
   page,
   context,
 }) => {
-  const demo = (await (
-    await fetch(`${API_URL}/auth/demo`, { method: "POST" })
-  ).json()) as { sessionJwt: string };
+  const first = await demoSession();
+  const second = await demoSession();
+  expect(first.email).not.toBe(second.email);
 
-  await signIn(context, demo.sessionJwt);
+  await signIn(context, first.sessionJwt);
   await page.goto("/settings");
 
-  await expect(page.getByText("read-only")).toBeVisible();
-  await expect(page.getByLabel("Name")).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Save name" })).toBeDisabled();
+  await expect(page.getByText("deleted after 24 hours")).toBeVisible();
+  // Their own account, so nothing here is locked.
+  await expect(page.getByLabel("Name")).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Delete account" }),
-  ).toBeDisabled();
-  await expect(
-    page.getByRole("button", { name: "Sign out" }).first(),
   ).toBeEnabled();
+  await expect(page.getByRole("link", { name: /password/i })).toBeVisible();
 });

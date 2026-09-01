@@ -1,5 +1,6 @@
 import { test, expect } from "./helpers/test";
 import { seedMagicLink } from "./helpers/magic-link";
+import { createThrowawayTutor, removeTutor } from "./helpers/tutor";
 
 test("the demo cookie expires with the demo token, not 30 days later", async ({
   page,
@@ -51,8 +52,8 @@ test("a magic link only works in the browser that asked for it", async ({
   browser,
 }) => {
   const API = process.env.E2E_API_URL ?? "http://localhost:3001";
-  await fetch(`${API}/auth/demo`, { method: "POST" });
-  const { token, binding } = await seedMagicLink();
+  const tutor = await createThrowawayTutor();
+  const { token, binding } = await seedMagicLink(tutor.email);
 
   // Someone else's browser: it has the link but never requested one. This is
   // the login-CSRF case — an attacker sends you a link to their own account.
@@ -93,6 +94,7 @@ test("a magic link only works in the browser that asked for it", async ({
     (await owner.cookies()).filter((c) => c.name === "educatio_session"),
   ).toHaveLength(1);
   await owner.close();
+  await removeTutor(tutor);
 });
 
 test("a magic link with no token goes back to sign in", async ({ page }) => {

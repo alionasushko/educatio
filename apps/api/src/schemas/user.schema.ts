@@ -31,6 +31,12 @@ export class User {
 
   @Prop()
   teaches?: string;
+
+  @Prop({ default: false, index: true })
+  isDemo: boolean;
+
+  @Prop({ type: Date })
+  expiresAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

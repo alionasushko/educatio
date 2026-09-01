@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { ConfigService } from "@nestjs/config";
 import { Model, Types } from "mongoose";
@@ -22,6 +27,7 @@ import type {
 } from "@educatio/shared/api/lessons";
 
 const BLOB_DELETE_BATCH = 100;
+const DEMO_LESSON_LIMIT = 20;
 
 const escapeRegex = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,6 +49,8 @@ export class LessonsService {
     tutorId: string,
     input: CreateLessonInput,
   ): Promise<{ id: string; inviteCode: string; liveblocksRoomId: string }> {
+    await this.assertDemoHeadroom(tutorId);
+
     const inviteCode = await this.uniqueInviteCode();
     const liveblocksRoomId = `lesson_${randomUUID()}`;
     const lesson = await this.lessons.create({
@@ -79,6 +87,21 @@ export class LessonsService {
     await this.lessons.deleteMany({ tutorId });
     for (const lesson of owned) {
       await this.deleteRoomBestEffort(lesson.liveblocksRoomId);
+    }
+  }
+
+  private async assertDemoHeadroom(tutorId: string): Promise<void> {
+    const tutor = await this.users.findById(tutorId).select("isDemo");
+    if (!tutor?.isDemo) return;
+
+    const owned = await this.lessons.countDocuments({
+      tutorId: new Types.ObjectId(tutorId),
+    });
+    if (owned >= DEMO_LESSON_LIMIT) {
+      throw new ForbiddenException({
+        code: "limit_reached",
+        message: `A demo account can hold ${DEMO_LESSON_LIMIT} lessons.`,
+      });
     }
   }
 
