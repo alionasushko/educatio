@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { validateEnv, type Env } from "./config/env";
 import { CommonModule } from "./common/common.module";
+import { MongoThrottlerStorage } from "./common/mongo-throttler.storage";
 import { AuthModule } from "./auth/auth.module";
 import { LessonsModule } from "./lessons/lessons.module";
 import { SessionsModule } from "./sessions/sessions.module";
@@ -27,8 +28,15 @@ import { SummaryModule } from "./summary/summary.module";
         uri: config.get("MONGODB_URI", { infer: true }),
       }),
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     CommonModule,
+    ThrottlerModule.forRootAsync({
+      imports: [CommonModule],
+      inject: [MongoThrottlerStorage],
+      useFactory: (storage: MongoThrottlerStorage) => ({
+        throttlers: [{ ttl: 60_000, limit: 120 }],
+        storage,
+      }),
+    }),
     AuthModule,
     LessonsModule,
     SessionsModule,

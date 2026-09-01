@@ -3,13 +3,18 @@ import { JwtModule } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "../schemas/user.schema";
+import { ThrottleHit, ThrottleHitSchema } from "../schemas/throttle-hit.schema";
+import { MongoThrottlerStorage } from "./mongo-throttler.storage";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import type { Env } from "../config/env";
 
 @Global()
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: ThrottleHit.name, schema: ThrottleHitSchema },
+    ]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => ({
@@ -19,7 +24,7 @@ import type { Env } from "../config/env";
       }),
     }),
   ],
-  providers: [JwtAuthGuard],
-  exports: [JwtAuthGuard, JwtModule, MongooseModule],
+  providers: [JwtAuthGuard, MongoThrottlerStorage],
+  exports: [JwtAuthGuard, MongoThrottlerStorage, JwtModule, MongooseModule],
 })
 export class CommonModule {}
