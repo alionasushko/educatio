@@ -193,7 +193,9 @@ export class AuthService {
       });
     }
 
-    void this.sweepExpiredDemoAccounts();
+    void this.sweepExpiredDemoAccounts().catch((err: unknown) => {
+      this.logger.warn(`Demo sweep failed: ${String(err)}`);
+    });
 
     const user = await this.users.create({
       email: `demo-${generateOpaqueToken()}@educatio.invalid`,

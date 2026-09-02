@@ -30,10 +30,11 @@ import {
 import type { TutorSessionClaims } from "@educatio/shared";
 import { AUTH_SEGMENT, AUTH_ACTIONS } from "@educatio/shared/api/auth";
 
-const DEMO_THROTTLE =
-  process.env.NODE_ENV === "production"
-    ? { ttl: 24 * 60 * 60_000, limit: 10 }
-    : { ttl: 60_000, limit: 10 };
+const DEMO_DAY = 24 * 60 * 60_000;
+const DEMO_MINUTE = 60_000;
+
+export const demoWindowMs = (): number =>
+  process.env.NODE_ENV === "development" ? DEMO_MINUTE : DEMO_DAY;
 
 @Controller(AUTH_SEGMENT)
 export class AuthController {
@@ -91,7 +92,7 @@ export class AuthController {
 
   @Post(AUTH_ACTIONS.demo)
   @HttpCode(200)
-  @Throttle({ default: DEMO_THROTTLE })
+  @Throttle({ default: { ttl: demoWindowMs, limit: 10 } })
   async demo(): Promise<{ sessionJwt: string }> {
     return this.auth.demoLogin();
   }
