@@ -17,8 +17,9 @@ import {
 } from "@educatio/shared/api/lessons";
 import { UPLOAD_PATH } from "@educatio/shared/api/upload";
 import {
-  lessonSnapshotPath,
+  MAX_SNAPSHOT_ELEMENTS,
   latestSnapshotResponseSchema,
+  lessonSnapshotPath,
 } from "@educatio/shared/api/snapshot";
 import { startApi, type Harness } from "./harness";
 
@@ -189,6 +190,49 @@ describe("api errors match the shared envelope", () => {
     });
     expect(status).toBe(400);
     expectShape(apiErrorSchema, data);
+  });
+
+  it("keeps one snapshot per lesson however many times it is saved", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Snapshot growth" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    for (let i = 0; i < 5; i += 1) {
+      const res = await call(lessonSnapshotPath(id), {
+        method: "POST",
+        body: { canvasState: { [`el${i}`]: { type: "sticky", x: i, y: i } } },
+      });
+      expect(res.status).toBe(200);
+    }
+
+    // Append-only writes were the growth: five saves used to leave five rows,
+    // and nothing ever pruned them.
+    const read = await call(lessonSnapshotPath(id));
+    const { snapshot } = expectShape(latestSnapshotResponseSchema, read.data);
+    expect(Object.keys(snapshot?.canvasState ?? {})).toEqual(["el4"]);
+    expect(await api.countSnapshots(id)).toBe(1);
+  });
+
+  it("refuses a canvas larger than the contract allows", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Huge canvas" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    const canvasState: Record<string, unknown> = {};
+    for (let i = 0; i <= MAX_SNAPSHOT_ELEMENTS; i += 1) {
+      canvasState[`el${i}`] = { type: "sticky", x: 0, y: 0 };
+    }
+
+    const res = await call(lessonSnapshotPath(id), {
+      method: "POST",
+      body: { canvasState },
+    });
+    expect(res.status).toBe(400);
+    expect(expectShape(apiErrorSchema, res.data).code).toBe("validation_error");
   });
 
   it("refuses an upload aimed at a lesson that does not exist", async () => {

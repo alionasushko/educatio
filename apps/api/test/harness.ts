@@ -3,6 +3,7 @@ import { FastifyAdapter } from "@nestjs/platform-fastify";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { JwtService } from "@nestjs/jwt";
 import { getConnectionToken, getModelToken } from "@nestjs/mongoose";
+import { Types } from "mongoose";
 import type { Connection, Model } from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import fastifyMultipart from "@fastify/multipart";
@@ -17,10 +18,9 @@ export interface Harness {
   baseUrl: string;
   tutorJwt: string;
   tutorId: string;
-  /** A second, unrelated tutor — for asserting one tutor cannot reach another's rows. */
   otherTutorJwt: string;
-  /** A throwaway tutor, for tests that invalidate the session they use. */
   newTutorJwt: () => Promise<string>;
+  countSnapshots: (lessonId: string) => Promise<number>;
   close: () => Promise<void>;
 }
 
@@ -105,6 +105,10 @@ export const startApi = async (): Promise<Harness> => {
       return signTutor(`spare-${spare}@example.com`, `Spare Tutor ${spare}`);
     },
     tutorId: tutor.id,
+    countSnapshots: (lessonId: string) =>
+      connection
+        .collection("lesson_snapshots")
+        .countDocuments({ lessonId: new Types.ObjectId(lessonId) }),
     close: async () => {
       await app.close();
       await mongo.stop();

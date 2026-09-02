@@ -5,7 +5,13 @@ export const SNAPSHOT_SEGMENT = "snapshot";
 export const lessonSnapshotPath = (lessonId: string) =>
   `${lessonPath(lessonId)}/${SNAPSHOT_SEGMENT}`;
 
-const canvasStateSchema = z.record(z.string(), z.unknown());
+export const MAX_SNAPSHOT_ELEMENTS = 2000;
+
+const canvasStateSchema = z
+  .record(z.string(), z.unknown())
+  .refine((state) => Object.keys(state).length <= MAX_SNAPSHOT_ELEMENTS, {
+    message: `A canvas can hold at most ${MAX_SNAPSHOT_ELEMENTS} elements.`,
+  });
 
 export const snapshotSchema = z.object({
   canvasState: canvasStateSchema,

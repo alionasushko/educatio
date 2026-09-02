@@ -24,7 +24,11 @@ export class SnapshotsService {
   ): Promise<{ ok: true }> {
     const lesson = await this.lessonsService.findOr404(lessonId);
     this.lessonsService.assertCanRead(lesson, session);
-    await this.snapshots.create({ lessonId: lesson._id, canvasState });
+    await this.snapshots.findOneAndUpdate(
+      { lessonId: lesson._id },
+      { $set: { canvasState, snapshotAt: new Date() } },
+      { upsert: true },
+    );
     return { ok: true };
   }
 

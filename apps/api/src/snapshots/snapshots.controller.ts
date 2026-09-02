@@ -7,6 +7,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { SnapshotsService } from "./snapshots.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { Session } from "../common/session.decorator";
@@ -35,6 +36,7 @@ export class SnapshotsController {
 
   @Post()
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   save(
     @Param("lessonId", ObjectIdPipe) lessonId: string,
     @Session() session: SessionClaims,
