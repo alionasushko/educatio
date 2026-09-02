@@ -36,7 +36,7 @@ export class UploadService {
     session: SessionClaims,
   ): Promise<string> {
     const lesson = await this.lessonsService.findOr404(lessonId);
-    this.lessonsService.assertCanRead(lesson, session);
+    this.lessonsService.assertCanWrite(lesson, session);
     return lesson.id;
   }
 

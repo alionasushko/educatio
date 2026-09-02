@@ -18,7 +18,7 @@ const CanvasSnapshot = ({ lessonId }: Props) => {
   const savedAt = useRef(0);
   const saving = useRef(false);
   const loaded = useRef(false);
-  const closing = useRef(false);
+  const closed = useRef(false);
   const [storageRoot] = useStorageRoot();
 
   useEffect(() => {
@@ -44,25 +44,23 @@ const CanvasSnapshot = ({ lessonId }: Props) => {
 
       const result = await persistCanvas(lessonId, snapshot.canvasState);
       if (result.ok) savedAt.current = snapshot.editedAt;
-      else if (!closing.current) console.error(result.error);
+      else console.error(result.error);
     } catch (err) {
-      if (!closing.current) console.error(err);
+      console.error(err);
     } finally {
       saving.current = false;
     }
   }, [lessonId, readCanvas]);
 
   useEventListener(({ event }) => {
-    if (event.type !== "lesson-ended" || closing.current) return;
-    closing.current = true;
-    void save();
+    if (event.type === "lesson-ended") closed.current = true;
   });
 
   useEffect(() => {
     const timer = setInterval(() => void save(), SNAPSHOT_INTERVAL_MS);
     return () => {
       clearInterval(timer);
-      if (!closing.current) void save();
+      if (!closed.current) void save();
     };
   }, [save]);
 

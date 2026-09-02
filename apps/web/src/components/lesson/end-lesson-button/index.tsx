@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBroadcastEvent } from "@liveblocks/react";
+import { useCanvasFlush } from "@/components/canvas/canvas-snapshot/helpers/use-canvas-flush";
 import { SquareIcon } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import Button from "@/components/ui/button";
@@ -16,6 +17,7 @@ interface Props {
 const EndLessonButton = ({ lessonId }: Props) => {
   const router = useRouter();
   const broadcast = useBroadcastEvent();
+  const flushCanvas = useCanvasFlush(lessonId);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
@@ -23,6 +25,8 @@ const EndLessonButton = ({ lessonId }: Props) => {
   const handleConfirm = () => {
     setError(undefined);
     startTransition(async () => {
+      await flushCanvas();
+
       const result = await endLessonAction(lessonId);
       if (!result.ok) {
         setError(result.error);

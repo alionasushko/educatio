@@ -19,6 +19,7 @@ export const errorCodeSchema = z.enum([
   "invalid_invite",
   "demo_disabled",
   "limit_reached",
+  "lesson_ended",
   "no_file",
   "file_too_large",
   "unsupported_type",

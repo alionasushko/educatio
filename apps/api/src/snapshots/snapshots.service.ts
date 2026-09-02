@@ -23,7 +23,7 @@ export class SnapshotsService {
     canvasState: Record<string, unknown>,
   ): Promise<{ ok: true }> {
     const lesson = await this.lessonsService.findOr404(lessonId);
-    this.lessonsService.assertCanRead(lesson, session);
+    this.lessonsService.assertCanWrite(lesson, session);
     await this.snapshots.findOneAndUpdate(
       { lessonId: lesson._id },
       { $set: { canvasState, snapshotAt: new Date() } },

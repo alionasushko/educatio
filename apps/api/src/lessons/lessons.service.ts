@@ -317,6 +317,16 @@ export class LessonsService {
     return { text, generatedAt: generatedAt.toISOString() };
   }
 
+  assertCanWrite(lesson: LessonDocument, session: SessionClaims): void {
+    this.assertCanRead(lesson, session);
+    if (lesson.status === "ended") {
+      throw new ForbiddenException({
+        code: "lesson_ended",
+        message: "This lesson has ended.",
+      });
+    }
+  }
+
   assertCanRead(lesson: LessonDocument, session: SessionClaims): void {
     const ok =
       session.kind === "tutor"

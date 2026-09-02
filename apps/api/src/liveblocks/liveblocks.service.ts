@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
@@ -27,6 +28,13 @@ export class LiveblocksService {
         ? lesson.tutorId.toString() === session.sub
         : lesson.id === session.lessonId;
     if (!allowed) throw new NotFoundException("Room not found");
+
+    if (lesson.status === "ended") {
+      throw new ForbiddenException({
+        code: "lesson_ended",
+        message: "This lesson has ended.",
+      });
+    }
 
     const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
     if (!secret) {

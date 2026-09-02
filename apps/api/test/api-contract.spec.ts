@@ -16,6 +16,7 @@ import {
   lessonSchema,
 } from "@educatio/shared/api/lessons";
 import { UPLOAD_PATH } from "@educatio/shared/api/upload";
+import { LIVEBLOCKS_AUTH_PATH } from "@educatio/shared/api/liveblocks";
 import {
   MAX_SNAPSHOT_ELEMENTS,
   latestSnapshotResponseSchema,
@@ -190,6 +191,58 @@ describe("api errors match the shared envelope", () => {
     });
     expect(status).toBe(400);
     expectShape(apiErrorSchema, data);
+  });
+
+  it("refuses to change a lesson once it has ended", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Finished lesson" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    // Writing is fine while it is running.
+    expect(
+      (
+        await call(lessonSnapshotPath(id), {
+          method: "POST",
+          body: { canvasState: { a: { type: "sticky", x: 1, y: 1 } } },
+        })
+      ).status,
+    ).toBe(200);
+
+    await call(lessonPath(id), { method: "PATCH", body: { status: "ended" } });
+
+    const after = await call(lessonSnapshotPath(id), {
+      method: "POST",
+      body: { canvasState: { b: { type: "sticky", x: 2, y: 2 } } },
+    });
+    expect(after.status).toBe(403);
+    expect(expectShape(apiErrorSchema, after.data).code).toBe("lesson_ended");
+
+    // The tutor's client flushes before ending, so the board is already stored.
+    const read = await call(lessonSnapshotPath(id));
+    const { snapshot } = expectShape(latestSnapshotResponseSchema, read.data);
+    expect(Object.keys(snapshot?.canvasState ?? {})).toEqual(["a"]);
+  });
+
+  it("stops issuing room tokens for an ended lesson", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Room after the end" },
+    });
+    const { id, liveblocksRoomId } = expectShape(
+      createLessonResponseSchema,
+      created.data,
+    );
+
+    await call(lessonPath(id), { method: "PATCH", body: { status: "ended" } });
+
+    const res = await call(LIVEBLOCKS_AUTH_PATH, {
+      method: "POST",
+      body: { room: liveblocksRoomId },
+    });
+    expect(res.status).toBe(403);
+    expect(expectShape(apiErrorSchema, res.data).code).toBe("lesson_ended");
   });
 
   it("keeps one snapshot per lesson however many times it is saved", async () => {
