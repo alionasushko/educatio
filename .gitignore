@@ -41,7 +41,7 @@ yarn-error.log*
 .vercel
 
 # playwright (e2e artefacts, regenerated per run)
-/test-results/
+test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/

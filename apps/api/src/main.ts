@@ -13,16 +13,15 @@ import fastifyMultipart from "@fastify/multipart";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter";
 import type { Env } from "./config/env";
+import { TRUSTED_PROXIES } from "./config/env.schema";
 import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
 
-const parseTrustProxy = (
-  raw: string | undefined,
-): boolean | number | string => {
-  const v = raw?.trim() || "1";
+const parseTrustProxy = (raw: string | undefined): boolean | string => {
+  const v = raw?.trim();
+  if (!v) return TRUSTED_PROXIES;
   if (v === "true") return true;
   if (v === "false") return false;
-  const n = Number(v);
-  return Number.isInteger(n) && n >= 0 ? n : v;
+  return v;
 };
 
 async function bootstrap() {
