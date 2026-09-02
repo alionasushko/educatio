@@ -9,6 +9,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import fastifyMultipart from "@fastify/multipart";
 import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
 import { AllExceptionsFilter } from "../src/common/all-exceptions.filter";
+import { AuthService } from "../src/auth/auth.service";
 import { User } from "../src/schemas/user.schema";
 import type { UserDocument } from "../src/schemas/user.schema";
 
@@ -22,6 +23,7 @@ export interface Harness {
   newTutorJwt: () => Promise<string>;
   countSnapshots: (lessonId: string) => Promise<number>;
   staleFor: (token: string) => Promise<string>;
+  breakEmail: () => () => void;
   close: () => Promise<void>;
 }
 
@@ -73,6 +75,17 @@ export const startApi = async (): Promise<Harness> => {
   }
 
   const users = moduleRef.get<Model<UserDocument>>(getModelToken(User.name));
+
+  const breakEmail = (): (() => void) => {
+    const seam = moduleRef.get(AuthService) as unknown as {
+      sendMagicLink: (...args: unknown[]) => Promise<void>;
+    };
+    const original = seam.sendMagicLink;
+    seam.sendMagicLink = () => Promise.reject(new Error("email delivery down"));
+    return () => {
+      seam.sendMagicLink = original;
+    };
+  };
   const jwt = moduleRef.get(JwtService);
 
   const signTutor = async (email: string, name: string): Promise<string> => {
@@ -123,6 +136,7 @@ export const startApi = async (): Promise<Harness> => {
     },
     tutorId: tutor.id,
     staleFor,
+    breakEmail,
     countSnapshots: (lessonId: string) =>
       connection
         .collection("lesson_snapshots")

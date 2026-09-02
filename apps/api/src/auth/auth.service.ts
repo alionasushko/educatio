@@ -73,7 +73,16 @@ export class AuthService {
     const email = emailRaw.toLowerCase().trim();
     const binding = generateOpaqueToken();
     const user = await this.users.findOne({ email });
-    if (user) await this.sendMagicLink(user, binding);
+    if (user) {
+      try {
+        await this.sendMagicLink(user, binding);
+      } catch (err) {
+        this.logger.error(
+          `Sign-in link for ${user.email} could not be sent`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
+    }
     return { binding };
   }
 
