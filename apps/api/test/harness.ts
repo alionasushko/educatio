@@ -5,6 +5,8 @@ import { JwtService } from "@nestjs/jwt";
 import { getConnectionToken, getModelToken } from "@nestjs/mongoose";
 import type { Connection, Model } from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import fastifyMultipart from "@fastify/multipart";
+import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
 import { AllExceptionsFilter } from "../src/common/all-exceptions.filter";
 import { User } from "../src/schemas/user.schema";
 import type { UserDocument } from "../src/schemas/user.schema";
@@ -48,6 +50,9 @@ export const startApi = async (): Promise<Harness> => {
   const app = moduleRef.createNestApplication<NestFastifyApplication>(
     new FastifyAdapter(),
   );
+  await app.register(fastifyMultipart, {
+    limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+  });
   app.useGlobalFilters(new AllExceptionsFilter());
   await app.init();
   await app.listen(0, "127.0.0.1");

@@ -15,6 +15,7 @@ import {
   lessonListResponseSchema,
   lessonSchema,
 } from "@educatio/shared/api/lessons";
+import { UPLOAD_PATH } from "@educatio/shared/api/upload";
 import {
   lessonSnapshotPath,
   latestSnapshotResponseSchema,
@@ -188,6 +189,42 @@ describe("api errors match the shared envelope", () => {
     });
     expect(status).toBe(400);
     expectShape(apiErrorSchema, data);
+  });
+
+  it("refuses an upload aimed at a lesson that does not exist", async () => {
+    const form = new FormData();
+    form.append("file", new Blob([Buffer.from("x")]), "x.png");
+    const res = await fetch(
+      `${api.baseUrl}${UPLOAD_PATH}?lessonId=507f1f77bcf86cd799439011`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${api.tutorJwt}` },
+        body: form,
+      },
+    );
+
+    expect(res.status).toBe(404);
+    expect(expectShape(apiErrorSchema, await res.json()).code).toBe(
+      "not_found",
+    );
+  });
+
+  it("hides another tutor's lesson from an upload the same way", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Someone else's lesson" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    const form = new FormData();
+    form.append("file", new Blob([Buffer.from("x")]), "x.png");
+    const res = await fetch(`${api.baseUrl}${UPLOAD_PATH}?lessonId=${id}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${api.otherTutorJwt}` },
+      body: form,
+    });
+
+    expect(res.status).toBe(404);
   });
 
   it("answers a lesson id that exists for nobody with not_found", async () => {

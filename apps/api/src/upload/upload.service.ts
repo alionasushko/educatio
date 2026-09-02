@@ -19,14 +19,26 @@ import { detectImageType } from "./image-type";
 
 const UPLOADS_PER_LESSON = 30;
 import type { Env } from "../config/env";
+import type { SessionClaims } from "@educatio/shared";
 import { Upload, UploadDocument } from "../schemas/upload.schema";
+import { LessonsService } from "../lessons/lessons.service";
 
 @Injectable()
 export class UploadService {
   constructor(
     private readonly config: ConfigService<Env, true>,
     @InjectModel(Upload.name) private readonly uploads: Model<UploadDocument>,
+    private readonly lessonsService: LessonsService,
   ) {}
+
+  async assertCanUpload(
+    lessonId: string,
+    session: SessionClaims,
+  ): Promise<string> {
+    const lesson = await this.lessonsService.findOr404(lessonId);
+    this.lessonsService.assertCanRead(lesson, session);
+    return lesson.id;
+  }
 
   async put(file: MultipartFile, lessonId: string): Promise<UploadResponse> {
     let buffer: Buffer;
