@@ -26,6 +26,8 @@ const SetPasswordPage = async ({ searchParams }: Props) => {
   const me = await query(fetchCurrentUser);
   const hasPassword = me.data?.user.hasPassword ?? false;
 
+  const needsCurrent = me.data?.user.requiresCurrentPassword ?? false;
+
   return (
     <AuthShell>
       <Card padding={32}>
@@ -38,7 +40,11 @@ const SetPasswordPage = async ({ searchParams }: Props) => {
             : "Add a password so you can sign in without a magic link next time — or skip and keep using magic links."}
         </p>
 
-        <SetPasswordForm hasPassword={hasPassword} next={next} />
+        <SetPasswordForm
+          hasPassword={hasPassword}
+          needsCurrent={needsCurrent}
+          next={next}
+        />
 
         <p className="border-border-subtle mt-5.5 border-t pt-4.5 text-center text-[13px]">
           <Link href={next} className="link-muted">

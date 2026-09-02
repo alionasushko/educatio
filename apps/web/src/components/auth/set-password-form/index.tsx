@@ -11,12 +11,14 @@ import { setPasswordAction } from "@/app/set-password/actions";
 
 interface Props {
   hasPassword: boolean;
+  needsCurrent: boolean;
   next: string;
 }
 
-const SetPasswordForm = ({ hasPassword, next }: Props) => {
+const SetPasswordForm = ({ hasPassword, needsCurrent, next }: Props) => {
   const router = useRouter();
   const [password, setPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
 
@@ -31,7 +33,7 @@ const SetPasswordForm = ({ hasPassword, next }: Props) => {
     }
 
     startTransition(async () => {
-      const result = await setPasswordAction(password);
+      const result = await setPasswordAction(password, currentPassword);
       if (!result.ok) {
         setError(result.fieldErrors?.password ?? result.error);
         return;
@@ -43,6 +45,19 @@ const SetPasswordForm = ({ hasPassword, next }: Props) => {
 
   return (
     <form onSubmit={handleSubmit} noValidate>
+      {needsCurrent && (
+        <Input
+          label="Current password"
+          name="currentPassword"
+          type="password"
+          autoComplete="current-password"
+          value={currentPassword}
+          onChange={(event) => {
+            setCurrentPassword(event.target.value);
+          }}
+        />
+      )}
+
       <Input
         label={hasPassword ? "New password" : "Password"}
         name="password"

@@ -52,8 +52,8 @@ export const signinWithPassword = (input: PasswordSigninInput) =>
   });
 
 export const setPassword = (input: SetPasswordInput) =>
-  api.post<OkResponse>(authPath(AUTH_ACTIONS.password), {
-    schema: okResponseSchema,
+  api.post<SessionResponse>(authPath(AUTH_ACTIONS.password), {
+    schema: sessionResponseSchema,
     body: input,
     ip: true,
   });

@@ -77,8 +77,8 @@ export class AuthController {
   async setPassword(
     @CurrentTutor() tutor: TutorSessionClaims,
     @Body(new ZodValidationPipe(setPasswordSchema)) body: SetPasswordInput,
-  ): Promise<{ ok: true }> {
-    return this.auth.setPassword(tutor, body.password);
+  ): Promise<{ sessionJwt: string }> {
+    return this.auth.setPassword(tutor, body);
   }
 
   @Post(AUTH_ACTIONS.callback)

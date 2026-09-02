@@ -46,8 +46,11 @@ export const passwordSigninSchema = z.object({
 });
 export type PasswordSigninInput = z.infer<typeof passwordSigninSchema>;
 
+export const RECENT_AUTH_MS = 15 * 60_000;
+
 export const setPasswordSchema = z.object({
   password: passwordSchema,
+  currentPassword: z.string().min(1).max(72).optional(),
 });
 export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
@@ -83,6 +86,7 @@ export const publicUserSchema = z.object({
   teaches: z.string().optional(),
   hasPassword: z.boolean(),
   isDemo: z.boolean(),
+  requiresCurrentPassword: z.boolean(),
 });
 
 export const meResponseSchema = z.object({ user: publicUserSchema });

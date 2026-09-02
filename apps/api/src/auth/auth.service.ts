@@ -17,7 +17,8 @@ import { MagicLink, MagicLinkDocument } from "../schemas/magic-link.schema";
 import { generateOpaqueToken } from "../common/ids";
 import type { Env } from "../config/env";
 import type { PublicUser, TutorSessionClaims } from "@educatio/shared";
-import type { SignupInput } from "@educatio/shared/api/auth";
+import { RECENT_AUTH_MS } from "@educatio/shared/api/auth";
+import type { SetPasswordInput, SignupInput } from "@educatio/shared/api/auth";
 import { LessonsService } from "../lessons/lessons.service";
 
 const MAGIC_LINK_TTL_MIN = 10;
@@ -217,13 +218,28 @@ export class AuthService {
   // This is also the recovery path: sign in via magic link, then set a new one.
   async setPassword(
     claims: TutorSessionClaims,
-    password: string,
-  ): Promise<{ ok: true }> {
-    const user = await this.users.findById(claims.sub);
+    input: SetPasswordInput,
+  ): Promise<{ sessionJwt: string }> {
+    const user = await this.users.findById(claims.sub).select("+passwordHash");
     if (!user) throw new UnauthorizedException();
-    user.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    if (user.passwordHash && !this.recentlyAuthenticated(claims)) {
+      const supplied = input.currentPassword ?? "";
+      const matches = await bcrypt.compare(supplied, user.passwordHash);
+
+      if (!matches) {
+        throw new UnauthorizedException({
+          code: "invalid_credentials",
+          message: "That password is not right.",
+        });
+      }
+    }
+
+    user.passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
-    return { ok: true };
+
+    return { sessionJwt: await this.signSession(user) };
   }
 
   async updateProfile(
@@ -315,7 +331,15 @@ export class AuthService {
   async me(claims: TutorSessionClaims): Promise<PublicUser> {
     const user = await this.users.findById(claims.sub).select("+passwordHash");
     if (!user) throw new UnauthorizedException();
-    return this.toPublic(user);
+    return {
+      ...this.toPublic(user),
+      requiresCurrentPassword:
+        !!user.passwordHash && !this.recentlyAuthenticated(claims),
+    };
+  }
+
+  private recentlyAuthenticated(claims: TutorSessionClaims): boolean {
+    return Date.now() - claims.iat * 1000 <= RECENT_AUTH_MS;
   }
 
   private toPublic(user: UserDocument): PublicUser {
@@ -327,6 +351,7 @@ export class AuthService {
       teaches: user.teaches,
       hasPassword: !!user.passwordHash,
       isDemo: user.isDemo,
+      requiresCurrentPassword: false,
     };
   }
 

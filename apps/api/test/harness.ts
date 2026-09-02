@@ -21,6 +21,7 @@ export interface Harness {
   otherTutorJwt: string;
   newTutorJwt: () => Promise<string>;
   countSnapshots: (lessonId: string) => Promise<number>;
+  staleFor: (token: string) => Promise<string>;
   close: () => Promise<void>;
 }
 
@@ -82,6 +83,22 @@ export const startApi = async (): Promise<Harness> => {
     );
   };
 
+  const staleFor = async (token: string): Promise<string> => {
+    const claims = jwt.decode<{ sub: string; email: string }>(token);
+    const user = await users.findById(claims.sub).select("tokenVersion").lean();
+    return jwt.signAsync(
+      {
+        kind: "tutor",
+        sub: claims.sub,
+        email: claims.email,
+        tokenVersion:
+          (user as { tokenVersion?: number } | null)?.tokenVersion ?? 0,
+        iat: Math.floor((Date.now() - 60 * 60_000) / 1000),
+      },
+      { expiresIn: "2h" },
+    );
+  };
+
   const tutor = await users.create({
     email: "tutor@example.com",
     name: "Test Tutor",
@@ -105,6 +122,7 @@ export const startApi = async (): Promise<Harness> => {
       return signTutor(`spare-${spare}@example.com`, `Spare Tutor ${spare}`);
     },
     tutorId: tutor.id,
+    staleFor,
     countSnapshots: (lessonId: string) =>
       connection
         .collection("lesson_snapshots")

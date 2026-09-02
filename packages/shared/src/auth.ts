@@ -42,4 +42,5 @@ export interface PublicUser {
   teaches?: string;
   hasPassword: boolean;
   isDemo: boolean;
+  requiresCurrentPassword: boolean;
 }
