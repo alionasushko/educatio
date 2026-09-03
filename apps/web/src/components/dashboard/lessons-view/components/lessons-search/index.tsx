@@ -9,9 +9,15 @@ interface Props {
   initialQuery: string;
   status: LessonFilter;
   onNavigate: (href: string) => void;
+  shortcut: string;
 }
 
-const LessonsSearch = ({ initialQuery, status, onNavigate }: Props) => {
+const LessonsSearch = ({
+  initialQuery,
+  status,
+  onNavigate,
+  shortcut,
+}: Props) => {
   const [value, setValue] = useState(initialQuery);
   const [lastInitial, setLastInitial] = useState(initialQuery);
   const [focused, setFocused] = useState(false);
@@ -66,7 +72,7 @@ const LessonsSearch = ({ initialQuery, status, onNavigate }: Props) => {
         aria-hidden="true"
         className="text-text-tertiary border-border-subtle hidden rounded border px-1 font-mono text-[11px] sm:inline"
       >
-        ⌘K
+        {shortcut}
       </kbd>
     </div>
   );

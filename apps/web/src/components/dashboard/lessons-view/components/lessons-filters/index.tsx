@@ -15,6 +15,7 @@ interface Props {
   total: number;
   page: number;
   totalPages: number;
+  shortcut: string;
   children: ReactNode;
 }
 
@@ -24,6 +25,7 @@ const LessonsFilters = ({
   total,
   page,
   totalPages,
+  shortcut,
   children,
 }: Props) => {
   const router = useRouter();
@@ -34,7 +36,12 @@ const LessonsFilters = ({
   return (
     <div className="px-6 py-5 md:px-10 md:pb-10">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <LessonsSearch initialQuery={q} status={status} onNavigate={navigate} />
+        <LessonsSearch
+          initialQuery={q}
+          status={status}
+          onNavigate={navigate}
+          shortcut={shortcut}
+        />
         {FILTERS.map((filter) => {
           const active = filter.value === status;
           const href = dashboardHref({ status: filter.value, q });
