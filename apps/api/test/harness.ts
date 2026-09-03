@@ -24,6 +24,9 @@ export interface Harness {
   countSnapshots: (lessonId: string) => Promise<number>;
   staleFor: (token: string) => Promise<string>;
   breakEmail: () => () => void;
+  auth: AuthService;
+  users: Model<UserDocument>;
+  magicLinkCount: (email: string) => Promise<number>;
   close: () => Promise<void>;
 }
 
@@ -137,6 +140,15 @@ export const startApi = async (): Promise<Harness> => {
     tutorId: tutor.id,
     staleFor,
     breakEmail,
+    auth: moduleRef.get(AuthService),
+    users,
+    magicLinkCount: async (email: string) => {
+      const owner = await users.findOne({ email });
+      if (!owner) return 0;
+      return connection
+        .collection("magic_links")
+        .countDocuments({ userId: owner._id });
+    },
     countSnapshots: (lessonId: string) =>
       connection
         .collection("lesson_snapshots")

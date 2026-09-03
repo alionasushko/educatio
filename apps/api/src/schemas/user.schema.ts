@@ -37,6 +37,12 @@ export class User {
 
   @Prop({ type: Date })
   expiresAt?: Date;
+
+  @Prop({ default: 0 })
+  magicLinkSends: number;
+
+  @Prop({ type: Date })
+  magicLinkWindowStart?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

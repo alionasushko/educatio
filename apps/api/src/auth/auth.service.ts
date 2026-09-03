@@ -26,6 +26,10 @@ const SESSION_TTL = "30d";
 const DEMO_SESSION_TTL = "1d";
 const DEMO_TTL_HOURS = 24;
 const DEMO_SWEEP_BATCH = 50;
+const MAGIC_LINKS_PER_WINDOW = 5;
+const MAGIC_LINK_WINDOW_MS = 60 * 60_000;
+const UNVERIFIED_TTL_HOURS = 48;
+const UNVERIFIED_SWEEP_BATCH = 50;
 const BCRYPT_ROUNDS = 12;
 const MAX_FAILED_ATTEMPTS = 10;
 const LOCKOUT_MINUTES = 15;
@@ -59,6 +63,10 @@ export class AuthService {
   async signup(input: SignupInput): Promise<{ binding: string }> {
     const email = input.email.toLowerCase().trim();
     const binding = generateOpaqueToken();
+
+    void this.sweepUnverifiedAccounts().catch((err: unknown) => {
+      this.logger.warn(`Unverified sweep failed: ${String(err)}`);
+    });
 
     const user = await this.upsertUser(email, {
       email,
@@ -364,10 +372,72 @@ export class AuthService {
     };
   }
 
+  private async recordSend(user: UserDocument): Promise<number> {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - MAGIC_LINK_WINDOW_MS);
+    const live = { $gt: ["$magicLinkWindowStart", windowStart] };
+
+    const updated = await this.users.findOneAndUpdate(
+      { _id: user._id },
+      [
+        {
+          $set: {
+            magicLinkWindowStart: {
+              $cond: [live, "$magicLinkWindowStart", now],
+            },
+            magicLinkSends: {
+              $cond: [
+                live,
+                { $add: [{ $ifNull: ["$magicLinkSends", 0] }, 1] },
+                1,
+              ],
+            },
+          },
+        },
+      ],
+      { new: true, updatePipeline: true, projection: { magicLinkSends: 1 } },
+    );
+
+    return updated?.magicLinkSends ?? 1;
+  }
+
+  async sweepUnverifiedAccounts(): Promise<number> {
+    const cutoff = new Date(Date.now() - UNVERIFIED_TTL_HOURS * 60 * 60_000);
+    const stale = await this.users
+      .find({
+        emailVerified: null,
+        isDemo: { $ne: true },
+        passwordHash: { $exists: false },
+        createdAt: { $lt: cutoff },
+      })
+      .limit(UNVERIFIED_SWEEP_BATCH);
+
+    for (const user of stale) {
+      if (user.emailVerified) {
+        this.logger.error(`refusing to sweep verified account ${user.id}`);
+        continue;
+      }
+      try {
+        await this.magicLinks.deleteMany({ userId: user._id });
+        await user.deleteOne();
+      } catch (err) {
+        this.logger.warn(`Failed to sweep unverified account: ${String(err)}`);
+      }
+    }
+    return stale.length;
+  }
+
   private async sendMagicLink(
     user: UserDocument,
     binding: string,
   ): Promise<void> {
+    if ((await this.recordSend(user)) > MAGIC_LINKS_PER_WINDOW) {
+      this.logger.warn(
+        `Suppressed a sign-in link: ${user.email} has had ${MAGIC_LINKS_PER_WINDOW} within the hour`,
+      );
+      return;
+    }
+
     const raw = generateOpaqueToken();
     await this.magicLinks.create({
       userId: user._id,
