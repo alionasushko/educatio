@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MailIcon } from "lucide-react";
 import AuthLayout from "@/components/auth/auth-layout";
+import AuthHeading from "@/components/auth/auth-heading";
 import Card from "@/components/ui/card";
 import ResendLink from "@/components/auth/resend-link";
 import SessionWatcher from "@/components/auth/session-watcher";
@@ -28,16 +29,13 @@ const VerifyPage = async ({ searchParams }: Props) => {
           <MailIcon className="size-5" strokeWidth={1.7} aria-hidden="true" />
         </div>
 
-        <h1 className="text-text-primary text-[22px] font-semibold tracking-[-0.02em]">
-          Check your email
-        </h1>
-        <p className="text-text-secondary mt-2 mb-6 text-sm leading-normal">
+        <AuthHeading title="Check your email">
           We sent a magic link to{" "}
           <span className="text-text-primary font-medium">
             {email || "your email address"}
           </span>
           . Click it to sign in.
-        </p>
+        </AuthHeading>
 
         <div className="border-border-subtle bg-bg text-text-secondary rounded-sm border px-4 py-3.5 text-[13px] leading-normal">
           The link works for 10 minutes and on one device. Didn&apos;t get it?

@@ -160,8 +160,12 @@
   --accent-brand: #818cf8;
 }
 
+@utility focus-ring {
+  @apply focus-visible:outline-accent-brand focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
 @utility link {
-  @apply text-accent-brand hover:text-accent-brand/80 focus-visible:outline-accent-brand cursor-pointer rounded-xs font-medium no-underline transition-colors focus-visible:outline-2 focus-visible:outline-offset-2;
+  @apply focus-ring text-accent-brand hover:text-accent-brand/80 cursor-pointer rounded-xs font-medium no-underline transition-colors;
 }
 
 @utility link-muted {

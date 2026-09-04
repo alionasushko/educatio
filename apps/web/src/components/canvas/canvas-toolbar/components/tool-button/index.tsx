@@ -29,7 +29,7 @@ const ToolButton = ({
     disabled={disabled}
     className={cn(
       "flex size-9 cursor-pointer items-center justify-center rounded-[10px] transition-colors",
-      "focus-visible:outline-accent-brand focus-visible:outline-2 focus-visible:outline-offset-2",
+      "focus-ring",
       "disabled:pointer-events-none disabled:opacity-35",
       active
         ? "bg-accent-brand text-white"

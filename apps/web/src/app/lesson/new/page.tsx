@@ -26,9 +26,6 @@ const NewLessonPage = async () => {
             <XIcon className="size-3.5" strokeWidth={1.8} aria-hidden="true" />
           </Link>
         </div>
-        <p className="text-text-secondary mb-5.5 text-[13.5px] leading-normal">
-          Set a title now — the rest can wait until your student joins.
-        </p>
         <NewLessonForm />
       </div>
     </div>

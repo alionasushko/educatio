@@ -49,7 +49,7 @@ Single centered card. Logo. Heading "Sign in to Educatio". Subtext: "Welcome bac
 
 ### 2b. Tutor sign-up (`/sign-up`)
 
-Layout follows the shared `AuthLayout`: wordmark top-left, single centered card (width 400), footer link below. Mount-time `CascadeUp` (delay 60, y 18).
+Layout follows the shared `AuthLayout`: wordmark top-left, single centered card (width 400), footer link below. The card h1 is 22/600/−0.02em on `/sign-in`, `/verify` and `/set-password`; `/sign-up` alone promotes its to 24 because it carries the eyebrow lockup. Mount-time `CascadeUp` (delay 60, y 18).
 
 **Card** (`Card padding={32}`, accent-tint not used inside the card):
 
@@ -63,7 +63,7 @@ Layout follows the shared `AuthLayout`: wordmark top-left, single centered card 
 
 (No password field — sign-up is passwordless; a password is set after verification on `/set-password`.)
 
-- Primary button, full-width, size `lg`: **"Create account"**
+- Primary button, full-width (h-12, 15px): **"Create account"**
 - Fine print (12, text-tertiary, centered, margin-top 16): "You can delete your account, and everything in it, from Settings at any time." There are no Terms or Privacy Policy documents to link to, so the screen does not claim otherwise.
 
 **Reassurance callout** (sits _outside_ the card, margin-top 18, padding `14px 16px`, `--accent-tint` background, `--accent-soft-border`, radius 10, flex row gap 12):

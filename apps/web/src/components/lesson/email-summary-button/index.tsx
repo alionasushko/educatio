@@ -18,11 +18,7 @@ const EmailSummaryButton = ({ lessonTitle, studentEmail, summary }: Props) => {
   )}&body=${encodeURIComponent(body)}`;
 
   return (
-    <ButtonLink
-      href={href}
-      variant="outline"
-      className="h-9 gap-1.5 px-3 text-sm"
-    >
+    <ButtonLink href={href} variant="outline" size="control">
       <MailIcon className="size-4" aria-hidden="true" />
       {studentEmail ? "Email to student" : "Email summary"}
     </ButtonLink>

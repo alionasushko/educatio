@@ -3,6 +3,7 @@
 import Dialog from "@/components/ui/dialog";
 import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
+import FormError from "@/components/ui/form-error";
 
 interface Props {
   title: string;
@@ -33,14 +34,7 @@ const ConfirmDialog = ({
       {description}
     </p>
 
-    {error && (
-      <p
-        role="alert"
-        className="text-destructive mt-3 text-[13px] leading-snug"
-      >
-        {error}
-      </p>
-    )}
+    {error && <FormError className="mt-3">{error}</FormError>}
 
     <div className="mt-5 flex items-center justify-end gap-2">
       <Button

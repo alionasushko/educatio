@@ -17,7 +17,8 @@ const LoadFailure = ({ title, code, retryHref }: Props) => (
       <ButtonLink
         href={retryHref}
         variant="outline"
-        className="mt-4 h-9 px-4 text-sm"
+        size="control"
+        className="mt-4"
       >
         Retry
       </ButtonLink>

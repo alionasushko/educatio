@@ -37,7 +37,7 @@ const ColorPicker = ({
           onClick={() => onSelect(swatch.value)}
           className={cn(
             "flex size-7 cursor-pointer items-center justify-center rounded-full transition-transform",
-            "focus-visible:outline-accent-brand focus-visible:outline-2 focus-visible:outline-offset-2",
+            "focus-ring",
             "disabled:pointer-events-none disabled:opacity-35",
             active ? "scale-110" : "hover:scale-105",
           )}

@@ -9,6 +9,7 @@ import { focusField } from "@/lib/form-validation";
 import { validate } from "./helpers/helpers";
 import { FIELD_ORDER } from "./helpers/constants";
 import type { Errors, Field } from "./helpers/types";
+import FormError from "@/components/ui/form-error";
 
 const SignUpForm = () => {
   const [name, setName] = useState("");
@@ -92,14 +93,7 @@ const SignUpForm = () => {
         />
       </div>
 
-      {formError && (
-        <p
-          role="alert"
-          className="text-destructive mb-3 text-[13px] leading-snug"
-        >
-          {formError}
-        </p>
-      )}
+      {formError && <FormError className="mb-3">{formError}</FormError>}
 
       <Button
         type="submit"

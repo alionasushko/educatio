@@ -6,6 +6,7 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { parseSummaryBlocks, toPlainText } from "@/lib/summary-markdown";
 import { useCopyToClipboard } from "@/components/lesson/helpers/use-copy-to-clipboard";
+import FormError from "@/components/ui/form-error";
 
 interface Props {
   lessonTitle: string;
@@ -28,8 +29,6 @@ const save = (blob: Blob, filename: string) => {
   link.click();
   URL.revokeObjectURL(url);
 };
-
-const control = "h-9 gap-1.5 px-3 text-sm";
 
 const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
   const [busy, setBusy] = useState(false);
@@ -82,7 +81,7 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
         variant="outline"
         onClick={downloadPdf}
         disabled={busy}
-        className={control}
+        size="control"
       >
         {busy ? (
           <Spinner />
@@ -96,18 +95,13 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
         type="button"
         variant="outline"
         onClick={downloadText}
-        className={control}
+        size="control"
       >
         <FileTextIcon className="size-4" aria-hidden="true" />
         Download text
       </Button>
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={copy}
-        className={control}
-      >
+      <Button type="button" variant="outline" onClick={copy} size="control">
         {copied ? (
           <CheckIcon className="size-4" aria-hidden="true" />
         ) : (
@@ -116,11 +110,7 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
         {copied ? "Copied" : "Copy"}
       </Button>
 
-      {error && (
-        <p role="alert" className="text-destructive text-[13px]">
-          {error}
-        </p>
-      )}
+      {error && <FormError>{error}</FormError>}
     </div>
   );
 };

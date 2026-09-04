@@ -67,11 +67,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
           />
         )}
         {role === "tutor" && (
-          <ButtonLink
-            href="/dashboard"
-            variant="ghost"
-            className="h-9 px-3 text-sm"
-          >
+          <ButtonLink href="/dashboard" variant="ghost" size="control">
             Back
           </ButtonLink>
         )}

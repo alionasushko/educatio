@@ -25,12 +25,7 @@ const ShareLessonButton = ({ inviteCode }: Props) => {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={open}
-        className="h-9 gap-1.5 px-3 text-sm"
-      >
+      <Button type="button" variant="outline" onClick={open} size="control">
         <Share2Icon className="size-4" aria-hidden="true" />
         <span className="hidden sm:inline">Share</span>
       </Button>

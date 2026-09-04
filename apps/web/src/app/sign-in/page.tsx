@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import AuthLayout from "@/components/auth/auth-layout";
+import AuthHeading from "@/components/auth/auth-heading";
 import SignInForm from "@/components/auth/sign-in-form";
 import TryDemoButton from "@/components/auth/try-demo-button";
 import AuthErrorBanner from "@/components/auth/auth-error-banner";
@@ -25,12 +26,9 @@ const SignInPage = async ({ searchParams }: Props) => {
   return (
     <AuthLayout>
       <Card padding={32}>
-        <h1 className="text-text-primary text-[22px] font-semibold tracking-[-0.02em]">
-          Sign in to Educatio
-        </h1>
-        <p className="text-text-secondary mt-2 mb-6 text-sm leading-normal">
+        <AuthHeading title="Sign in to Educatio">
           Welcome back — sign in with your password.
-        </p>
+        </AuthHeading>
 
         <Suspense fallback={null}>
           <AuthErrorBanner />

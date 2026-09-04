@@ -3,12 +3,12 @@ import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import ProfileForm from "@/components/settings/profile-form";
 import DeleteAccountButton from "@/components/settings/delete-account-button";
-import Card from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import LoadFailure from "@/components/ui/load-failure";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
 import { requireTutor } from "@/lib/session-server";
+import SettingsSection from "@/components/settings/settings-section";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -54,14 +54,10 @@ const SettingsPage = async () => {
             </p>
           )}
 
-          <Card padding={24}>
-            <h2 className="text-text-primary text-[15px] font-medium">
-              Profile
-            </h2>
-            <p className="text-text-secondary mt-1 mb-5 text-[13px]">
-              Your email and display name.
-            </p>
-
+          <SettingsSection
+            title="Profile"
+            description="Your email and display name."
+          >
             <div className="mb-4">
               <p className="text-text-primary mb-1.5 text-[13px] font-medium tracking-[-0.005em]">
                 Email
@@ -72,17 +68,16 @@ const SettingsPage = async () => {
             </div>
 
             <ProfileForm name={user.name} />
-          </Card>
+          </SettingsSection>
 
-          <Card padding={24}>
-            <h2 className="text-text-primary text-[15px] font-medium">
-              Password
-            </h2>
-            <p className="text-text-secondary mt-1 mb-4 text-[13px]">
-              {user.hasPassword
+          <SettingsSection
+            title="Password"
+            description={
+              user.hasPassword
                 ? "Sign in with a password as well as a magic link."
-                : "You sign in by magic link. Add a password for a faster way in."}
-            </p>
+                : "You sign in by magic link. Add a password for a faster way in."
+            }
+          >
             <ButtonLink
               href="/set-password?next=/settings"
               variant="outline"
@@ -90,18 +85,14 @@ const SettingsPage = async () => {
             >
               {user.hasPassword ? "Change password" : "Set password"}
             </ButtonLink>
-          </Card>
+          </SettingsSection>
 
-          <Card padding={24}>
-            <h2 className="text-text-primary text-[15px] font-medium">
-              Delete account
-            </h2>
-            <p className="text-text-secondary mt-1 mb-4 text-[13px]">
-              Removes your account and every lesson, canvas and summary in it.
-              This can&apos;t be undone.
-            </p>
+          <SettingsSection
+            title="Delete account"
+            description="Removes your account and every lesson, canvas and summary in it. This can't be undone."
+          >
             <DeleteAccountButton email={user.email} />
-          </Card>
+          </SettingsSection>
         </div>
       )}
     </DashboardLayout>

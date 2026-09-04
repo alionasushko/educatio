@@ -93,18 +93,14 @@ const LessonPage = async ({ params }: Props) => {
               target="_blank"
               rel="noopener noreferrer"
               variant="outline"
-              className="h-9 gap-1.5 px-3 text-sm"
+              size="control"
             >
               <VideoIcon className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Join video call</span>
             </ButtonLink>
           )}
           {role === "tutor" && (
-            <ButtonLink
-              href="/dashboard"
-              variant="ghost"
-              className="h-9 px-3 text-sm"
-            >
+            <ButtonLink href="/dashboard" variant="ghost" size="control">
               Back
             </ButtonLink>
           )}

@@ -7,6 +7,7 @@ import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
 import { INVALID_EMAIL, checkForm, focusField } from "@/lib/form-validation";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
+import FormError from "@/components/ui/form-error";
 
 interface Props {
   callbackUrl?: string;
@@ -102,14 +103,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
         />
       </div>
 
-      {formError && (
-        <p
-          role="alert"
-          className="text-destructive mb-3 text-[13px] leading-snug"
-        >
-          {formError}
-        </p>
-      )}
+      {formError && <FormError className="mb-3">{formError}</FormError>}
 
       <Button type="submit" disabled={busy} className="h-12 w-full text-[15px]">
         {isPending && <Spinner />}

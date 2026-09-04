@@ -23,7 +23,7 @@ const CanvasViewer = ({ elements }: Props) => {
         type="button"
         variant="outline"
         onClick={() => setOpen(true)}
-        className="h-9 gap-1.5 px-3 text-sm"
+        size="control"
       >
         <ExpandIcon className="size-4" aria-hidden="true" />
         View canvas

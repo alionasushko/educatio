@@ -7,6 +7,7 @@ import { SparklesIcon } from "lucide-react";
 import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { generateSummaryAction } from "@/app/lesson/[lessonId]/actions";
+import FormError from "@/components/ui/form-error";
 
 const POLL_MS = 4_000;
 const POLL_GIVE_UP_MS = 5 * 60_000;
@@ -82,14 +83,7 @@ const LessonSummary = ({ lessonId, text, canGenerate }: Props) => {
             : "We couldn't write this one up automatically. Give it another go — it reads whatever was left on the canvas."}
       </p>
 
-      {error && (
-        <p
-          role="alert"
-          className="text-destructive mt-3 text-[13px] leading-snug"
-        >
-          {error}
-        </p>
-      )}
+      {error && <FormError className="mt-3">{error}</FormError>}
 
       {canGenerate && (
         <Button

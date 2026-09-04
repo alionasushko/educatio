@@ -12,7 +12,7 @@ interface Props {
 }
 
 const step =
-  "flex size-7 cursor-pointer items-center justify-center rounded-[8px] transition-colors focus-visible:outline-accent-brand focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-35 text-text-secondary hover:bg-accent-tint hover:text-text-primary";
+  "flex size-7 cursor-pointer items-center justify-center rounded-[8px] transition-colors focus-ring disabled:pointer-events-none disabled:opacity-35 text-text-secondary hover:bg-accent-tint hover:text-text-primary";
 
 const ZoomControls = ({ scale, onZoom, onReset, disabled }: Props) => (
   <div role="group" aria-label="Zoom" className="flex items-center gap-0.5">
@@ -33,7 +33,7 @@ const ZoomControls = ({ scale, onZoom, onReset, disabled }: Props) => (
       disabled={disabled}
       onClick={onReset}
       className={cn(
-        "text-text-secondary hover:text-text-primary hover:bg-accent-tint focus-visible:outline-accent-brand min-w-11 cursor-pointer rounded-sm px-1 py-1 text-center text-[11.5px] font-medium tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-35",
+        "focus-ring text-text-secondary hover:text-text-primary hover:bg-accent-tint min-w-11 cursor-pointer rounded-sm px-1 py-1 text-center text-[11.5px] font-medium tabular-nums transition-colors disabled:pointer-events-none disabled:opacity-35",
       )}
     >
       {Math.round(scale * 100)}%

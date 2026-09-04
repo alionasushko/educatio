@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import AuthLayout from "@/components/auth/auth-layout";
+import AuthHeading from "@/components/auth/auth-heading";
 import Card from "@/components/ui/card";
 import SetPasswordForm from "@/components/auth/set-password-form";
 import { fetchCurrentUser } from "@/lib/api-auth";
@@ -31,14 +32,13 @@ const SetPasswordPage = async ({ searchParams }: Props) => {
   return (
     <AuthLayout>
       <Card padding={32}>
-        <h1 className="text-text-primary text-[22px] font-semibold tracking-[-0.02em]">
-          {hasPassword ? "Change your password" : "Set password"}
-        </h1>
-        <p className="text-text-secondary mt-2 mb-6 text-sm leading-normal">
+        <AuthHeading
+          title={hasPassword ? "Change your password" : "Set password"}
+        >
           {hasPassword
             ? "Update the password you use to sign in."
             : "Add a password so you can sign in without a magic link next time — or skip and keep using magic links."}
-        </p>
+        </AuthHeading>
 
         <SetPasswordForm
           hasPassword={hasPassword}

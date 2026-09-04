@@ -9,6 +9,7 @@ import { checkForm } from "@/lib/form-validation";
 import { JOIN_COPY } from "./helpers/constants";
 import { joinLessonAction } from "@/app/join/[inviteCode]/actions";
 import TutorNotice from "./components/tutor-notice";
+import FormError from "@/components/ui/form-error";
 
 interface Props {
   inviteCode: string;
@@ -87,14 +88,7 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
           />
         </div>
 
-        {formError && (
-          <p
-            role="alert"
-            className="text-destructive mt-3 text-[13px] leading-snug"
-          >
-            {formError}
-          </p>
-        )}
+        {formError && <FormError className="mt-3">{formError}</FormError>}
 
         <Button
           type="submit"

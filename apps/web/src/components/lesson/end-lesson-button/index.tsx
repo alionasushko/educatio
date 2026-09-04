@@ -52,7 +52,7 @@ const EndLessonButton = ({ lessonId }: Props) => {
           setError(undefined);
           setOpen(true);
         }}
-        className="h-9 gap-1.5 px-3 text-sm"
+        size="control"
       >
         <SquareIcon className="size-3.5" aria-hidden="true" />
         <span className="hidden sm:inline">End lesson</span>

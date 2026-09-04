@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type BadgeVariant = "neutral" | "active" | "ended" | "draft" | "accent";
+export type BadgeVariant = "neutral" | "active" | "ended" | "draft";
 
 interface Props {
   children: React.ReactNode;
@@ -9,22 +9,19 @@ interface Props {
   className?: string;
 }
 
+const QUIET = {
+  bg: "var(--bg)",
+  color: "var(--text-secondary)",
+  border: "var(--border-subtle)",
+  dot: "var(--text-tertiary)",
+};
+
 const VARIANTS: Record<
   BadgeVariant,
   { bg: string; color: string; border: string; dot: string }
 > = {
-  neutral: {
-    bg: "var(--bg)",
-    color: "var(--text-secondary)",
-    border: "var(--border-subtle)",
-    dot: "var(--text-tertiary)",
-  },
-  ended: {
-    bg: "var(--bg)",
-    color: "var(--text-secondary)",
-    border: "var(--border-subtle)",
-    dot: "var(--text-tertiary)",
-  },
+  neutral: QUIET,
+  ended: QUIET,
   active: {
     bg: "color-mix(in oklab, var(--success) 14%, var(--bg))",
     color: "color-mix(in oklab, var(--success) 80%, black)",
@@ -36,12 +33,6 @@ const VARIANTS: Record<
     color: "color-mix(in oklab, var(--warning) 82%, black)",
     border: "color-mix(in oklab, var(--warning) 28%, var(--border-subtle))",
     dot: "var(--warning)",
-  },
-  accent: {
-    bg: "var(--accent-soft)",
-    color: "var(--accent-brand)",
-    border: "var(--accent-soft-border)",
-    dot: "var(--accent-brand)",
   },
 };
 

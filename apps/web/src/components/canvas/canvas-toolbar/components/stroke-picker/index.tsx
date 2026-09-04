@@ -28,7 +28,7 @@ const StrokePicker = ({ selected, onSelect, disabled }: Props) => (
           onClick={() => onSelect(width)}
           className={cn(
             "flex size-7 cursor-pointer items-center justify-center rounded-[8px] transition-colors",
-            "focus-visible:outline-accent-brand focus-visible:outline-2 focus-visible:outline-offset-2",
+            "focus-ring",
             "disabled:pointer-events-none disabled:opacity-35",
             active ? "bg-accent-tint" : "hover:bg-accent-tint/60",
           )}
