@@ -159,7 +159,12 @@ describe("api responses match the shared contract", () => {
     expect(student.tutorName).toBe("Test Tutor");
     expect(student.liveblocksRoomId).toBeTruthy();
 
-    for (const field of ["inviteCode", "studentEmail", "tutorId"]) {
+    for (const field of [
+      "inviteCode",
+      "studentEmail",
+      "studentName",
+      "tutorId",
+    ]) {
       expect(asStudent.data).not.toHaveProperty(field);
     }
 
@@ -331,7 +336,7 @@ describe("api errors match the shared envelope", () => {
 
     const canvasState: Record<string, unknown> = {};
     for (let i = 0; i <= MAX_SNAPSHOT_ELEMENTS; i += 1) {
-      canvasState[`el${i}`] = { type: "sticky", x: 0, y: 0 };
+      canvasState[`el${i}`] = stickyElement(`el${i}`, 0, 0);
     }
 
     const res = await call(lessonSnapshotPath(id), {
@@ -492,11 +497,43 @@ describe("signing out ends the session everywhere", () => {
   });
 
   it("keeps a student's session working — it has no user to revoke", async () => {
-    const lesson = await call(LESSONS_PATH, {
+    const tutorJwt = await api.newTutorJwt();
+    const claims = JSON.parse(
+      Buffer.from(tutorJwt.split(".")[1]!, "base64url").toString(),
+    ) as { sub: string };
+
+    const created = await call(LESSONS_PATH, {
       method: "POST",
       body: { title: "Revocation" },
+      token: tutorJwt,
     });
-    expect(lesson.status).toBe(201);
+    expect(created.status).toBe(201);
+    const { id, inviteCode } = expectShape(
+      createLessonResponseSchema,
+      created.data,
+    );
+
+    const joined = await call(STUDENT_SESSION_PATH, {
+      method: "POST",
+      auth: false,
+      body: { inviteCode, name: "Jordan", email: "jordan@example.com" },
+    });
+    const { sessionJwt } = expectShape(sessionResponseSchema, joined.data);
+    expect((await call(lessonPath(id), { token: sessionJwt })).status).toBe(
+      200,
+    );
+
+    await api.users.updateOne(
+      { _id: claims.sub },
+      { $inc: { tokenVersion: 1 } },
+    );
+
+    // The tutor's own token is now stale, which proves the bump landed.
+    expect((await call(lessonPath(id), { token: tutorJwt })).status).toBe(401);
+    // The student's is not keyed on a user, so it is unaffected.
+    expect((await call(lessonPath(id), { token: sessionJwt })).status).toBe(
+      200,
+    );
   });
 });
 

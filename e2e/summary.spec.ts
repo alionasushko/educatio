@@ -26,7 +26,28 @@ const pdfText = (pdf: Buffer): string => {
     .map((run) => Buffer.from(run.slice(1, -1), "hex").toString("latin1"))
     .join("");
 };
-import { createDemoLesson, deleteLesson, signIn } from "./helpers/session";
+import { deleteLesson, signIn } from "./helpers/session";
+import {
+  createLessonFor,
+  createThrowawayTutor,
+  removeTutor,
+  type ThrowawayTutor,
+} from "./helpers/tutor";
+
+let tutor: ThrowawayTutor;
+
+test.beforeAll(async () => {
+  tutor = await createThrowawayTutor();
+});
+
+test.afterAll(async () => {
+  await removeTutor(tutor);
+});
+
+const createLesson = async (title: string) => ({
+  sessionJwt: tutor.sessionJwt,
+  lessonId: await createLessonFor(tutor, title),
+});
 
 const API = process.env.E2E_API_URL ?? "http://localhost:3001";
 
@@ -38,7 +59,7 @@ test("ending a lesson closes the canvas and lands on the summary", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E end lesson");
+  const lesson = await createLesson("E2E end lesson");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
@@ -68,7 +89,7 @@ test("a live lesson has no summary page to visit", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E live lesson");
+  const lesson = await createLesson("E2E live lesson");
   await signIn(context, lesson.sessionJwt);
 
   await page.goto(`/lesson/${lesson.lessonId}/summary`);
@@ -81,7 +102,7 @@ test("the dashboard row for an ended lesson resolves", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E ended row");
+  const lesson = await createLesson("E2E ended row");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await page.getByRole("button", { name: "End lesson" }).click();
@@ -110,7 +131,7 @@ test("the student's email carries through to a prefilled mail draft", async ({
   context,
   browser,
 }) => {
-  const lesson = await createDemoLesson("E2E email summary");
+  const lesson = await createLesson("E2E email summary");
   const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
     headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
   });
@@ -163,7 +184,7 @@ test("a student sees the lesson end without reloading", async ({
   context,
   browser,
 }) => {
-  const lesson = await createDemoLesson("E2E live end");
+  const lesson = await createLesson("E2E live end");
   const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
     headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
   });
@@ -214,7 +235,7 @@ test("the summary exports as a real PDF and as plain text", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E exports");
+  const lesson = await createLesson("E2E exports");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await page.getByRole("button", { name: "End lesson" }).click();
@@ -260,7 +281,7 @@ test("the summary renders sections as headings, not bullets", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E headings");
+  const lesson = await createLesson("E2E headings");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await page.getByRole("button", { name: "End lesson" }).click();
@@ -309,7 +330,7 @@ test("a waiting student sees the summary appear without reloading", async ({
   context,
   browser,
 }) => {
-  const lesson = await createDemoLesson("E2E waiting student");
+  const lesson = await createLesson("E2E waiting student");
   const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
     headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
   });
@@ -352,7 +373,7 @@ test("ending with unsaved edits does not fault the student's screen", async ({
   context,
   browser,
 }) => {
-  const lesson = await createDemoLesson("E2E unsaved edits");
+  const lesson = await createLesson("E2E unsaved edits");
   const res = await fetch(`${API}/lessons/${lesson.lessonId}`, {
     headers: { Authorization: `Bearer ${lesson.sessionJwt}` },
   });
@@ -406,7 +427,7 @@ test("the summary shows the whiteboard as it was left", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E thumbnail");
+  const lesson = await createLesson("E2E thumbnail");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();
@@ -443,7 +464,7 @@ test("long note and text content wraps inside the thumbnail", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E wrapping");
+  const lesson = await createLesson("E2E wrapping");
   const auth = { Authorization: `Bearer ${lesson.sessionJwt}` };
   const headers = { ...auth, "Content-Type": "application/json" };
 
@@ -523,7 +544,7 @@ test("the final canvas can be opened and panned read-only", async ({
   page,
   context,
 }) => {
-  const lesson = await createDemoLesson("E2E replay");
+  const lesson = await createLesson("E2E replay");
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}`);
   await expect(page.getByRole("button", { name: "Pen (P)" })).toBeEnabled();

@@ -139,9 +139,32 @@ describe("where a student may go", () => {
     }
   });
 
-  it("is not fooled by an encoded lesson id", async () => {
+  it("decodes a percent-encoded id so the student's own room still opens", async () => {
     const token = await student();
-    const encoded = `/lesson/${encodeURIComponent(LESSON)}`;
-    expect((await visit(encoded, token)).redirectedTo).toBeNull();
+    // encodeURIComponent leaves hex untouched, so encode every character by hand
+    const encoded = [...LESSON]
+      .map((char) => `%${char.charCodeAt(0).toString(16)}`)
+      .join("");
+    expect(encoded).not.toBe(LESSON);
+
+    expect((await visit(`/lesson/${encoded}`, token)).redirectedTo).toBeNull();
+  });
+
+  it("does not let an encoded id reach another lesson", async () => {
+    const token = await student();
+    const encoded = [...OTHER_LESSON]
+      .map((char) => `%${char.charCodeAt(0).toString(16)}`)
+      .join("");
+
+    expect((await visit(`/lesson/${encoded}`, token)).redirectedTo).toBe(
+      `/lesson/${LESSON}`,
+    );
+  });
+
+  it("survives a malformed percent-encoding instead of throwing", async () => {
+    const token = await student();
+    expect((await visit("/lesson/%zz", token)).redirectedTo).toBe(
+      `/lesson/${LESSON}`,
+    );
   });
 });
