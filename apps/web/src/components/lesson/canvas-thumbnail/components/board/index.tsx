@@ -34,7 +34,11 @@ const Lines = ({ lines, x, fontSize }: LinesProps) => (
   </>
 );
 
-const Element = ({ element }: { element: CanvasElement }) => {
+interface BoardElementProps {
+  element: CanvasElement;
+}
+
+const BoardElement = ({ element }: BoardElementProps) => {
   const box = extentOf(element);
   const transform = rotationOf(element, box);
 
@@ -241,7 +245,7 @@ const Board = ({ elements, label, className }: BoardProps) => {
       style={{ fontFamily: "var(--font-sans), sans-serif" }}
     >
       {elements.map((element) => (
-        <Element key={element.id} element={element} />
+        <BoardElement key={element.id} element={element} />
       ))}
     </svg>
   );

@@ -67,7 +67,11 @@ interface Props {
   blocks: SummaryBlock[];
 }
 
-const Inline = ({ block }: { block: SummaryBlock }) => (
+interface BlockSegmentsProps {
+  block: SummaryBlock;
+}
+
+const BlockSegments = ({ block }: BlockSegmentsProps) => (
   <>
     {block.segments.map((segment, index) => (
       <Text key={index} style={segment.bold ? styles.bold : undefined}>
@@ -97,14 +101,14 @@ const SummaryDocument = ({ lessonTitle, meta, generatedOn, blocks }: Props) => (
         if (block.kind === "heading") {
           return (
             <Text key={index} style={styles.heading}>
-              <Inline block={block} />
+              <BlockSegments block={block} />
             </Text>
           );
         }
         if (block.kind === "paragraph") {
           return (
             <Text key={index} style={styles.paragraph}>
-              <Inline block={block} />
+              <BlockSegments block={block} />
             </Text>
           );
         }
@@ -114,7 +118,7 @@ const SummaryDocument = ({ lessonTitle, meta, generatedOn, blocks }: Props) => (
               {block.kind === "numbered" ? block.marker : "•"}
             </Text>
             <Text style={styles.rowBody}>
-              <Inline block={block} />
+              <BlockSegments block={block} />
             </Text>
           </View>
         );

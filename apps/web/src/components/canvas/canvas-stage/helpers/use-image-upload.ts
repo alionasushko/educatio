@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { UPLOAD_ROUTE } from "@/lib/routes";
 import { MAX_IMAGE_SIDE } from "./constants";
 
-interface Placed {
+export interface Placed {
   src: string;
   x: number;
   y: number;

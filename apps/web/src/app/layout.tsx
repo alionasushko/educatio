@@ -36,11 +36,11 @@ export const metadata: Metadata = {
     "Educatio is a collaborative whiteboard built for one-on-one online tutoring. Draw, write, share, and end every lesson with an AI summary.",
 };
 
-const RootLayout = ({
-  children,
-}: Readonly<{
+interface Props {
   children: React.ReactNode;
-}>) => {
+}
+
+const RootLayout = ({ children }: Props) => {
   return (
     <html
       lang="en"

@@ -34,7 +34,7 @@ import {
   type ColorTarget,
 } from "./helpers/use-canvas-mutations";
 import { usePen } from "./helpers/use-pen";
-import { useImageUpload } from "./helpers/use-image-upload";
+import { useImageUpload, type Placed } from "./helpers/use-image-upload";
 import { isCreatable, toCanvasPoint } from "./helpers/helpers";
 import CanvasElements from "./components/canvas-elements";
 import DraftStroke from "./components/draft-stroke";
@@ -115,19 +115,7 @@ const CanvasStage = ({
   );
 
   const placeImage = useCallback(
-    ({
-      src,
-      x,
-      y,
-      width,
-      height,
-    }: {
-      src: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }) => {
+    ({ src, x, y, width, height }: Placed) => {
       createImage(src, x, y, width, height);
       onChange({ tool: "select" });
     },
