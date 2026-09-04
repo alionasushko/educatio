@@ -5,12 +5,7 @@ import {
 } from "@nestjs/common";
 import { UPLOAD_TOO_LARGE } from "@educatio/shared/api/upload";
 
-const TOO_LARGE = new Set([
-  "FST_REQ_FILE_TOO_LARGE",
-  "FST_FILES_LIMIT",
-  "FST_PARTS_LIMIT",
-  "FST_FIELDS_LIMIT",
-]);
+const TOO_MANY_PARTS = new Set(["FST_PARTS_LIMIT", "FST_FIELDS_LIMIT"]);
 
 const BAD_REQUEST = new Set([
   "FST_INVALID_MULTIPART_CONTENT_TYPE",
@@ -28,9 +23,9 @@ export const multipartException = (err: unknown): HttpException | null => {
       message: UPLOAD_TOO_LARGE,
     });
   }
-  if (TOO_LARGE.has(code)) {
+  if (TOO_MANY_PARTS.has(code)) {
     return new PayloadTooLargeException({
-      code: "file_too_large",
+      code: "too_many_parts",
       message: "Send a single image and nothing else.",
     });
   }

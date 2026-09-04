@@ -3,6 +3,7 @@ import {
   ALLOWED_UPLOAD_TYPES,
   MAX_UPLOAD_BYTES,
   UPLOAD_TOO_LARGE,
+  UPLOAD_UNSUPPORTED_TYPE,
 } from "@educatio/shared/api/upload";
 import { relay, relayFailure as fail } from "@/lib/api-relay";
 import { uploadImage } from "@/lib/api-upload";
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!(ALLOWED_UPLOAD_TYPES as readonly string[]).includes(file.type)) {
     return fail(400, {
       code: "unsupported_type",
-      message: "Only PNG, JPG, WEBP, and GIF images are allowed.",
+      message: UPLOAD_UNSUPPORTED_TYPE,
     });
   }
   if (file.size > MAX_UPLOAD_BYTES) {

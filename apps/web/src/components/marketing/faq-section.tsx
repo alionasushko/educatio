@@ -31,12 +31,12 @@ const FAQ_ITEMS = [
   {
     id: "privacy",
     q: "Is my lesson data private?",
-    a: "Yes. Lessons are private to you and your student. We never use lesson content for advertising and never share it with anyone outside your session.",
+    a: "Yes. Lessons are private to you and your student. We never use lesson content for advertising and never share it with anyone outside your lesson.",
   },
   {
     id: "tablet",
     q: "Will Educatio work on a tablet?",
-    a: "Yes — tablet is fully supported for both tutor and student. On phones, lessons open in a clean read-only view so students can review past sessions.",
+    a: "Yes — tablet is fully supported for both tutor and student. On phones, lessons open in a clean read-only view so students can review past lessons.",
   },
 ] as const;
 

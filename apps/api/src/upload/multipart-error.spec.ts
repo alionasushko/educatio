@@ -10,16 +10,20 @@ const answer = (code: string) => {
 };
 
 describe("how a rejected multipart request is answered", () => {
-  it("answers 413 when the body carries more than one image", () => {
-    for (const code of [
-      "FST_REQ_FILE_TOO_LARGE",
-      "FST_FILES_LIMIT",
-      "FST_PARTS_LIMIT",
-      "FST_FIELDS_LIMIT",
-    ]) {
+  it("answers 413 with a size code when the image itself is too big", () => {
+    for (const code of ["FST_REQ_FILE_TOO_LARGE", "FST_FILES_LIMIT"]) {
       expect(answer(code), code).toEqual({
         status: HttpStatus.PAYLOAD_TOO_LARGE,
         code: "file_too_large",
+      });
+    }
+  });
+
+  it("answers 413 with its own code when the body carries extra parts", () => {
+    for (const code of ["FST_PARTS_LIMIT", "FST_FIELDS_LIMIT"]) {
+      expect(answer(code), code).toEqual({
+        status: HttpStatus.PAYLOAD_TOO_LARGE,
+        code: "too_many_parts",
       });
     }
   });

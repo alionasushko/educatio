@@ -51,7 +51,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
   const isEmpty = data !== null && data.total === 0 && status === "all" && !q;
   const subtitle = isEmpty
     ? "No lessons yet — create your first below."
-    : "Recent and active sessions.";
+    : "Recent and active lessons.";
 
   return (
     <>

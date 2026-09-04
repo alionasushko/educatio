@@ -40,8 +40,8 @@ const VerifyPage = async ({ searchParams }: Props) => {
         </p>
 
         <div className="border-border-subtle bg-bg text-text-secondary rounded-sm border px-4 py-3.5 text-[13px] leading-normal">
-          The link works for 10 minutes and on one device. Didn’t get it? Make
-          sure the address above is spelled correctly, then resend below.
+          The link works for 10 minutes and on one device. Didn&apos;t get it?
+          Make sure the address above is spelled correctly, then resend below.
         </div>
 
         <div className="border-border-subtle mt-5.5 flex items-center justify-between border-t pt-4.5 text-[13px]">

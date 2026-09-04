@@ -1,4 +1,8 @@
 import type { ErrorCode } from "@educatio/shared/api/errors";
+import {
+  UPLOAD_TOO_LARGE,
+  UPLOAD_UNSUPPORTED_TYPE,
+} from "@educatio/shared/api/upload";
 
 // Two web-side pseudo-codes for failures that never reach the api's contract:
 // the request didn't complete, and the 2xx body didn't match its endpoint.
@@ -23,8 +27,9 @@ export const ERROR_COPY: Record<ClientErrorCode, string> = {
   lesson_ended: "This lesson has ended and can no longer be changed.",
   limit_reached: "You've reached the limit for a demo account.",
   no_file: "Please choose a file to upload.",
-  file_too_large: "That file is too large.",
-  unsupported_type: "That file type isn't supported.",
+  file_too_large: UPLOAD_TOO_LARGE,
+  too_many_parts: "Send a single image and nothing else.",
+  unsupported_type: UPLOAD_UNSUPPORTED_TYPE,
   internal_error: "Something went wrong on our end. Please try again.",
   unreachable: "We couldn't reach the server. Please try again.",
   // Distinct from `unreachable`: the server answered, we couldn't use it. The

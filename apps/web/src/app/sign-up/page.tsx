@@ -63,7 +63,8 @@ const SignUpPage = async () => {
           <span className="text-text-primary font-medium">
             Are you a student?
           </span>{" "}
-          You don’t need an account — just open the lesson link your tutor sent.
+          You don&apos;t need an account — just open the lesson link your tutor
+          sent.
         </p>
       </div>
     </AuthLayout>

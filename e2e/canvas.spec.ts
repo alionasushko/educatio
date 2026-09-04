@@ -243,7 +243,9 @@ test("the image tool refuses a file that is not an image", async ({
     buffer: Buffer.from("not an image"),
   });
 
-  await expect(page.getByText("That file type isn't supported.")).toBeVisible();
+  await expect(
+    page.getByText("Only PNG, JPG, WEBP, and GIF images are allowed."),
+  ).toBeVisible();
 });
 
 test("the image tool hands the canvas back after placing one", async ({

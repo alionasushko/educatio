@@ -14,6 +14,7 @@ import type { MultipartFile } from "@fastify/multipart";
 import {
   MAX_UPLOAD_BYTES,
   UPLOAD_TOO_LARGE,
+  UPLOAD_UNSUPPORTED_TYPE,
   type UploadResponse,
 } from "@educatio/shared/api/upload";
 import { detectImageType } from "./image-type";
@@ -72,7 +73,7 @@ export class UploadService {
     if (!contentType) {
       throw new BadRequestException({
         code: "unsupported_type",
-        message: "Only PNG, JPG, WEBP, and GIF images are allowed.",
+        message: UPLOAD_UNSUPPORTED_TYPE,
       });
     }
 

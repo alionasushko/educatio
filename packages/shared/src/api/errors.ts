@@ -22,6 +22,7 @@ export const errorCodeSchema = z.enum([
   "lesson_ended",
   "no_file",
   "file_too_large",
+  "too_many_parts",
   "unsupported_type",
 ]);
 

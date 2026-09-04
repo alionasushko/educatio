@@ -88,7 +88,7 @@ const SettingsPage = async () => {
               variant="outline"
               size="form"
             >
-              {user.hasPassword ? "Change password" : "Set a password"}
+              {user.hasPassword ? "Change password" : "Set password"}
             </ButtonLink>
           </Card>
 
