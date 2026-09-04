@@ -17,11 +17,15 @@ import {
 } from "@educatio/shared/api/upload";
 import { detectImageType } from "./image-type";
 
-const UPLOADS_PER_LESSON = 30;
 import type { Env } from "../config/env";
 import type { SessionClaims } from "@educatio/shared";
 import { Upload, UploadDocument } from "../schemas/upload.schema";
 import { LessonsService } from "../lessons/lessons.service";
+
+const UPLOADS_PER_LESSON = 30;
+const UNSAFE_FILENAME_CHARS = /[^a-zA-Z0-9._-]/g;
+const MAX_FILENAME_LENGTH = 64;
+const FALLBACK_FILENAME = "image";
 
 @Injectable()
 export class UploadService {
@@ -84,7 +88,11 @@ export class UploadService {
       });
     }
 
-    const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const provided: string | undefined = file.filename;
+    const cleaned = (provided ?? "")
+      .replace(UNSAFE_FILENAME_CHARS, "_")
+      .slice(0, MAX_FILENAME_LENGTH);
+    const safeName = cleaned || FALLBACK_FILENAME;
     const { url } = await put(`uploads/${randomUUID()}-${safeName}`, buffer, {
       access: "public",
       token,
