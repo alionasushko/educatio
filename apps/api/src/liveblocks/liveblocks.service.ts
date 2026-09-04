@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
 } from "@nestjs/common";
@@ -14,6 +15,8 @@ import type { SessionClaims } from "@educatio/shared";
 
 @Injectable()
 export class LiveblocksService {
+  private readonly logger = new Logger(LiveblocksService.name);
+
   constructor(
     @InjectModel(Lesson.name) private readonly lessons: Model<LessonDocument>,
     private readonly config: ConfigService<Env, true>,
@@ -53,7 +56,26 @@ export class LiveblocksService {
       userInfo: { name, role: session.kind },
     });
     lbSession.allow(room, lbSession.FULL_ACCESS);
-    const { body } = await lbSession.authorize();
-    return JSON.parse(body) as unknown;
+    const { status, body, error } = await lbSession.authorize();
+
+    if (status !== 200 || error) {
+      this.unavailable(
+        `refused a room token for ${room}: status ${status}${error ? ` — ${error.message}` : ""}`,
+      );
+    }
+
+    try {
+      return JSON.parse(body) as unknown;
+    } catch {
+      this.unavailable(`returned a token for ${room} that is not JSON`);
+    }
+  }
+
+  private unavailable(reason: string): never {
+    this.logger.error(`Liveblocks ${reason}`);
+    throw new ServiceUnavailableException({
+      code: "service_unavailable",
+      message: "Liveblocks is unavailable",
+    });
   }
 }
