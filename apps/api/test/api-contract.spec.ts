@@ -559,3 +559,63 @@ describe("what the api will not accept in a request string", () => {
     expect(expectShape(apiErrorSchema, res.data).code).toBe("validation_error");
   });
 });
+
+describe("signing in with a password", () => {
+  const claimsOf = (jwt: string) =>
+    JSON.parse(Buffer.from(jwt.split(".")[1]!, "base64url").toString()) as {
+      email: string;
+    };
+
+  it("accepts the right password and refuses every wrong turn identically", async () => {
+    const tutorJwt = await api.newTutorJwt();
+    const { email } = claimsOf(tutorJwt);
+    const password = "a-good-enough-password";
+
+    const set = await call(authPath(AUTH_ACTIONS.password), {
+      method: "POST",
+      body: { password },
+      token: tutorJwt,
+    });
+    expect(set.status).toBe(200);
+    expectShape(sessionResponseSchema, set.data);
+
+    const ok = await call(authPath(AUTH_ACTIONS.signinPassword), {
+      method: "POST",
+      auth: false,
+      body: { email, password },
+    });
+    expect(ok.status).toBe(200);
+    expectShape(sessionResponseSchema, ok.data);
+
+    const unverified = `unverified-${Date.now()}@example.com`;
+    await call(authPath(AUTH_ACTIONS.signup), {
+      method: "POST",
+      auth: false,
+      body: { name: "Not Verified", email: unverified },
+    });
+
+    const refusals = [
+      { email, password: "not-the-password" },
+      { email: `nobody-${Date.now()}@example.com`, password },
+      { email: unverified, password },
+    ];
+
+    const answers = [];
+    for (const body of refusals) {
+      const res = await call(authPath(AUTH_ACTIONS.signinPassword), {
+        method: "POST",
+        auth: false,
+        body,
+      });
+      expect(res.status).toBe(401);
+      answers.push(JSON.stringify(res.data));
+    }
+
+    // Wrong password, unknown address and unverified account must be
+    // indistinguishable, or the response is an account-existence oracle.
+    expect(new Set(answers).size).toBe(1);
+    expect(expectShape(apiErrorSchema, JSON.parse(answers[0]!)).code).toBe(
+      "invalid_credentials",
+    );
+  });
+});
