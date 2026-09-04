@@ -26,19 +26,10 @@ export type TutorSessionClaims = z.infer<typeof tutorSessionClaimsSchema>;
 export type StudentSessionClaims = z.infer<typeof studentSessionClaimsSchema>;
 export type SessionClaims = z.infer<typeof sessionClaimsSchema>;
 
-export function isTutorSession(c: SessionClaims): c is TutorSessionClaims {
-  return c.kind === "tutor";
-}
-
-export function isStudentSession(c: SessionClaims): c is StudentSessionClaims {
-  return c.kind === "student";
-}
-
 export interface PublicUser {
   id: string;
   email: string;
   name: string;
-  image?: string;
   teaches?: string;
   hasPassword: boolean;
   isDemo: boolean;

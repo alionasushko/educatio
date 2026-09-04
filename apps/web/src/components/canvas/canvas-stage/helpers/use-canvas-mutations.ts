@@ -31,7 +31,6 @@ export const useDeleteElement = () =>
     if (!elements.delete(id)) return;
     storage.get("metadata").update({
       lastEditedAt: Date.now(),
-      elementCount: elements.size,
     });
   }, []);
 
@@ -79,7 +78,6 @@ export const useRecolorElement = () =>
     elements.set(id, recolored);
     storage.get("metadata").update({
       lastEditedAt: Date.now(),
-      elementCount: elements.size,
     });
   }, []);
 
@@ -103,7 +101,6 @@ export const useCreateElement = () =>
       elements.set(element.id, element);
       storage.get("metadata").update({
         lastEditedAt: Date.now(),
-        elementCount: elements.size,
       });
       return element.id;
     },
@@ -137,7 +134,6 @@ export const useCreatePath = () =>
       elements.set(element.id, element);
       storage.get("metadata").update({
         lastEditedAt: Date.now(),
-        elementCount: elements.size,
       });
       return element.id;
     },
@@ -171,7 +167,6 @@ export const useCreateImage = () =>
       elements.set(element.id, element);
       storage.get("metadata").update({
         lastEditedAt: Date.now(),
-        elementCount: elements.size,
       });
     },
     [],

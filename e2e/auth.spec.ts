@@ -35,7 +35,7 @@ test("a dead session is cleared and sent to sign in, not looped", async ({
     },
   ]);
 
-  await page.goto("/auth/expired?from=/dashboard");
+  await page.goto("/auth/expired");
 
   await expect(page).toHaveURL(/\/sign-in/);
   await expect(page.getByRole("alert").first()).toContainText(/signed out/i);

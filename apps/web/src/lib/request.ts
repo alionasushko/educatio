@@ -9,11 +9,6 @@ export const isCrossSiteRequest = (req: NextRequest): boolean => {
   return origin !== null && origin !== req.nextUrl.origin;
 };
 
-export const clientIpHeaders = (req: NextRequest): Record<string, string> => {
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  return forwardedFor ? { "x-forwarded-for": forwardedFor } : {};
-};
-
 const POST_LOGIN_PREFIXES = [
   "/dashboard",
   "/lesson",

@@ -85,7 +85,6 @@ export const publicUserSchema = z.object({
   id: z.string(),
   email: z.string(),
   name: z.string(),
-  image: z.string().optional(),
   teaches: z.string().optional(),
   hasPassword: z.boolean(),
   isDemo: z.boolean(),

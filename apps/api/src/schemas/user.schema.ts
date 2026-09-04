@@ -11,9 +11,6 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop()
-  image?: string;
-
   @Prop({ type: Date, default: null })
   emailVerified: Date | null;
 

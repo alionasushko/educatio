@@ -9,5 +9,3 @@ if (dsn) {
     tracesSampleRate: 0.1,
   });
 }
-
-export const sentryEnabled = Boolean(dsn);

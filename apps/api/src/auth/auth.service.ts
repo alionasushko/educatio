@@ -370,7 +370,6 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      image: user.image,
       teaches: user.teaches,
       hasPassword: !!user.passwordHash,
       isDemo: user.isDemo,

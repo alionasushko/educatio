@@ -35,5 +35,5 @@ export const joinLessonAction = async (
     sessionJwt,
     sessionCookieOptionsFor(claims.exp),
   );
-  redirect(`/lesson/${encodeURIComponent(claims.lessonId)}?role=student`);
+  redirect(`/lesson/${encodeURIComponent(claims.lessonId)}`);
 };

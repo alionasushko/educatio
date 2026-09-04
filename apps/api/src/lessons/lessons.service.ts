@@ -174,7 +174,6 @@ export class LessonsService {
             liveblocksType: "LiveObject",
             data: {
               lastEditedAt: Date.now(),
-              elementCount: Object.keys(canvasState).length,
             },
           },
         },

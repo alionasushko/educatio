@@ -36,7 +36,6 @@ export type ElementTransform = {
 
 export type CanvasMetadata = {
   lastEditedAt: number;
-  elementCount: number;
 };
 
 declare global {

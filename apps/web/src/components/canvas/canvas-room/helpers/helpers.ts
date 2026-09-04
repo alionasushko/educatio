@@ -10,7 +10,6 @@ export const buildInitialStorage = (snapshot: Snapshot) => {
     elements: new LiveMap(elements),
     metadata: new LiveObject({
       lastEditedAt: snapshot ? Date.parse(snapshot.snapshotAt) : 0,
-      elementCount: elements.length,
     }),
   };
 };
