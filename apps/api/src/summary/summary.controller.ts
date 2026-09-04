@@ -1,4 +1,5 @@
 import { Controller, HttpCode, Param, Post, UseGuards } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { SummaryService } from "./summary.service";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { CurrentTutor } from "../common/session.decorator";
@@ -14,6 +15,7 @@ export class SummaryController {
 
   @Post()
   @HttpCode(200)
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   generate(
     @Param("lessonId", ObjectIdPipe) lessonId: string,
     @CurrentTutor() tutor: TutorSessionClaims,

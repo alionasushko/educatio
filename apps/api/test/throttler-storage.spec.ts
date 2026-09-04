@@ -87,6 +87,25 @@ describe("concurrency", () => {
   });
 });
 
+describe("refunds", () => {
+  it("gives a hit back so a failed call does not spend it", async () => {
+    await hit("refunded");
+    await hit("refunded");
+    await storage.refund("refunded", "default");
+
+    expect((await hit("refunded")).totalHits).toBe(2);
+  });
+
+  it("cannot push a counter below zero, or touch another throttler", async () => {
+    await storage.refund("never-counted", "default");
+    await hit("scoped");
+    await storage.refund("scoped", "strict");
+
+    expect((await hit("never-counted")).totalHits).toBe(1);
+    expect((await hit("scoped")).totalHits).toBe(2);
+  });
+});
+
 describe("durability", () => {
   it("survives the process that counted them", async () => {
     await hit("persisted");

@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   Logger,
   ServiceUnavailableException,
@@ -10,7 +11,21 @@ import { MongoThrottlerStorage } from "../common/mongo-throttler.storage";
 import type { Env } from "../config/env";
 import type { CanvasElement, LessonSummary } from "@educatio/shared";
 
+const DAY_MS = 24 * 60 * 60_000;
+const SUMMARY_COUNTER = "summary";
+const GLOBAL_BUDGET_KEY = "gemini";
+const DEMO_POOL_BUDGET_KEY = "demo-pool";
+
 export const SUMMARY_DAILY_LIMIT = 200;
+export const SUMMARY_DEMO_POOL_DAILY_LIMIT = 40;
+export const SUMMARY_TUTOR_DAILY_LIMIT = 20;
+export const SUMMARY_DEMO_TUTOR_DAILY_LIMIT = 3;
+
+interface SummaryBudget {
+  key: string;
+  limit: number;
+  shared: boolean;
+}
 
 export const SUMMARY_MODELS = [
   "gemini-3.5-flash",
@@ -60,27 +75,85 @@ export class SummaryService {
       serialized,
     );
 
-    await this.assertDailyHeadroom();
+    const reserved = await this.reserveBudget(tutorId);
 
-    const text = await this.callModel(prompt);
+    let text: string;
+    try {
+      text = await this.callModel(prompt);
+    } catch (err) {
+      await this.refundBudget(reserved);
+      throw err;
+    }
+
     const summary = await this.lessonsService.saveSummary(lesson, text);
     return { summary };
   }
 
-  private async assertDailyHeadroom(): Promise<void> {
-    const day = 24 * 60 * 60_000;
-    const { isBlocked } = await this.counters.increment(
-      "gemini",
-      day,
-      SUMMARY_DAILY_LIMIT,
-      day,
-      "summary",
-    );
-    if (isBlocked) {
-      throw new ServiceUnavailableException({
-        code: "service_unavailable",
-        message: "Summaries are paused for today.",
-      });
+  private async budgets(tutorId: string): Promise<SummaryBudget[]> {
+    const perTutor = `tutor:${tutorId}`;
+    const global = {
+      key: GLOBAL_BUDGET_KEY,
+      limit: SUMMARY_DAILY_LIMIT,
+      shared: true,
+    };
+
+    if (!(await this.lessonsService.isDemoTutor(tutorId))) {
+      return [
+        { key: perTutor, limit: SUMMARY_TUTOR_DAILY_LIMIT, shared: false },
+        global,
+      ];
+    }
+    return [
+      { key: perTutor, limit: SUMMARY_DEMO_TUTOR_DAILY_LIMIT, shared: false },
+      {
+        key: DEMO_POOL_BUDGET_KEY,
+        limit: SUMMARY_DEMO_POOL_DAILY_LIMIT,
+        shared: true,
+      },
+      global,
+    ];
+  }
+
+  private async reserveBudget(tutorId: string): Promise<string[]> {
+    const reserved: string[] = [];
+
+    for (const budget of await this.budgets(tutorId)) {
+      const { isBlocked } = await this.counters.increment(
+        budget.key,
+        DAY_MS,
+        budget.limit,
+        DAY_MS,
+        SUMMARY_COUNTER,
+      );
+      if (!isBlocked) {
+        reserved.push(budget.key);
+        continue;
+      }
+
+      await this.refundBudget(reserved);
+      throw budget.shared
+        ? new ServiceUnavailableException({
+            code: "service_unavailable",
+            message: "Summaries are paused for today.",
+          })
+        : new ForbiddenException({
+            code: "limit_reached",
+            message: "You've used today's summaries. Try again tomorrow.",
+          });
+    }
+
+    return reserved;
+  }
+
+  private async refundBudget(keys: string[]): Promise<void> {
+    for (const key of keys) {
+      try {
+        await this.counters.refund(key, SUMMARY_COUNTER);
+      } catch (err) {
+        this.logger.warn(
+          `Failed to refund the ${key} summary budget: ${String(err)}`,
+        );
+      }
     }
   }
 

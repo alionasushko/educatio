@@ -95,4 +95,15 @@ export class MongoThrottlerStorage implements ThrottlerStorage {
         : 0,
     };
   }
+
+  async refund(key: string, throttlerName: string): Promise<void> {
+    await this.hits.updateOne(
+      {
+        _id: `${throttlerName}:${key}`,
+        totalHits: { $gt: 0 },
+        expiresAt: { $gt: new Date() },
+      },
+      { $inc: { totalHits: -1 } },
+    );
+  }
 }
