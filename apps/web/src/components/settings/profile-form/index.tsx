@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { updateProfileSchema } from "@educatio/shared/api/auth";
 import { updateNameAction } from "@/app/settings/actions";
@@ -57,11 +57,10 @@ const ProfileForm = ({ name: initialName }: Props) => {
       <Button
         type="submit"
         disabled={isPending || unchanged}
-        className="mt-4 h-10 px-4 text-sm"
+        size="form"
+        className="mt-4"
       >
-        {isPending && (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        )}
+        {isPending && <Spinner />}
         {isPending ? "Saving…" : "Save name"}
       </Button>
     </form>

@@ -86,7 +86,7 @@ const SettingsPage = async () => {
             <ButtonLink
               href="/set-password?next=/settings"
               variant="outline"
-              className="h-10 px-4 text-sm"
+              size="form"
             >
               {user.hasPassword ? "Change password" : "Set a password"}
             </ButtonLink>

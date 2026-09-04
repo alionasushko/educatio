@@ -26,11 +26,7 @@ const MessageScreen = ({ title, body, href, linkLabel, action }: Props) => (
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           {action}
-          <ButtonLink
-            href={href}
-            variant="outline"
-            className="h-10 px-4 text-sm"
-          >
+          <ButtonLink href={href} variant="outline" size="form">
             {linkLabel}
           </ButtonLink>
         </div>

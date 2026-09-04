@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2Icon } from "lucide-react";
 import Dialog from "@/components/ui/dialog";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 
 interface Props {
   title: string;
@@ -49,7 +49,7 @@ const ConfirmDialog = ({
         onClick={onClose}
         disabled={pending}
         autoFocus
-        className="h-10 px-4 text-sm"
+        size="form"
       >
         Cancel
       </Button>
@@ -58,11 +58,9 @@ const ConfirmDialog = ({
         variant="destructive"
         onClick={onConfirm}
         disabled={pending}
-        className="h-10 gap-1.5 px-4 text-sm"
+        size="form"
       >
-        {pending && (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        )}
+        {pending && <Spinner />}
         {pending ? pendingLabel : confirmLabel}
       </Button>
     </div>

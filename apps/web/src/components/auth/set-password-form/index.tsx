@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { setPasswordSchema } from "@educatio/shared/api/auth";
 import { setPasswordAction } from "@/app/set-password/actions";
@@ -82,9 +82,7 @@ const SetPasswordForm = ({ hasPassword, needsCurrent, next }: Props) => {
         disabled={isPending}
         className="h-11 w-full text-[15px]"
       >
-        {isPending && (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        )}
+        {isPending && <Spinner />}
         {isPending
           ? "Saving…"
           : hasPassword

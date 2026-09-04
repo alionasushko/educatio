@@ -19,14 +19,15 @@ const TutorNotice = ({ email, onContinue }: Props) => (
     </p>
 
     <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
-      <ButtonLink href="/dashboard" className="h-10 flex-1 px-4 text-sm">
+      <ButtonLink href="/dashboard" size="form" className="flex-1">
         Back to my dashboard
       </ButtonLink>
       <Button
         type="button"
         variant="outline"
         onClick={onContinue}
-        className="h-10 flex-1 px-4 text-sm"
+        size="form"
+        className="flex-1"
       >
         Join as a student
       </Button>

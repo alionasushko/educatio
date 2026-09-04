@@ -15,7 +15,8 @@ const NewLessonButton = () => {
       <Button
         type="button"
         onClick={() => setOpen(true)}
-        className="h-10 shrink-0 gap-1.5 px-4 text-sm"
+        size="form"
+        className="shrink-0"
       >
         <PlusIcon className="size-3.5" strokeWidth={2.2} aria-hidden="true" />
         Start new lesson

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signupAction } from "@/app/sign-up/actions";
 import { validate } from "./helpers/helpers";
@@ -107,9 +107,7 @@ const SignUpForm = () => {
         disabled={isPending}
         className="h-12 w-full text-[15px]"
       >
-        {isPending && (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        )}
+        {isPending && <Spinner />}
         {isPending ? "Creating…" : "Create account"}
       </Button>
     </form>

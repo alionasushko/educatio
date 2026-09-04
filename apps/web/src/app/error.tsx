@@ -21,7 +21,7 @@ const RouteError = ({ error, unstable_retry }: Props) => {
       href="/dashboard"
       linkLabel="Back to dashboard"
       action={
-        <Button onClick={() => unstable_retry()} className="h-10 px-4 text-sm">
+        <Button size="form" onClick={() => unstable_retry()}>
           Try again
         </Button>
       }

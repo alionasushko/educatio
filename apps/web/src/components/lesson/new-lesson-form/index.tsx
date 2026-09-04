@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { createLessonSchema } from "@educatio/shared/api/lessons";
 import { createLessonAction } from "@/app/lesson/new/actions";
@@ -112,18 +112,12 @@ const NewLessonForm = ({ onCancel }: Props) => {
           type="button"
           variant="ghost"
           onClick={handleCancel}
-          className="h-10 px-4 text-sm"
+          size="form"
         >
           Cancel
         </Button>
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="h-10 gap-1.5 px-4 text-sm"
-        >
-          {isPending && (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-          )}
+        <Button type="submit" disabled={isPending} size="form">
+          {isPending && <Spinner />}
           {isPending ? "Creating…" : "Create lesson"}
         </Button>
       </div>

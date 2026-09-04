@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { studentSessionSchema } from "@educatio/shared/api/sessions";
 import { joinLessonAction } from "@/app/join/[inviteCode]/actions";
@@ -104,11 +104,10 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
         <Button
           type="submit"
           disabled={isPending}
-          className="mt-6 h-10 w-full gap-1.5 px-4 text-sm"
+          size="form"
+          className="mt-6 w-full"
         >
-          {isPending && (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-          )}
+          {isPending && <Spinner />}
           {isPending ? "Joining…" : "Join lesson"}
         </Button>
       </form>

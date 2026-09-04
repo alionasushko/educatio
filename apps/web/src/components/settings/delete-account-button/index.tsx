@@ -35,7 +35,7 @@ const DeleteAccountButton = ({ email }: Props) => {
           setError(undefined);
           setOpen(true);
         }}
-        className="h-10 px-4 text-sm"
+        size="form"
       >
         Delete account
       </Button>

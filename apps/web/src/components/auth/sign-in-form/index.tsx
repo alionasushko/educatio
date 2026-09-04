@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { Loader2Icon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
@@ -117,9 +117,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
       )}
 
       <Button type="submit" disabled={busy} className="h-12 w-full text-[15px]">
-        {isPending && (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
-        )}
+        {isPending && <Spinner />}
         {isPending ? "Signing in…" : "Sign in"}
       </Button>
 

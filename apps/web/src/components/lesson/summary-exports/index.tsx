@@ -1,14 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CheckIcon,
-  CopyIcon,
-  FileTextIcon,
-  Loader2Icon,
-  DownloadIcon,
-} from "lucide-react";
+import { CheckIcon, CopyIcon, FileTextIcon, DownloadIcon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import { parseSummaryBlocks, toPlainText } from "@/lib/summary-markdown";
 
 interface Props {
@@ -94,7 +89,7 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
         className={control}
       >
         {busy ? (
-          <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
+          <Spinner />
         ) : (
           <DownloadIcon className="size-4" aria-hidden="true" />
         )}

@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Markdown from "react-markdown";
-import { Loader2Icon, SparklesIcon } from "lucide-react";
+import { SparklesIcon } from "lucide-react";
 import Button from "@/components/ui/button";
+import Spinner from "@/components/ui/spinner";
 import { generateSummaryAction } from "@/app/lesson/[lessonId]/actions";
 
 const POLL_MS = 4_000;
@@ -95,10 +96,11 @@ const LessonSummary = ({ lessonId, text, canGenerate }: Props) => {
           type="button"
           onClick={generate}
           disabled={isPending}
-          className="mt-5 h-10 gap-1.5 px-4 text-sm"
+          size="form"
+          className="mt-5"
         >
           {isPending ? (
-            <Loader2Icon className="size-4 animate-spin" aria-hidden="true" />
+            <Spinner />
           ) : (
             <SparklesIcon className="size-4" aria-hidden="true" />
           )}
