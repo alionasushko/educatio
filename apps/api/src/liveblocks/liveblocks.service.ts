@@ -1,15 +1,11 @@
 import {
-  ForbiddenException,
   Injectable,
   Logger,
-  NotFoundException,
   ServiceUnavailableException,
 } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
 import { ConfigService } from "@nestjs/config";
 import { Liveblocks } from "@liveblocks/node";
-import { Lesson, LessonDocument } from "../schemas/lesson.schema";
+import { LessonsService } from "../lessons/lessons.service";
 import type { Env } from "../config/env";
 import type { SessionClaims } from "@educatio/shared";
 
@@ -18,26 +14,13 @@ export class LiveblocksService {
   private readonly logger = new Logger(LiveblocksService.name);
 
   constructor(
-    @InjectModel(Lesson.name) private readonly lessons: Model<LessonDocument>,
+    private readonly lessonsService: LessonsService,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
   async authorize(session: SessionClaims, room: string): Promise<unknown> {
-    const lesson = await this.lessons.findOne({ liveblocksRoomId: room });
-    if (!lesson) throw new NotFoundException("Room not found");
-
-    const allowed =
-      session.kind === "tutor"
-        ? lesson.tutorId.toString() === session.sub
-        : lesson.id === session.lessonId;
-    if (!allowed) throw new NotFoundException("Room not found");
-
-    if (lesson.status === "ended") {
-      throw new ForbiddenException({
-        code: "lesson_ended",
-        message: "This lesson has ended.",
-      });
-    }
+    const lesson = await this.lessonsService.findByRoomOr404(room);
+    this.lessonsService.assertCanWrite(lesson, session);
 
     const secret = this.config.get("LIVEBLOCKS_SECRET_KEY", { infer: true });
     if (!secret) {

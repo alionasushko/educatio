@@ -275,10 +275,14 @@ export class AuthService {
 
   async deleteAccount(claims: TutorSessionClaims): Promise<{ ok: true }> {
     const user = await this.ownUser(claims);
+    await this.purgeUser(user);
+    return { ok: true };
+  }
+
+  private async purgeUser(user: UserDocument): Promise<void> {
     await this.lessonsService.deleteAllForTutor(user.id);
     await this.magicLinks.deleteMany({ userId: user._id });
     await user.deleteOne();
-    return { ok: true };
   }
 
   private async ownUser(claims: TutorSessionClaims): Promise<UserDocument> {
@@ -322,9 +326,7 @@ export class AuthService {
         continue;
       }
       try {
-        await this.lessonsService.deleteAllForTutor(user.id);
-        await this.magicLinks.deleteMany({ userId: user._id });
-        await user.deleteOne();
+        await this.purgeUser(user);
       } catch (err) {
         this.logger.warn(`Failed to sweep demo account: ${String(err)}`);
       }
@@ -422,8 +424,7 @@ export class AuthService {
         continue;
       }
       try {
-        await this.magicLinks.deleteMany({ userId: user._id });
-        await user.deleteOne();
+        await this.purgeUser(user);
       } catch (err) {
         this.logger.warn(`Failed to sweep unverified account: ${String(err)}`);
       }

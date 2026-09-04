@@ -4,12 +4,11 @@ import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import LessonsView from "@/components/dashboard/lessons-view";
 import DashboardEmptyState from "@/components/dashboard/dashboard-empty-state";
 import NewLessonButton from "@/components/lesson/new-lesson-button";
+import LoadFailure from "@/components/ui/load-failure";
 import TimezoneBootstrap from "@/components/timezone-bootstrap";
-import { ButtonLink } from "@/components/ui/button";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { listLessons } from "@/lib/api-lessons";
 import { query } from "@/lib/api-error";
-import { ERROR_COPY } from "@/lib/error-messages";
 import { requireTutor } from "@/lib/session-server";
 import { dashboardHref } from "@/lib/routes";
 import { readTimeZone } from "@/lib/timezone-server";
@@ -75,23 +74,11 @@ const DashboardPage = async ({ searchParams }: Props) => {
         action={<NewLessonButton />}
       >
         {data === null ? (
-          <div className="flex h-full items-center justify-center p-10">
-            <div className="max-w-90 text-center">
-              <p className="text-text-primary text-base font-medium">
-                We couldn&apos;t load your lessons
-              </p>
-              <p className="text-text-tertiary mt-1 text-sm">
-                {ERROR_COPY[lessons.code ?? "internal_error"]}
-              </p>
-              <ButtonLink
-                href={currentHref}
-                variant="outline"
-                className="mt-4 h-9 px-4 text-sm"
-              >
-                Retry
-              </ButtonLink>
-            </div>
-          </div>
+          <LoadFailure
+            title="We couldn't load your lessons"
+            code={lessons.code}
+            retryHref={currentHref}
+          />
         ) : isEmpty ? (
           <DashboardEmptyState />
         ) : (

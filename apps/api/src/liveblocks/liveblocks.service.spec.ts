@@ -21,7 +21,10 @@ const service = () => {
     status: "active",
   };
   return new LiveblocksService(
-    { findOne: async () => lesson } as never,
+    {
+      findByRoomOr404: async () => lesson,
+      assertCanWrite: () => undefined,
+    } as never,
     { get: () => "sk_test" } as never,
   );
 };

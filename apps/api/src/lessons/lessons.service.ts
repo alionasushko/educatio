@@ -32,6 +32,7 @@ import type {
   UpdateLessonInput,
 } from "@educatio/shared/api/lessons";
 
+const LESSON_MISSING = "Lesson not found";
 const BLOB_DELETE_BATCH = 100;
 const DEMO_LESSON_LIMIT = 20;
 
@@ -294,10 +295,7 @@ export class LessonsService {
     tutorId: string,
     input: UpdateLessonInput,
   ): Promise<LessonDTO> {
-    const lesson = await this.findOr404(id);
-    if (lesson.tutorId.toString() !== tutorId) {
-      throw new NotFoundException("Lesson not found");
-    }
+    const lesson = await this.getOwnedOr403(id, tutorId);
 
     if (input.title !== undefined) lesson.title = input.title;
     if (input.studentName !== undefined) lesson.studentName = input.studentName;
@@ -315,16 +313,22 @@ export class LessonsService {
 
   async findOr404(id: string): Promise<LessonDocument> {
     if (!Types.ObjectId.isValid(id))
-      throw new NotFoundException("Lesson not found");
+      throw new NotFoundException(LESSON_MISSING);
     const lesson = await this.lessons.findById(id);
-    if (!lesson) throw new NotFoundException("Lesson not found");
+    if (!lesson) throw new NotFoundException(LESSON_MISSING);
+    return lesson;
+  }
+
+  async findByRoomOr404(room: string): Promise<LessonDocument> {
+    const lesson = await this.lessons.findOne({ liveblocksRoomId: room });
+    if (!lesson) throw new NotFoundException(LESSON_MISSING);
     return lesson;
   }
 
   async getOwnedOr403(id: string, tutorId: string): Promise<LessonDocument> {
     const lesson = await this.findOr404(id);
     if (lesson.tutorId.toString() !== tutorId) {
-      throw new NotFoundException("Lesson not found");
+      throw new NotFoundException(LESSON_MISSING);
     }
     return lesson;
   }
@@ -354,7 +358,7 @@ export class LessonsService {
       session.kind === "tutor"
         ? lesson.tutorId.toString() === session.sub
         : lesson.id === session.lessonId;
-    if (!ok) throw new NotFoundException("Lesson not found");
+    if (!ok) throw new NotFoundException(LESSON_MISSING);
   }
 
   private async uniqueInviteCode(): Promise<string> {

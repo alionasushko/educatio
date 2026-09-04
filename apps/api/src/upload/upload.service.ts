@@ -13,10 +13,11 @@ import { put } from "@vercel/blob";
 import type { MultipartFile } from "@fastify/multipart";
 import {
   MAX_UPLOAD_BYTES,
+  UPLOAD_TOO_LARGE,
   type UploadResponse,
 } from "@educatio/shared/api/upload";
 import { detectImageType } from "./image-type";
-import { UPLOAD_TOO_LARGE, multipartException } from "./multipart-error";
+import { multipartException } from "./multipart-error";
 
 import type { Env } from "../config/env";
 import type { SessionClaims } from "@educatio/shared";

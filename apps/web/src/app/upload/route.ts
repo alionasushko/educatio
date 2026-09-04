@@ -1,14 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import {
   ALLOWED_UPLOAD_TYPES,
   MAX_UPLOAD_BYTES,
+  UPLOAD_TOO_LARGE,
 } from "@educatio/shared/api/upload";
-import type { ApiError } from "@educatio/shared/api/errors";
-import { ApiClientError, isApiFailure } from "@/lib/api-client";
+import { relay, relayFailure as fail } from "@/lib/api-relay";
 import { uploadImage } from "@/lib/api-upload";
-
-const fail = (status: number, body: ApiError) =>
-  NextResponse.json(body, { status });
 
 export async function POST(req: NextRequest) {
   const lessonId = req.nextUrl.searchParams.get("lessonId");
@@ -45,21 +42,9 @@ export async function POST(req: NextRequest) {
   if (file.size > MAX_UPLOAD_BYTES) {
     return fail(413, {
       code: "file_too_large",
-      message: "Images must be 5MB or smaller.",
+      message: UPLOAD_TOO_LARGE,
     });
   }
 
-  try {
-    return NextResponse.json(await uploadImage(form, lessonId));
-  } catch (err) {
-    if (err instanceof ApiClientError) return fail(err.status, err.body);
-    if (isApiFailure(err)) {
-      console.error(err);
-      return fail(502, {
-        code: "service_unavailable",
-        message: "Could not reach the lesson service.",
-      });
-    }
-    throw err;
-  }
+  return relay(() => uploadImage(form, lessonId));
 }

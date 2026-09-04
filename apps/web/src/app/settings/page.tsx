@@ -5,9 +5,9 @@ import ProfileForm from "@/components/settings/profile-form";
 import DeleteAccountButton from "@/components/settings/delete-account-button";
 import Card from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
+import LoadFailure from "@/components/ui/load-failure";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
-import { ERROR_COPY } from "@/lib/error-messages";
 import { requireTutor } from "@/lib/session-server";
 
 export const metadata: Metadata = {
@@ -40,23 +40,11 @@ const SettingsPage = async () => {
       }
     >
       {user === null ? (
-        <div className="flex h-full items-center justify-center p-10">
-          <div className="max-w-90 text-center">
-            <p className="text-text-primary text-base font-medium">
-              We couldn&apos;t load your account
-            </p>
-            <p className="text-text-tertiary mt-1 text-sm">
-              {ERROR_COPY[me.code ?? "internal_error"]}
-            </p>
-            <ButtonLink
-              href="/settings"
-              variant="outline"
-              className="mt-4 h-9 px-4 text-sm"
-            >
-              Retry
-            </ButtonLink>
-          </div>
-        </div>
+        <LoadFailure
+          title="We couldn't load your account"
+          code={me.code}
+          retryHref="/settings"
+        />
       ) : (
         <div className="flex max-w-140 flex-col gap-5 p-6 md:p-10">
           {user.isDemo && (

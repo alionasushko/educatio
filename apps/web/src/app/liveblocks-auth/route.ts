@@ -1,11 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import { liveblocksAuthSchema } from "@educatio/shared/api/liveblocks";
-import type { ApiError } from "@educatio/shared/api/errors";
-import { ApiClientError, isApiFailure } from "@/lib/api-client";
+import { relay, relayFailure as fail } from "@/lib/api-relay";
 import { authorizeRoom } from "@/lib/api-liveblocks";
-
-const fail = (status: number, body: ApiError) =>
-  NextResponse.json(body, { status });
 
 export async function POST(req: NextRequest) {
   let payload: unknown;
@@ -23,17 +19,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  try {
-    return NextResponse.json(await authorizeRoom(parsed.data.room));
-  } catch (err) {
-    if (err instanceof ApiClientError) return fail(err.status, err.body);
-    if (isApiFailure(err)) {
-      console.error(err);
-      return fail(502, {
-        code: "service_unavailable",
-        message: "Could not reach the lesson service.",
-      });
-    }
-    throw err;
-  }
+  return relay(() => authorizeRoom(parsed.data.room));
 }

@@ -3,9 +3,7 @@ import {
   HttpException,
   PayloadTooLargeException,
 } from "@nestjs/common";
-import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
-
-export const UPLOAD_TOO_LARGE = `Images must be ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB or smaller.`;
+import { UPLOAD_TOO_LARGE } from "@educatio/shared/api/upload";
 
 const TOO_LARGE = new Set([
   "FST_REQ_FILE_TOO_LARGE",
