@@ -27,6 +27,15 @@ interface SummaryBudget {
   shared: boolean;
 }
 
+export class EmptySummaryError extends ServiceUnavailableException {
+  constructor() {
+    super({
+      code: "service_unavailable",
+      message: "The summary came back empty. Try again in a moment.",
+    });
+  }
+}
+
 export const SUMMARY_MODELS = [
   "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
@@ -79,7 +88,8 @@ export class SummaryService {
 
     let text: string;
     try {
-      text = await this.callModel(prompt);
+      text = (await this.callModel(prompt)).trim();
+      if (!text) throw new EmptySummaryError();
     } catch (err) {
       await this.refundBudget(reserved);
       throw err;

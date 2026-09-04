@@ -149,3 +149,54 @@ describe("a lesson that already has a summary", () => {
     expect(latest).not.toHaveBeenCalled();
   });
 });
+
+describe("a model answer that says nothing", () => {
+  const spend = () => {
+    const increment = vi.fn(async () => ({ isBlocked: false }));
+    const refund = vi.fn(async () => undefined);
+    const saveSummary = vi.fn();
+    const svc = new SummaryService(
+      {
+        getOwnedOr403: async () => ({ summary: null, title: "Fractions" }),
+        isDemoTutor: async () => false,
+        saveSummary,
+      } as never,
+      { latest: async () => ({}) } as never,
+      { get: () => "key" } as never,
+      { increment, refund } as never,
+    );
+    return { svc, increment, refund, saveSummary };
+  };
+
+  it("refuses a blank answer instead of storing it", async () => {
+    generateText.mockReset();
+    resolvesOnce("   \n  ");
+    const { svc, saveSummary } = spend();
+
+    const err = await rejection(() => svc.generate("lesson", "tutor"));
+    expect((err as { status: number }).status).toBe(503);
+    expect(saveSummary).not.toHaveBeenCalled();
+  });
+
+  it("gives the budget back, so a blank answer costs the caller nothing", async () => {
+    generateText.mockReset();
+    resolvesOnce("");
+    const { svc, increment, refund } = spend();
+
+    await rejection(() => svc.generate("lesson", "tutor"));
+    expect(increment).toHaveBeenCalled();
+    expect(refund).toHaveBeenCalledTimes(increment.mock.calls.length);
+  });
+
+  it("stores a real answer trimmed", async () => {
+    generateText.mockReset();
+    resolvesOnce("  A good lesson.  ");
+    const { svc, saveSummary } = spend();
+
+    await svc.generate("lesson", "tutor");
+    expect(saveSummary).toHaveBeenCalledWith(
+      expect.anything(),
+      "A good lesson.",
+    );
+  });
+});
