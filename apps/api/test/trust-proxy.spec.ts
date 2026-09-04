@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { envSchema } from "../src/config/env.schema";
 
 const base = {
+  NODE_ENV: "test",
   AUTH_JWT_SECRET: "a-secret-that-is-at-least-32-characters",
   MONGODB_URI: "mongodb://localhost:27017/educatio",
   WEB_ORIGIN: "http://localhost:3000",

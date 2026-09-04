@@ -28,6 +28,10 @@ const DEMO_TTL_HOURS = 24;
 const DEMO_SWEEP_BATCH = 50;
 const MAGIC_LINKS_PER_WINDOW = 5;
 const MAGIC_LINK_WINDOW_MS = 60 * 60_000;
+const MAILER_OPTIONAL_ENVS: ReadonlySet<string> = new Set([
+  "development",
+  "test",
+]);
 const UNVERIFIED_TTL_HOURS = 48;
 const UNVERIFIED_SWEEP_BATCH = 50;
 const BCRYPT_ROUNDS = 12;
@@ -451,15 +455,17 @@ export class AuthService {
     const from = this.config.get("EMAIL_FROM", { infer: true });
 
     if (!apiKey || !from) {
-      if (this.config.get("NODE_ENV", { infer: true }) === "production") {
+      const env = this.config.get("NODE_ENV", { infer: true });
+      if (!MAILER_OPTIONAL_ENVS.has(env)) {
         throw new ServiceUnavailableException({
           code: "service_unavailable",
           message: "Email delivery is not configured",
         });
       }
-      // Dev-only fallback: log the link rather than failing when email isn't configured.
       this.logger.warn(
-        `RESEND not configured — magic link for ${user.email}: ${url}`,
+        env === "development"
+          ? `RESEND not configured — magic link for ${user.email}: ${url}`
+          : `RESEND not configured — dropped a magic link for ${user.email}`,
       );
       return;
     }
