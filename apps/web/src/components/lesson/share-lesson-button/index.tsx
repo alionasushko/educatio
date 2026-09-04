@@ -50,8 +50,8 @@ const ShareLessonButton = ({ inviteCode }: Props) => {
             Invite your student
           </h2>
           <p className="text-text-secondary mt-2 text-[13.5px] leading-normal">
-            Send this link. They add their name and join straight away — no
-            account needed.
+            Send this link. They add their name and email and join straight away
+            — no account needed.
           </p>
 
           <div className="border-border-subtle bg-bg mt-5 flex items-center gap-2 rounded-[10px] border p-2 pl-3">

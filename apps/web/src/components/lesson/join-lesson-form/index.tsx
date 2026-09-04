@@ -63,7 +63,7 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
         Join the lesson
       </h1>
       <p className="text-text-secondary mt-1.5 mb-5.5 text-[13.5px] leading-normal">
-        Add your details so your tutor knows who&apos;s on the board and can
+        Add your details so your tutor knows who&apos;s on the canvas and can
         send you the summary afterwards. No account needed.
       </p>
       <form onSubmit={handleSubmit} noValidate>

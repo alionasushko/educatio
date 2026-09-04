@@ -46,7 +46,7 @@ const ProfileForm = ({ name: initialName }: Props) => {
         label="Name"
         name="name"
         autoComplete="name"
-        helper="The name your students see on the whiteboard."
+        helper="The name your students see on the canvas."
         value={name}
         onChange={(event) => {
           setName(event.target.value);

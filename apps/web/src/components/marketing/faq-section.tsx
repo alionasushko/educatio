@@ -21,7 +21,7 @@ const FAQ_ITEMS = [
   {
     id: "account",
     q: "Does my student need an account?",
-    a: "No. They open the lesson link, type their name, and they're in. Accounts are only for tutors.",
+    a: "No. They open the lesson link, add their name and email, and they're in — the email is just so you can send them the summary afterwards. Accounts are only for tutors.",
   },
   {
     id: "after",

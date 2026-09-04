@@ -103,7 +103,7 @@ const STEPS = [
   {
     num: "02",
     title: "Share the link",
-    body: "Your student opens it, types their name, and they're in. No account, no install.",
+    body: "Your student opens it, adds their name and email, and they're in. No account, no install.",
     illo: <ShareIllo />,
   },
   {

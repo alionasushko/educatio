@@ -1,8 +1,7 @@
 import type { CanvasElement } from "@educatio/shared";
 import Board from "./components/board";
 
-export const BOARD_LABEL =
-  "The whiteboard as it was left at the end of the lesson";
+export const BOARD_LABEL = "The canvas as it was left at the end of the lesson";
 
 interface Props {
   elements: CanvasElement[];

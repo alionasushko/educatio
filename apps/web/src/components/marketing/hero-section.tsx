@@ -53,7 +53,7 @@ const HeroSection = () => {
 
         <CascadeUp delay={480}>
           <div className="text-text-tertiary mt-4 text-[13px] md:mt-4.5">
-            Free forever for solo tutors · No credit card · 90-second setup
+            Free for solo tutors · No credit card
           </div>
         </CascadeUp>
       </div>

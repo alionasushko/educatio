@@ -61,7 +61,7 @@ const EndLessonButton = ({ lessonId }: Props) => {
       {open && (
         <ConfirmDialog
           title="End this lesson?"
-          description="The canvas closes for editing and everyone is moved to the summary. We'll write it up from what's on the board — this can take a few moments."
+          description="The canvas closes for editing and everyone is moved to the summary. We'll write it up from what's on the canvas — this can take a few moments."
           confirmLabel="End lesson"
           pendingLabel="Ending…"
           pending={isPending}

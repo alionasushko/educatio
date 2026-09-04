@@ -98,7 +98,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
             <CanvasThumbnail elements={board} />
             <div className="mt-2 flex items-center justify-between gap-3">
               <p className="text-text-tertiary text-[12.5px]">
-                The whiteboard at the end of the lesson
+                The canvas at the end of the lesson
               </p>
               <CanvasViewer elements={board} />
             </div>

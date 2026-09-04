@@ -31,8 +31,7 @@ const SignUpPage = async () => {
           Create your tutor account
         </h1>
         <p className="text-text-secondary mt-2 mb-6 text-sm leading-normal">
-          Free for solo tutors — unlimited lessons, no card needed. Setup takes
-          30 seconds.
+          Free for solo tutors — unlimited lessons, no card needed.
         </p>
 
         <Suspense fallback={null}>

@@ -423,7 +423,7 @@ test("ending with unsaved edits does not fault the student's screen", async ({
   await deleteLesson(lesson);
 });
 
-test("the summary shows the whiteboard as it was left", async ({
+test("the summary shows the canvas as it was left", async ({
   page,
   context,
 }) => {
@@ -448,7 +448,7 @@ test("the summary shows the whiteboard as it was left", async ({
   await expect(page).toHaveURL(/\/summary/, { timeout: 90_000 });
 
   const board = page.getByRole("img", {
-    name: /whiteboard as it was left/i,
+    name: /canvas as it was left/i,
   });
   await expect(board).toBeVisible({ timeout: 30_000 });
 
@@ -519,7 +519,7 @@ test("long note and text content wraps inside the thumbnail", async ({
 
   await signIn(context, lesson.sessionJwt);
   await page.goto(`/lesson/${lesson.lessonId}/summary`);
-  const board = page.getByRole("img", { name: /whiteboard as it was left/i });
+  const board = page.getByRole("img", { name: /canvas as it was left/i });
   await expect(board).toBeVisible({ timeout: 30_000 });
 
   // Both blocks must be broken into lines rather than run off their box.

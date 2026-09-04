@@ -131,7 +131,7 @@ test("a demo account arrives with lessons to look at", async ({
   await expect(
     page.getByRole("heading", { name: "Topics covered" }),
   ).toBeVisible();
-  await expect(page.getByText("The whiteboard at the end")).toBeVisible();
+  await expect(page.getByText("The canvas at the end")).toBeVisible();
 });
 
 test("a seeded active lesson opens with its canvas already drawn", async ({

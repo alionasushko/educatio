@@ -246,7 +246,7 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 - [x] **AI lesson summary** — built. Ending a lesson sets `status: ended`; generation runs when the tutor reaches the summary page, on Google Gemini with a fallback to a lighter model when one is overloaded. Unverified: nothing has run against a paid tier or at volume.
 - [x] **Summary page & export** — built: `/lesson/[id]/summary` for tutor and student, the final whiteboard as inline SVG, PDF / text / clipboard exports, and an "Email to student" that prefills the tutor's mail client. Server-side sending via Resend is out of scope for v1 (see `docs/SPEC.md` §Summary page & export).
 - [x] **Account settings** — `/settings` holds the display name, a route to `/set-password`, and account deletion (cascading snapshots, lessons, Liveblocks rooms and magic links). The api reports `isDemo` on `PublicUser`, so the shared demo account sees the page read-only rather than three controls that 403 on click. Covered by `e2e/settings.spec.ts`.
-- [x] **Session history / replay** — built. The summary page shows the final board as a thumbnail, and "View canvas" opens it in a read-only pan/zoom viewer sharing the same SVG. See `docs/SPEC.md` §Session history / replay.
+- [x] **Session history / replay** — built. The summary page shows the final canvas as a thumbnail, and "View canvas" opens it in a read-only pan/zoom viewer sharing the same SVG. See `docs/SPEC.md` §Session history / replay.
 
 ### Build state
 

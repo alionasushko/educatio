@@ -14,7 +14,7 @@ const DashboardEmptyState = () => (
           Create your first lesson
         </h2>
         <p className="text-text-secondary mx-auto mt-2 mb-5.5 text-sm leading-[1.55]">
-          A lesson is a shared whiteboard with one student. You can start one in
+          A lesson is a shared canvas with one student. You can start one in
           seconds.
         </p>
         <NewLessonButton />

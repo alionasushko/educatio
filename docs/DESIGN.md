@@ -55,7 +55,7 @@ Layout follows the shared `AuthLayout`: wordmark top-left, single centered card 
 
 - Eyebrow (accent color): **"For tutors"**
 - Heading (24/600, letter-spacing −0.02em): **"Create your tutor account"**
-- Subhead (14, text-secondary, line-height 1.5): _"Free for solo tutors — unlimited lessons, no card needed. Setup takes 30 seconds."_
+- Subhead (14, text-secondary, line-height 1.5): _"Free for solo tutors — unlimited lessons, no card needed."_
 - Three stacked inputs (gap 14, margin-bottom 18):
   1. **Your name** — placeholder `Sara Martínez`, `autoFocus`
   2. **Email** (type=email) — placeholder `you@school.com`, helper _"We'll send a link to confirm it's you."_

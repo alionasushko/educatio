@@ -15,7 +15,7 @@ Where this spec says "API route", the route lives in `apps/api` (NestJS controll
 - A tutor can sign up → create a lesson → share the invite link → work with a student on the canvas → end the lesson → view the AI summary → export as PDF — without errors and without leaving Educatio (except to open their separate video call).
 - A student can join via invite link without an account, contribute to the canvas, and download the summary after the lesson.
 - Landing page communicates the product clearly and converts visitors to signups.
-- All routes responsive at 1280px and 768px (mobile editing out of scope; viewing still renders). Below 768px the lesson canvas is read-only in behaviour, not only in wording: elements cannot be dragged or edited, taps create nothing, and the pen is off. Pinch-zoom and two-finger pan stay on, since viewing a board means moving around it.
+- All routes responsive at 1280px and 768px (mobile editing out of scope; viewing still renders). Below 768px the lesson canvas is read-only in behaviour, not only in wording: elements cannot be dragged or edited, taps create nothing, and the pen is off. Pinch-zoom and two-finger pan stay on, since viewing a canvas means moving around it.
 - Deployed to Vercel with custom domain. Sentry receiving error events. No `any` types in committed code (strict TypeScript).
 
 ## Features
@@ -160,7 +160,7 @@ The centerpiece of the app.
 ### Session history / replay (read-only)
 
 - Ended lesson opened from dashboard → `/lesson/[lessonId]/summary`
-- "View canvas" opens the final snapshot in a dialog: drag to pan, wheel or the zoom controls to scale, pinch on touch. The same server-rendered SVG the thumbnail uses, so no canvas library and no Liveblocks room is involved — and the board takes no pointer events, so there is nothing to select, move or edit.
+- "View canvas" opens the final snapshot in a dialog: drag to pan, wheel or the zoom controls to scale, pinch on touch. The same server-rendered SVG the thumbnail uses, so no canvas library and no Liveblocks room is involved — and the canvas takes no pointer events, so there is nothing to select, move or edit.
 
 ## Data models (Mongoose; schemas live in `apps/api/src/schemas/`, **api only**)
 
