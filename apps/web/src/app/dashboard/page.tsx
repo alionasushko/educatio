@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import LessonsView from "@/components/dashboard/lessons-view";
@@ -13,7 +12,7 @@ import { query } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
 import { requireTutor } from "@/lib/session-server";
 import { dashboardHref } from "@/lib/routes";
-import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
+import { readTimeZone } from "@/lib/timezone-server";
 import { LESSONS_PER_PAGE } from "./helpers/constants";
 import { parsePage, parseQuery, parseStatus } from "./helpers/helpers";
 
@@ -39,7 +38,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
 
   await requireTutor(currentHref);
 
-  const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
+  const { raw: rawTimeZone, timeZone } = await readTimeZone();
 
   const [me, lessons] = await Promise.all([
     query(fetchCurrentUser),
@@ -57,7 +56,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
 
   return (
     <>
-      <TimezoneBootstrap current={timeZone} />
+      <TimezoneBootstrap current={rawTimeZone} />
       <DashboardLayout
         sidebar={
           <DashboardSidebar

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Wordmark from "@/components/brand/wordmark";
 import { ButtonLink } from "@/components/ui/button";
@@ -8,13 +7,14 @@ import EmailSummaryButton from "@/components/lesson/email-summary-button";
 import SummaryExports from "@/components/lesson/summary-exports";
 import CanvasThumbnail from "@/components/lesson/canvas-thumbnail";
 import CanvasViewer from "@/components/lesson/canvas-viewer";
+import TimezoneBootstrap from "@/components/timezone-bootstrap";
 import { getLessonForSession } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { snapshotElements } from "@/lib/canvas-elements";
 import { query, queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
 import { signInRoute } from "@/lib/routes";
-import { TIMEZONE_COOKIE, safeTimeZone } from "@/lib/timezone";
+import { readTimeZone } from "@/lib/timezone-server";
 
 export const metadata: Metadata = {
   title: "Lesson summary",
@@ -38,7 +38,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
   const snapshot = await query(() => getLatestSnapshot(lessonId));
   const board = snapshotElements(snapshot.data?.snapshot ?? null);
 
-  const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
+  const { raw: rawTimeZone, timeZone } = await readTimeZone();
   const ended = lesson.endedAt
     ? new Intl.DateTimeFormat("en-GB", {
         dateStyle: "long",
@@ -52,6 +52,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
 
   return (
     <div className="bg-bg min-h-dvh">
+      <TimezoneBootstrap current={rawTimeZone} />
       <header className="border-border-subtle bg-surface flex h-14 items-center gap-2 border-b px-4 md:px-6">
         <Wordmark
           href={role === "tutor" ? "/dashboard" : undefined}
