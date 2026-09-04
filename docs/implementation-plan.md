@@ -34,7 +34,7 @@
 | PDF generation     | `@react-pdf/renderer` (client-side)                                                                        | `apps/web`                                |
 | Email              | Resend                                                                                                     | `apps/api` only                           |
 | Validation         | Zod schemas in `@educatio/shared`, consumed by Nest's `ZodValidationPipe` and the web's typed fetch client | `packages/shared`                         |
-| Deployment         | Vercel for web; Railway/Fly/Render (TBD) for api                                                           | per app                                   |
+| Deployment         | Vercel for web; Google Cloud Run (scale-to-zero) for api                                                   | per app                                   |
 | Monitoring         | Sentry                                                                                                     | both                                      |
 
 **Required Node version:** 22.x (`.nvmrc` pins 22.22.2).
@@ -87,9 +87,19 @@ BLOB_READ_WRITE_TOKEN=
 # Web origin for CORS allowlist
 WEB_ORIGIN=http://localhost:3000
 
-# Fastify trustProxy hop count (or CIDR/IP list). Must match the deployment's
-# proxy depth; never "true" in prod. Default 1 (single LB/web hop).
-TRUST_PROXY=1
+# development | test | production. Required: an unset value fails boot rather
+# than silently unlocking the dev-only magic-link log.
+NODE_ENV=development
+
+# Which proxies may set X-Forwarded-For, as an IP/CIDR list (or true/false).
+# A hop count is rejected at boot — it trusts the header from any caller.
+# Never "true": that takes the leftmost, client-supplied entry.
+# On Cloud Run the socket peer is link-local, so the deployed value is
+# "loopback, linklocal, uniquelocal, 130.211.0.0/22, 35.191.0.0/16".
+TRUST_PROXY=loopback, uniquelocal
+
+# One-click demo login. The entry path in the deployed demo.
+ENABLE_DEMO_LOGIN=false
 
 # Sentry (optional in dev)
 SENTRY_DSN=
@@ -242,8 +252,9 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 - **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing; Edge `proxy.ts` JWT gate via `jose`, gating on the session _kind_ as well as its signature; `auth/callback` + `auth/signout` + flag-gated `auth/demo` route handlers; the `/sign-up` + `/sign-in` + `/verify` + `/set-password` screens on shared `Input`/`Card`/`AuthShell` primitives; the full `/dashboard` and `/lesson/new`; route boundaries; and the finished request layer — one `server-only` `api-client` seam, a mandatory response schema per call, one `ActionResult` shape per Server Action, `ERROR_COPY` keyed on the api's error code); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types, per-endpoint Zod request _and_ response schemas, shared route-path constants, builds to `dist`).
 - **Verified:** `npm run check` passes (format, lint, typecheck, test) and production builds pass for all three workspaces. `apps/api`'s responses are pinned to the shared contract by `test/api-contract.spec.ts`, which boots the real Nest app against an ephemeral mongod. The magic-link sign-up / sign-in / verify / demo flows have been run against **local** Mongo.
-- **Not verified:** email + password sign-in has not been run in a browser, and nothing has run against live Resend or Gemini. `apps/web` now has a Vitest suite (75 tests) and a Playwright suite (51 tests, chromium + webkit) covering the canvas, the join flow and session-cookie lifetimes against **live Liveblocks** and local Mongo — but the request layer and `proxy.ts`'s kind gate are still only covered incidentally.
-- **Cross-cutting remaining:** deployment (Vercel + a domain, `SENTRY_DSN`, and transactional email — without `RESEND_API_KEY`/`EMAIL_FROM` a deployed sign-up answers `503 service_unavailable` and only the flag-gated demo account can get in), a Lighthouse pass on the landing, and `proxy.ts`'s kind gate is still untested.
+- **Not verified:** email + password sign-in has not been run in a browser, and nothing has run against live Resend or Gemini. `apps/web` has a Vitest suite (87 tests) and a Playwright suite (57 tests across 7 specs, chromium + webkit) covering the canvas, the join flow and session-cookie lifetimes against **live Liveblocks** and local Mongo. `proxy.ts`'s kind gate is covered directly by `apps/web/src/__tests__/proxy.test.ts`: no session, an unreadable token, a token signed with another secret, an expired token, a student carrying no lesson, a tutor allowed everywhere the matcher reaches, a student allowed only into their own room and its summary, eight paths a student is turned back from, and an encoded lesson id. What remains thin is `api-client.ts` — it has no test of its own, so the response-schema rule, the three-error taxonomy and Bearer forwarding are only exercised indirectly via `lib/__tests__/dead-session.test.ts`, and `lib/__tests__/request.test.ts` covers only `safeInternalPath`.
+- **Cross-cutting remaining:** the deploy itself (Vercel for web, Cloud Run for api — see `docs/ARCHITECTURE.md` §Deployment) and a Lighthouse pass on the landing. A domain and transactional email are now _optional_ rather than blocking: `ENABLE_DEMO_LOGIN` is the entry path, so a visitor needs no mailbox, and without `RESEND_API_KEY`/`EMAIL_FROM` a real sign-up still answers `503 service_unavailable` by design. `SENTRY_DSN` stays optional.
+- **Security:** a whole-app review ran before deploy. Confirmed findings are fixed; the deliberate deferrals and the condition that reopens each are in `docs/SECURITY.md`.
 - **CI:** `.github/workflows/ci.yml` runs on every push to `main` and every pull request — `npm ci`, build `@educatio/shared` (both apps import its built output, so a fresh checkout cannot typecheck without it), `npm run check`, then a production build. No secrets and no network calls: the api's contract tests run against an ephemeral in-process mongod, and the summary tests mock the AI SDK. The Playwright suite runs in two projects: `chromium` for everything, and `webkit` for the cookie behaviour that differs between engines. **Playwright stays local** — it needs live Liveblocks, Vercel Blob and Gemini, so putting it in CI means real keys and third-party flakiness in the merge path. Run `npm run test:e2e` before anything that touches the canvas, the join flow or the summary.
 
 ---
