@@ -8,7 +8,7 @@ import EmailSummaryButton from "@/components/lesson/email-summary-button";
 import SummaryExports from "@/components/lesson/summary-exports";
 import CanvasThumbnail from "@/components/lesson/canvas-thumbnail";
 import CanvasViewer from "@/components/lesson/canvas-viewer";
-import { getLesson } from "@/lib/api-lessons";
+import { getLessonForSession } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { snapshotElements } from "@/lib/canvas-elements";
 import { query, queryOrNotFound } from "@/lib/api-error";
@@ -30,13 +30,14 @@ const LessonSummaryPage = async ({ params }: Props) => {
   const session = await getCurrentSession();
   if (!session) redirect(signInRoute(`/lesson/${lessonId}/summary`));
 
-  const lesson = await queryOrNotFound(() => getLesson(lessonId));
+  const { role, lesson } = await queryOrNotFound(() =>
+    getLessonForSession(lessonId, session.kind),
+  );
   if (lesson.status !== "ended") redirect(`/lesson/${lessonId}`);
 
   const snapshot = await query(() => getLatestSnapshot(lessonId));
   const board = snapshotElements(snapshot.data?.snapshot ?? null);
 
-  const isTutor = session.kind === "tutor";
   const timeZone = safeTimeZone((await cookies()).get(TIMEZONE_COOKIE)?.value);
   const ended = lesson.endedAt
     ? new Intl.DateTimeFormat("en-GB", {
@@ -44,7 +45,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
         timeZone,
       }).format(new Date(lesson.endedAt))
     : null;
-  const counterpart = isTutor ? lesson.studentName : lesson.tutorName;
+  const counterpart = role === "tutor" ? lesson.studentName : lesson.tutorName;
   const metaLine = [counterpart && `with ${counterpart}`, ended]
     .filter(Boolean)
     .join(" · ");
@@ -52,16 +53,19 @@ const LessonSummaryPage = async ({ params }: Props) => {
   return (
     <div className="bg-bg min-h-dvh">
       <header className="border-border-subtle bg-surface flex h-14 items-center gap-2 border-b px-4 md:px-6">
-        <Wordmark href={isTutor ? "/dashboard" : undefined} size={14} />
+        <Wordmark
+          href={role === "tutor" ? "/dashboard" : undefined}
+          size={14}
+        />
         <span className="flex-1" />
-        {isTutor && lesson.summary?.text && (
+        {role === "tutor" && lesson.summary?.text && (
           <EmailSummaryButton
             lessonTitle={lesson.title}
             studentEmail={lesson.studentEmail}
             summary={lesson.summary.text}
           />
         )}
-        {isTutor && (
+        {role === "tutor" && (
           <ButtonLink
             href="/dashboard"
             variant="ghost"
@@ -104,7 +108,7 @@ const LessonSummaryPage = async ({ params }: Props) => {
           <LessonSummary
             lessonId={lesson.id}
             text={lesson.summary?.text}
-            canGenerate={isTutor}
+            canGenerate={role === "tutor"}
           />
         </div>
       </main>

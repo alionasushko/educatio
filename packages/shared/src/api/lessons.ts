@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TutorOnlyLessonField } from "../lesson";
 
 export const LESSONS_SEGMENT = "lessons";
 export const LESSONS_PATH = `/${LESSONS_SEGMENT}`;
@@ -58,6 +59,14 @@ export const lessonSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 export type LessonResponse = z.infer<typeof lessonSchema>;
+
+export const studentLessonSchema = lessonSchema.omit({
+  tutorId: true,
+  studentName: true,
+  studentEmail: true,
+  inviteCode: true,
+} satisfies Record<TutorOnlyLessonField, true>);
+export type StudentLessonResponse = z.infer<typeof studentLessonSchema>;
 
 export const createLessonResponseSchema = z.object({
   id: z.string(),

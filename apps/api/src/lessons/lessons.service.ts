@@ -24,6 +24,7 @@ import type {
   CanvasElement,
   Lesson as LessonDTO,
   SessionClaims,
+  StudentLesson,
 } from "@educatio/shared";
 import type {
   CreateLessonInput,
@@ -36,6 +37,19 @@ const DEMO_LESSON_LIMIT = 20;
 
 const escapeRegex = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const toStudentLesson = (lesson: LessonDTO): StudentLesson => ({
+  id: lesson.id,
+  tutorName: lesson.tutorName,
+  title: lesson.title,
+  videoCallUrl: lesson.videoCallUrl,
+  status: lesson.status,
+  endedAt: lesson.endedAt,
+  liveblocksRoomId: lesson.liveblocksRoomId,
+  summary: lesson.summary,
+  createdAt: lesson.createdAt,
+  updatedAt: lesson.updatedAt,
+});
 
 @Injectable()
 export class LessonsService {
@@ -169,9 +183,13 @@ export class LessonsService {
     }
   }
 
-  private async assertDemoHeadroom(tutorId: string): Promise<void> {
+  async isDemoTutor(tutorId: string): Promise<boolean> {
     const tutor = await this.users.findById(tutorId).select("isDemo");
-    if (!tutor?.isDemo) return;
+    return !!tutor?.isDemo;
+  }
+
+  private async assertDemoHeadroom(tutorId: string): Promise<void> {
+    if (!(await this.isDemoTutor(tutorId))) return;
 
     const owned = await this.lessons.countDocuments({
       tutorId: new Types.ObjectId(tutorId),
@@ -255,7 +273,10 @@ export class LessonsService {
     };
   }
 
-  async getForSession(id: string, session: SessionClaims): Promise<LessonDTO> {
+  async getForSession(
+    id: string,
+    session: SessionClaims,
+  ): Promise<LessonDTO | StudentLesson> {
     const lesson = await this.findOr404(id);
     this.assertCanRead(lesson, session);
 
@@ -264,7 +285,8 @@ export class LessonsService {
       .select("name")
       .lean<{ name?: string } | null>();
 
-    return { ...this.toDTO(lesson), tutorName: tutor?.name };
+    const dto: LessonDTO = { ...this.toDTO(lesson), tutorName: tutor?.name };
+    return session.kind === "tutor" ? dto : toStudentLesson(dto);
   }
 
   async update(

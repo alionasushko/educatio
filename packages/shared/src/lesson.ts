@@ -21,3 +21,11 @@ export interface Lesson {
   createdAt: Date | string;
   updatedAt: Date | string;
 }
+
+export type TutorOnlyLessonField =
+  | "tutorId"
+  | "studentName"
+  | "studentEmail"
+  | "inviteCode";
+
+export type StudentLesson = Omit<Lesson, TutorOnlyLessonField>;

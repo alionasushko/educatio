@@ -6,13 +6,16 @@ import {
   createLessonResponseSchema,
   lessonListResponseSchema,
   lessonSchema,
+  studentLessonSchema,
   type CreateLessonInput,
   type CreateLessonResponse,
   type LessonListResponse,
   type LessonResponse,
   type ListLessonsQuery,
+  type StudentLessonResponse,
   type UpdateLessonInput,
 } from "@educatio/shared/api/lessons";
+import type { SessionClaims } from "@educatio/shared";
 import { api } from "./api-client";
 
 export const listLessons = (query: ListLessonsQuery) =>
@@ -28,6 +31,23 @@ export const listLessons = (query: ListLessonsQuery) =>
 
 export const getLesson = (id: string) =>
   api.get<LessonResponse>(lessonPath(id), { schema: lessonSchema });
+
+export const getStudentLesson = (id: string) =>
+  api.get<StudentLessonResponse>(lessonPath(id), {
+    schema: studentLessonSchema,
+  });
+
+export type SessionLesson =
+  | { role: "tutor"; lesson: LessonResponse }
+  | { role: "student"; lesson: StudentLessonResponse };
+
+export const getLessonForSession = async (
+  id: string,
+  kind: SessionClaims["kind"],
+): Promise<SessionLesson> =>
+  kind === "tutor"
+    ? { role: "tutor", lesson: await getLesson(id) }
+    : { role: "student", lesson: await getStudentLesson(id) };
 
 export const createLesson = (input: CreateLessonInput) =>
   api.post<CreateLessonResponse>(LESSONS_PATH, {

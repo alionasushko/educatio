@@ -7,6 +7,7 @@ import {
   authPath,
   meResponseSchema,
   sentResponseSchema,
+  sessionResponseSchema,
 } from "@educatio/shared/api/auth";
 import {
   LESSONS_PATH,
@@ -14,7 +15,9 @@ import {
   createLessonResponseSchema,
   lessonListResponseSchema,
   lessonSchema,
+  studentLessonSchema,
 } from "@educatio/shared/api/lessons";
+import { STUDENT_SESSION_PATH } from "@educatio/shared/api/sessions";
 import { UPLOAD_PATH } from "@educatio/shared/api/upload";
 import { LIVEBLOCKS_AUTH_PATH } from "@educatio/shared/api/liveblocks";
 import {
@@ -25,6 +28,21 @@ import {
 import { startApi, type Harness } from "./harness";
 
 let api: Harness;
+
+const stickyElement = (id: string, x: number, y: number) => ({
+  id,
+  type: "sticky",
+  x,
+  y,
+  rotation: 0,
+  zIndex: 1,
+  createdBy: "tutor",
+  createdAt: 1,
+  width: 160,
+  height: 160,
+  content: "Quadratic formula",
+  color: "yellow",
+});
 
 beforeAll(async () => {
   api = await startApi();
@@ -113,6 +131,42 @@ describe("api responses match the shared contract", () => {
     const deleted = await call(lessonPath(id), { method: "DELETE" });
     expect(deleted.status).toBe(200);
     expectShape(okResponseSchema, deleted.data);
+  });
+
+  it("gives a student the lesson without the tutor's fields", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Fractions", studentName: "Jordan" },
+    });
+    expect(created.status).toBe(201);
+    const { id, inviteCode } = expectShape(
+      createLessonResponseSchema,
+      created.data,
+    );
+
+    const joined = await call(STUDENT_SESSION_PATH, {
+      method: "POST",
+      auth: false,
+      body: { inviteCode, name: "Jordan", email: "jordan@example.com" },
+    });
+    expect(joined.status).toBe(200);
+    const { sessionJwt } = expectShape(sessionResponseSchema, joined.data);
+
+    const asStudent = await call(lessonPath(id), { token: sessionJwt });
+    expect(asStudent.status).toBe(200);
+    const student = expectShape(studentLessonSchema, asStudent.data);
+    expect(student.title).toBe("Fractions");
+    expect(student.tutorName).toBe("Test Tutor");
+    expect(student.liveblocksRoomId).toBeTruthy();
+
+    for (const field of ["inviteCode", "studentEmail", "tutorId"]) {
+      expect(asStudent.data).not.toHaveProperty(field);
+    }
+
+    const asTutor = await call(lessonPath(id));
+    expect(expectShape(lessonSchema, asTutor.data).inviteCode).toBe(inviteCode);
+
+    await call(lessonPath(id), { method: "DELETE" });
   });
 
   it("the snapshot round-trip: empty, saved, read back", async () => {
@@ -205,7 +259,7 @@ describe("api errors match the shared envelope", () => {
       (
         await call(lessonSnapshotPath(id), {
           method: "POST",
-          body: { canvasState: { a: { type: "sticky", x: 1, y: 1 } } },
+          body: { canvasState: { a: stickyElement("a", 1, 1) } },
         })
       ).status,
     ).toBe(200);
@@ -214,7 +268,7 @@ describe("api errors match the shared envelope", () => {
 
     const after = await call(lessonSnapshotPath(id), {
       method: "POST",
-      body: { canvasState: { b: { type: "sticky", x: 2, y: 2 } } },
+      body: { canvasState: { b: stickyElement("b", 2, 2) } },
     });
     expect(after.status).toBe(403);
     expect(expectShape(apiErrorSchema, after.data).code).toBe("lesson_ended");
@@ -255,7 +309,7 @@ describe("api errors match the shared envelope", () => {
     for (let i = 0; i < 5; i += 1) {
       const res = await call(lessonSnapshotPath(id), {
         method: "POST",
-        body: { canvasState: { [`el${i}`]: { type: "sticky", x: i, y: i } } },
+        body: { canvasState: { [`el${i}`]: stickyElement(`el${i}`, i, i) } },
       });
       expect(res.status).toBe(200);
     }

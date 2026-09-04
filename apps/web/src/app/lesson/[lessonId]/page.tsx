@@ -10,7 +10,7 @@ import LessonCanvas from "@/components/canvas/lesson-canvas";
 import ShareLessonButton from "@/components/lesson/share-lesson-button";
 import EndLessonButton from "@/components/lesson/end-lesson-button";
 import LessonEndedWatcher from "@/components/lesson/lesson-ended-watcher";
-import { getLesson } from "@/lib/api-lessons";
+import { getLessonForSession } from "@/lib/api-lessons";
 import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query, queryOrNotFound } from "@/lib/api-error";
@@ -34,8 +34,8 @@ const LessonPage = async ({ params }: Props) => {
   }
 
   // Someone else's lesson looks the same as a missing one, by design.
-  const [lesson, snapshot, me] = await Promise.all([
-    queryOrNotFound(() => getLesson(lessonId)),
+  const [{ role, lesson }, snapshot, me] = await Promise.all([
+    queryOrNotFound(() => getLessonForSession(lessonId, session.kind)),
     query(() => getLatestSnapshot(lessonId)),
     session.kind === "tutor" ? query(() => fetchCurrentUser()) : null,
   ]);
@@ -52,14 +52,16 @@ const LessonPage = async ({ params }: Props) => {
 
   if (lesson.status === "ended") redirect(lessonSummaryHref(lessonId));
 
-  const isTutor = session.kind === "tutor";
-  const counterpart = isTutor ? lesson.studentName : lesson.tutorName;
+  const counterpart = role === "tutor" ? lesson.studentName : lesson.tutorName;
 
   const shell = (
     <div className="bg-bg flex h-dvh flex-col overflow-hidden">
       <header className="border-border-subtle bg-surface flex h-14 shrink-0 items-center justify-between gap-4 border-b px-4 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Wordmark href={isTutor ? "/dashboard" : undefined} size={14} />
+          <Wordmark
+            href={role === "tutor" ? "/dashboard" : undefined}
+            size={14}
+          />
           <span
             className="bg-border-subtle h-5 w-px shrink-0"
             aria-hidden="true"
@@ -79,7 +81,7 @@ const LessonPage = async ({ params }: Props) => {
         <div className="flex shrink-0 items-center gap-2">
           <PresenceStack />
           <ConnectionStatus />
-          {isTutor && (
+          {role === "tutor" && (
             <>
               <ShareLessonButton inviteCode={lesson.inviteCode} />
               <EndLessonButton lessonId={lesson.id} />
@@ -97,7 +99,7 @@ const LessonPage = async ({ params }: Props) => {
               <span className="hidden sm:inline">Join video call</span>
             </ButtonLink>
           )}
-          {isTutor && (
+          {role === "tutor" && (
             <ButtonLink
               href="/dashboard"
               variant="ghost"
