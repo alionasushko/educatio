@@ -16,6 +16,7 @@ import {
   type UploadResponse,
 } from "@educatio/shared/api/upload";
 import { detectImageType } from "./image-type";
+import { UPLOAD_TOO_LARGE, multipartException } from "./multipart-error";
 
 import type { Env } from "../config/env";
 import type { SessionClaims } from "@educatio/shared";
@@ -49,18 +50,12 @@ export class UploadService {
     try {
       buffer = await file.toBuffer();
     } catch (err) {
-      if ((err as { code?: string }).code === "FST_REQ_FILE_TOO_LARGE") {
-        throw new PayloadTooLargeException({
-          code: "file_too_large",
-          message: "Images must be 5MB or smaller.",
-        });
-      }
-      throw err;
+      throw multipartException(err) ?? err;
     }
     if (buffer.byteLength > MAX_UPLOAD_BYTES) {
       throw new PayloadTooLargeException({
         code: "file_too_large",
-        message: "Images must be 5MB or smaller.",
+        message: UPLOAD_TOO_LARGE,
       });
     }
 

@@ -360,6 +360,26 @@ describe("api errors match the shared envelope", () => {
     );
   });
 
+  it("answers an upload that is not multipart with a 4xx, not a 500", async () => {
+    const created = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "Not multipart" },
+    });
+    const { id } = expectShape(createLessonResponseSchema, created.data);
+
+    const res = await fetch(`${api.baseUrl}${UPLOAD_PATH}?lessonId=${id}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${api.tutorJwt}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ file: "not a file" }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(expectShape(apiErrorSchema, await res.json()).code).toBe("no_file");
+  });
+
   it("hides another tutor's lesson from an upload the same way", async () => {
     const created = await call(LESSONS_PATH, {
       method: "POST",

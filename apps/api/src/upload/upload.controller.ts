@@ -10,6 +10,7 @@ import type { FastifyRequest } from "fastify";
 import "@fastify/multipart";
 import { Throttle } from "@nestjs/throttler";
 import { UploadService } from "./upload.service";
+import { multipartException } from "./multipart-error";
 import { JwtAuthGuard } from "../common/jwt-auth.guard";
 import { ObjectIdPipe } from "../common/object-id.pipe";
 import { Session } from "../common/session.decorator";
@@ -30,7 +31,12 @@ export class UploadController {
   ) {
     const owned = await this.upload.assertCanUpload(lessonId, session);
 
-    const file = await req.file();
+    let file: Awaited<ReturnType<typeof req.file>>;
+    try {
+      file = await req.file();
+    } catch (err) {
+      throw multipartException(err) ?? err;
+    }
     if (!file) {
       throw new BadRequestException({
         code: "no_file",
