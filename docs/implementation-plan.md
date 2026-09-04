@@ -252,10 +252,103 @@ Behavior contracts live in `docs/SPEC.md` §Features (one heading per feature). 
 
 - **Done:** monorepo + tooling; `apps/web` (Next 16 marketing landing; the `proxy.ts` JWT gate via `jose`, gating on the session _kind_ as well as its signature; `auth/callback` + `auth/signout` + flag-gated `auth/demo` route handlers; the `/sign-up` + `/sign-in` + `/verify` + `/set-password` screens on shared `Input`/`Card`/`AuthLayout` primitives; the full `/dashboard` and `/lesson/new`; route boundaries; and the finished request layer — one `server-only` `api-client` seam, a mandatory response schema per call, one `ActionResult` shape per Server Action, `ERROR_COPY` keyed on the api's error code); `apps/api` (every endpoint from `docs/SPEC.md` §API routes, plus env-validated config, `@Global` CommonModule with `JwtAuthGuard` + `JwtModule`, `@Session()`/`@CurrentTutor()` decorators, `ZodValidationPipe`, `ApiError`-shaped exception filter, four Mongoose schemas); `packages/shared` (domain types, per-endpoint Zod request _and_ response schemas, shared route-path constants, builds to `dist`).
 - **Verified:** `npm run check` passes (format, lint, typecheck, test) and production builds pass for all three workspaces. `apps/api`'s responses are pinned to the shared contract by `test/api-contract.spec.ts`, which boots the real Nest app against an ephemeral mongod. The magic-link sign-up / sign-in / verify / demo flows have been run against **local** Mongo.
-- **Not verified:** email + password sign-in has not been run in a browser, and nothing has run against live Resend or Gemini. `apps/web` has a Vitest suite (87 tests) and a Playwright suite (57 tests across 7 specs, chromium + webkit) covering the canvas, the join flow and session-cookie lifetimes against **live Liveblocks** and local Mongo. `proxy.ts`'s kind gate is covered directly by `apps/web/src/__tests__/proxy.test.ts`: no session, an unreadable token, a token signed with another secret, an expired token, a student carrying no lesson, a tutor allowed everywhere the matcher reaches, a student allowed only into their own room and its summary, eight paths a student is turned back from, and an encoded lesson id. What remains thin is `api-client.ts` — it has no test of its own, so the response-schema rule, the three-error taxonomy and Bearer forwarding are only exercised indirectly via `lib/__tests__/dead-session.test.ts`, and `lib/__tests__/request.test.ts` covers only `safeInternalPath`.
+- **Not verified:** email + password sign-in has not been run in a browser, and nothing has run against live Resend or Gemini. `apps/web` has a Vitest suite (131 tests) and a Playwright suite (57 tests across 7 specs, chromium + webkit) covering the canvas, the join flow and session-cookie lifetimes against **live Liveblocks** and local Mongo. `proxy.ts`'s kind gate is covered directly by `apps/web/src/__tests__/proxy.test.ts`: no session, an unreadable token, a token signed with another secret, an expired token, a student carrying no lesson, a tutor allowed everywhere the matcher reaches, a student allowed only into their own room and its summary, eight paths a student is turned back from, and an encoded lesson id. What remains thin is `api-client.ts` — it has no test of its own, so the response-schema rule, the three-error taxonomy and Bearer forwarding are only exercised indirectly via `lib/__tests__/dead-session.test.ts`, and `lib/__tests__/request.test.ts` covers only `safeInternalPath`.
 - **Cross-cutting remaining:** the deploy itself (Vercel for web, Cloud Run for api — see `docs/ARCHITECTURE.md` §Deployment) and a Lighthouse pass on the landing. A domain and transactional email are now _optional_ rather than blocking: `ENABLE_DEMO_LOGIN` is the entry path, so a visitor needs no mailbox, and without `RESEND_API_KEY`/`EMAIL_FROM` a real sign-up still answers `503 service_unavailable` by design. `SENTRY_DSN` stays optional.
 - **Security:** a whole-app review ran before deploy. Confirmed findings are fixed; the deliberate deferrals and the condition that reopens each are in `docs/SECURITY.md`.
 - **CI:** `.github/workflows/ci.yml` runs on every push to `main` and every pull request — `npm ci`, build `@educatio/shared` (both apps import its built output, so a fresh checkout cannot typecheck without it), `npm run check`, then a production build. No secrets and no network calls: the api's contract tests run against an ephemeral in-process mongod, and the summary tests mock the AI SDK. The Playwright suite runs in two projects: `chromium` for everything, and `webkit` for the cookie behaviour that differs between engines. **Playwright stays local** — it needs live Liveblocks, Vercel Blob and Gemini, so putting it in CI means real keys and third-party flakiness in the merge path. Run `npm run test:e2e` before anything that touches the canvas, the join flow or the summary.
+
+### Deploy sequence
+
+`docs/ARCHITECTURE.md` §Deployment holds the reasoning, the flags and the
+rejected alternatives. This is the ordered runbook. **Nothing below has run.**
+
+**Does not exist yet — write these first:**
+
+1. **`Dockerfile`** (api only, multi-stage). Two gotchas, both silent:
+   `packages/shared` must build **before** the api, because its exports map
+   points at `dist` — skip it and you get `undefined` imports at runtime rather
+   than a compile error. And `bcrypt` is a native module, so the _build_ stage
+   needs the full `node:22.22.2` image; switching it to `-slim` requires
+   `python3 make g++` or `node-pre-gyp` fails.
+
+   ```dockerfile
+   FROM node:22.22.2 AS build
+   WORKDIR /app
+   COPY package*.json ./
+   COPY packages/shared/package.json packages/shared/
+   COPY apps/api/package.json apps/api/
+   RUN npm ci
+   COPY packages/shared packages/shared
+   RUN npm run build -w @educatio/shared
+   COPY apps/api apps/api
+   RUN npm run build -w @educatio/api
+
+   FROM node:22.22.2-slim AS runtime
+   WORKDIR /app
+   ENV NODE_ENV=production
+   COPY package*.json ./
+   COPY packages/shared/package.json packages/shared/
+   COPY apps/api/package.json apps/api/
+   RUN npm ci --omit=dev
+   COPY --from=build /app/packages/shared/dist packages/shared/dist
+   COPY --from=build /app/apps/api/dist apps/api/dist
+   CMD ["node", "apps/api/dist/main"]
+   ```
+
+   `ENV NODE_ENV=production` is in the image on purpose: `start:prod` is bare
+   `node dist/main`, and an unset `NODE_ENV` fails boot by design.
+
+2. **`.dockerignore`** — `node_modules`, `.next`, `dist`, `.git`,
+   `test-results`, `e2e`, `apps/web`. The api image has no reason to carry web.
+
+3. **`maxPoolSize: 10`** (plus a short `serverSelectionTimeoutMS`) on the
+   Mongoose factory in `apps/api/src/app.module.ts`. It passes only `uri` today,
+   so Mongoose defaults to 100 connections **per instance** against an Atlas M0
+   capped at 500. ARCHITECTURE.md §Deployment already states this as a rule; the
+   code does not implement it yet.
+
+**Then, in order:**
+
+4. Atlas M0 cluster, a database user with a generated password, allowlist
+   `0.0.0.0/0` (Cloud Run egress is dynamic), and a GCP budget alert at ~$1 —
+   the free tier is a discount, not a ceiling.
+5. `openssl rand -base64 48` for `AUTH_JWT_SECRET`. The **same value** must
+   reach Cloud Run and Vercel; `proxy.ts` verifies the signature api issues, so
+   a mismatch sends every authenticated request to sign-in.
+6. The five secrets into Secret Manager, referenced with `--set-secrets`.
+7. `gcloud run deploy educatio-api --source . --region europe-north1
+--allow-unauthenticated` plus the flags in ARCHITECTURE.md, with a
+   **placeholder** `WEB_ORIGIN`.
+   **`--set-env-vars` splits on commas**, which would shred the `TRUST_PROXY`
+   CIDR list. Prefix the value with `^##^` to change the separator:
+   `--set-env-vars "^##^NODE_ENV=production##ENABLE_DEMO_LOGIN=true##WEB_ORIGIN=…##TRUST_PROXY=loopback, linklocal, uniquelocal, 130.211.0.0/22, 35.191.0.0/16"`.
+   Omit it and `TRUST_PROXY` silently becomes `loopback` alone — which is
+   exactly the collapsed-`req.ip` failure the value exists to prevent.
+8. Set Vercel's env (`EDUCATIO_API_URL`, `AUTH_JWT_SECRET`, optional Sentry) and
+   deploy web.
+9. Redeploy the api with the real `WEB_ORIGIN`. The two apps need each other's
+   URLs, so a placeholder pass is unavoidable; Cloud Run revisions are cheap.
+
+**Verify on the deployed stack — none of this has ever run in production:**
+
+- `req.ip` resolves to a real client address, not a `169.254.x.x` infrastructure
+  one. Log it beside `req.socket.remoteAddress` and the raw `x-forwarded-for`
+  for one request, check it against your own IP, then delete the log. The CIDR
+  list is derived from GCP's documented front-end ranges, not from observation.
+- One summary against **live Gemini** — the least-exercised path in the app.
+  Expect 15–25s on the first one (container start + Nest boot + Atlas connect +
+  the lazy `await import()` of the AI SDK), and check the markdown renders.
+- The demo flow end to end, twice, the second time from a different network, to
+  confirm the 10-per-24h demo cap is per-IP and not global.
+- Two browsers in one lesson as tutor and student: cursors, element sync, and
+  that ending the lesson propagates. Liveblocks has only run locally.
+- Cold start as a visitor meets it: wait ~20 minutes for scale-to-zero, then
+  time a fresh click. The landing is static on Vercel, so the first api call is
+  the moment that matters.
+- That the 24h demo sweep reaches **Vercel Blob and Liveblocks rooms**, not just
+  Mongo. Upload an image to a demo account, expire it, then check the blob
+  store. Visitors can upload arbitrary images, so this is the one place
+  stranger-supplied content might outlive the account.
 
 ---
 
