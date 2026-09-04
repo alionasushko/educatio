@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { dashboardHref, lessonHref, signInRoute } from "../routes";
+import {
+  dashboardHref,
+  lessonHref,
+  lessonRoomHref,
+  lessonSummaryHref,
+  signInRoute,
+} from "../routes";
 
 describe("lessonHref", () => {
   it("sends an ended lesson to its summary", () => {
@@ -10,7 +16,25 @@ describe("lessonHref", () => {
 
   it("sends a live lesson to its canvas", () => {
     expect(lessonHref({ id: "abc", status: "active" })).toBe("/lesson/abc");
-    expect(lessonHref({ id: "abc", status: "active" })).toBe("/lesson/abc");
+  });
+
+  it("encodes the id on both branches, not just the summary one", () => {
+    const id = "a/b?c";
+    expect(lessonHref({ id, status: "active" })).toBe("/lesson/a%2Fb%3Fc");
+    expect(lessonHref({ id, status: "ended" })).toBe(
+      "/lesson/a%2Fb%3Fc/summary",
+    );
+  });
+});
+
+describe("lessonRoomHref", () => {
+  it("is the one place a lesson path is spelled out", () => {
+    expect(lessonRoomHref("abc")).toBe("/lesson/abc");
+    expect(lessonSummaryHref("abc")).toBe(`${lessonRoomHref("abc")}/summary`);
+  });
+
+  it("encodes an id that would otherwise change the path shape", () => {
+    expect(lessonRoomHref("../dashboard")).toBe("/lesson/..%2Fdashboard");
   });
 });
 

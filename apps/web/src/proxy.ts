@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
-import { signInRoute } from "@/lib/routes";
+import { lessonRoomHref, signInRoute } from "@/lib/routes";
 
 const STUDENT_LESSON_SUBPATHS = ["summary"];
 
@@ -37,7 +37,7 @@ const proxy = async (req: NextRequest): Promise<NextResponse> => {
   if (claims.kind === "student") {
     if (!claims.lessonId) return toSignIn(req);
 
-    const ownRoom = `/lesson/${claims.lessonId}`;
+    const ownRoom = lessonRoomHref(claims.lessonId);
     const reachable = studentReachableLessonId(req.nextUrl.pathname);
     if (reachable !== claims.lessonId && req.nextUrl.pathname !== ownRoom) {
       return NextResponse.redirect(new URL(ownRoom, req.nextUrl.origin));

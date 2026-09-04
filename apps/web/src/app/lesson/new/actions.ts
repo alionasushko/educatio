@@ -9,6 +9,7 @@ import {
 import { createLesson } from "@/lib/api-lessons";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { revalidateLessons } from "@/lib/revalidate";
+import { lessonRoomHref } from "@/lib/routes";
 
 export const createLessonAction = async (
   input: CreateLessonInput,
@@ -24,5 +25,5 @@ export const createLessonAction = async (
   }
 
   revalidateLessons();
-  redirect(`/lesson/${created.id}`);
+  redirect(lessonRoomHref(created.id));
 };

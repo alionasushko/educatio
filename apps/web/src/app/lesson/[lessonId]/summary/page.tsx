@@ -13,7 +13,7 @@ import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { snapshotElements } from "@/lib/canvas-elements";
 import { query, queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
-import { signInRoute } from "@/lib/routes";
+import { lessonRoomHref, lessonSummaryHref, signInRoute } from "@/lib/routes";
 import { readTimeZone } from "@/lib/timezone-server";
 
 export const metadata: Metadata = {
@@ -28,12 +28,12 @@ const LessonSummaryPage = async ({ params }: Props) => {
   const { lessonId } = await params;
 
   const session = await getCurrentSession();
-  if (!session) redirect(signInRoute(`/lesson/${lessonId}/summary`));
+  if (!session) redirect(signInRoute(lessonSummaryHref(lessonId)));
 
   const { role, lesson } = await queryOrNotFound(() =>
     getLessonForSession(lessonId, session.kind),
   );
-  if (lesson.status !== "ended") redirect(`/lesson/${lessonId}`);
+  if (lesson.status !== "ended") redirect(lessonRoomHref(lessonId));
 
   const snapshot = await query(() => getLatestSnapshot(lessonId));
   const board = snapshotElements(snapshot.data?.snapshot ?? null);

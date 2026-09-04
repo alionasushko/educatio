@@ -9,6 +9,7 @@ import { createStudentSession } from "@/lib/api-sessions";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
 import { issueSessionCookie } from "@/lib/issue-session";
+import { lessonRoomHref } from "@/lib/routes";
 
 export const joinLessonAction = async (
   input: StudentSessionInput,
@@ -28,5 +29,5 @@ export const joinLessonAction = async (
     return { ok: false, error: ERROR_COPY.malformed_response };
   }
 
-  redirect(`/lesson/${encodeURIComponent(claims.lessonId)}`);
+  redirect(lessonRoomHref(claims.lessonId));
 };

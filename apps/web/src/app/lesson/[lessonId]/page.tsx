@@ -15,7 +15,7 @@ import { getLatestSnapshot } from "@/lib/api-snapshots";
 import { fetchCurrentUser } from "@/lib/api-auth";
 import { query, queryOrNotFound } from "@/lib/api-error";
 import { getCurrentSession } from "@/lib/session-server";
-import { lessonSummaryHref, signInRoute } from "@/lib/routes";
+import { lessonRoomHref, lessonSummaryHref, signInRoute } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Lesson",
@@ -30,7 +30,7 @@ const LessonPage = async ({ params }: Props) => {
 
   const session = await getCurrentSession();
   if (!session) {
-    redirect(signInRoute(`/lesson/${lessonId}`));
+    redirect(signInRoute(lessonRoomHref(lessonId)));
   }
 
   // Someone else's lesson looks the same as a missing one, by design.
