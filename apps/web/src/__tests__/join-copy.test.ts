@@ -1,13 +1,21 @@
 // @vitest-environment node
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string): string =>
   readFileSync(join(process.cwd(), path), "utf8");
 
-const JOIN_FORM = "src/components/lesson/join-lesson-form/index.tsx";
+const JOIN_FORM_DIR = "src/components/lesson/join-lesson-form";
+
+const joinFormSources = (): string =>
+  [join(process.cwd(), JOIN_FORM_DIR)]
+    .flatMap((dir) => readdirSync(dir, { recursive: true }) as string[])
+    .map((entry) => join(process.cwd(), JOIN_FORM_DIR, entry))
+    .filter((path) => path.endsWith(".ts") || path.endsWith(".tsx"))
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
 
 const DESCRIBES_JOINING = [
   "src/components/marketing/faq-section.tsx",
@@ -23,7 +31,7 @@ const sentencesMentioningName = (source: string): string[] =>
 
 describe("what we tell people a student needs to join", () => {
   it("the join form asks for an email, and requires it", () => {
-    const form = read(JOIN_FORM);
+    const form = joinFormSources();
     expect(form).toContain('name="email"');
     expect(form).toContain('type="email"');
     expect(form).toContain("Enter a valid email address.");

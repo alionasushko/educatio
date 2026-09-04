@@ -6,6 +6,7 @@ import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { studentSessionSchema } from "@educatio/shared/api/sessions";
 import { checkForm } from "@/lib/form-validation";
+import { JOIN_COPY } from "./helpers/constants";
 import { joinLessonAction } from "@/app/join/[inviteCode]/actions";
 import TutorNotice from "./components/tutor-notice";
 
@@ -30,14 +31,14 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
     const checked = checkForm(
       studentSessionSchema,
       { inviteCode, name: name.trim(), email: email.trim() },
-      {
-        name: "Add your name so your tutor knows who joined.",
-        email: "Enter a valid email address.",
-      },
+      JOIN_COPY,
     );
     setNameError(checked.ok ? undefined : checked.errors.name);
     setEmailError(checked.ok ? undefined : checked.errors.email);
-    if (!checked.ok) return;
+    if (!checked.ok) {
+      setFormError(checked.errors.inviteCode);
+      return;
+    }
 
     startTransition(async () => {
       const result = await joinLessonAction(checked.data);
