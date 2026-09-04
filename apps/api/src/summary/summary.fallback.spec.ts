@@ -11,6 +11,7 @@ vi.mock("@ai-sdk/google", () => ({
 import {
   SummaryService,
   SUMMARY_MODELS,
+  SUMMARY_TUTOR_DAILY_LIMIT,
   isCapacityError,
 } from "./summary.service";
 
@@ -198,5 +199,78 @@ describe("a model answer that says nothing", () => {
       expect.anything(),
       "A good lesson.",
     );
+  });
+});
+
+describe("who a summary is charged to", () => {
+  const meter = (isDemo: boolean, blockKey?: string) => {
+    const seen: { key: string; limit: number }[] = [];
+    const refund = vi.fn(async () => undefined);
+    const increment = vi.fn(async (key: string, _t, limit: number) => {
+      seen.push({ key, limit });
+      return { isBlocked: key === blockKey };
+    });
+    const svc = new SummaryService(
+      {
+        getOwnedOr403: async () => ({ summary: null, title: "Fractions" }),
+        isDemoTutor: async () => isDemo,
+        saveSummary: async () => ({ text: "ok", generatedAt: "now" }),
+      } as never,
+      { latest: async () => ({}) } as never,
+      { get: () => "key" } as never,
+      { increment, refund } as never,
+    );
+    return { svc, seen, refund };
+  };
+
+  it("charges a real tutor their own budget and the shared one", async () => {
+    generateText.mockReset();
+    resolvesOnce("A good lesson.");
+    const { svc, seen } = meter(false);
+
+    await svc.generate("lesson", "tutor1");
+    expect(seen.map((s) => s.key)).toEqual(["tutor:tutor1", "gemini"]);
+  });
+
+  it("puts a demo tutor behind a pool as well, on a tighter personal limit", async () => {
+    generateText.mockReset();
+    resolvesOnce("A good lesson.");
+    const { svc, seen } = meter(true);
+
+    await svc.generate("lesson", "demo1");
+    expect(seen.map((s) => s.key)).toEqual([
+      "tutor:demo1",
+      "demo-pool",
+      "gemini",
+    ]);
+    expect(seen[0]!.limit).toBeLessThan(
+      // a fresh demo account must not buy a real tutor's allowance
+      SUMMARY_TUTOR_DAILY_LIMIT,
+    );
+  });
+
+  it("answers 403 limit_reached when the caller's own budget is gone", async () => {
+    generateText.mockReset();
+    const { svc } = meter(false, "tutor:tutor1");
+
+    const err = await rejection(() => svc.generate("lesson", "tutor1"));
+    expect((err as { status: number }).status).toBe(403);
+    expect((err as { response: { code: string } }).response.code).toBe(
+      "limit_reached",
+    );
+    expect(generateText).not.toHaveBeenCalled();
+  });
+
+  it("answers 503 when it is the shared budget that is gone", async () => {
+    generateText.mockReset();
+    const { svc, refund } = meter(false, "gemini");
+
+    const err = await rejection(() => svc.generate("lesson", "tutor1"));
+    expect((err as { status: number }).status).toBe(503);
+    expect((err as { response: { code: string } }).response.code).toBe(
+      "service_unavailable",
+    );
+    // the per-tutor unit reserved a moment earlier must be given back
+    expect(refund).toHaveBeenCalledWith("tutor:tutor1", "summary");
   });
 });
