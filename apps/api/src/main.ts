@@ -24,7 +24,7 @@ const parseTrustProxy = (raw: string | undefined): boolean | string => {
   return v;
 };
 
-async function bootstrap() {
+const bootstrap = async (): Promise<void> => {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
@@ -58,6 +58,6 @@ async function bootstrap() {
     `api listening on http://0.0.0.0:${port} (CORS origin: ${webOrigin})`,
     "Bootstrap",
   );
-}
+};
 
 void bootstrap();

@@ -33,7 +33,12 @@ export default [
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
       "@typescript-eslint/no-empty-object-type": "off",
+      "func-style": ["error", "expression"],
     },
+  },
+  {
+    files: ["**/route.ts", "**/*.d.ts"],
+    rules: { "func-style": "off" },
   },
   eslintConfigPrettier,
 ];

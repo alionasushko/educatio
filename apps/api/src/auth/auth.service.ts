@@ -43,13 +43,13 @@ const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
   BCRYPT_ROUNDS,
 );
 
-function isDuplicateKeyError(err: unknown): boolean {
+const isDuplicateKeyError = (err: unknown): boolean => {
   return (
     typeof err === "object" &&
     err !== null &&
     (err as { code?: number }).code === 11000
   );
-}
+};
 
 @Injectable()
 export class AuthService {

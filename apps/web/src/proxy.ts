@@ -28,7 +28,7 @@ const toSignIn = (req: NextRequest): NextResponse => {
   );
 };
 
-export default async function proxy(req: NextRequest) {
+const proxy = async (req: NextRequest): Promise<NextResponse> => {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const claims = token ? await verifySessionToken(token) : null;
 
@@ -45,7 +45,9 @@ export default async function proxy(req: NextRequest) {
   }
 
   return NextResponse.next();
-}
+};
+
+export default proxy;
 
 export const config = {
   matcher: [
