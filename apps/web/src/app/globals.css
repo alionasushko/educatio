@@ -89,7 +89,7 @@
   --border-medium: #d6d3d1;
   --text-primary: #1c1917;
   --text-secondary: #57534e;
-  --text-tertiary: #a8a29e;
+  --text-tertiary: #78716c;
 
   --accent-brand: #4338ca; /* Indigo */
   --accent-soft: color-mix(in oklab, var(--accent-brand) 10%, var(--bg));
@@ -180,7 +180,7 @@
   --ring: #818cf8;
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
+  --text-tertiary: #909099;
   --border-subtle: rgba(255, 255, 255, 0.1);
   --border-medium: rgba(255, 255, 255, 0.18);
   --accent-brand: #818cf8;

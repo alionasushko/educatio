@@ -27,7 +27,7 @@ Build the first online tutoring whiteboard that _feels designed_, not engineered
 | Background (warm off-white)             | `--bg` `#FAFAF9`                                                                                                                                   |
 | Surface (white)                         | `--surface` `#FFFFFF`                                                                                                                              |
 | Borders                                 | `--border-subtle` `#E7E5E4`, `--border-medium` `#D6D3D1`                                                                                           |
-| Text                                    | `--text-primary` `#1C1917`, `--text-secondary` `#57534E`, `--text-tertiary` `#A8A29E`                                                              |
+| Text                                    | `--text-primary` `#1C1917`, `--text-secondary` `#57534E`, `--text-tertiary` `#78716C`                                                              |
 | **Accent (Indigo)**                     | `--accent-brand` `#4338CA` + `--accent-soft`, `--accent-soft-border`, `--accent-tint`                                                              |
 | Sticky-note palette (muted/pastel only) | `--sticky-yellow/pink/blue/green/purple`                                                                                                           |
 | Functional                              | `--success` `#16A34A`, `--warning` `#D97706`, `--destructive` `#DC2626`                                                                            |
