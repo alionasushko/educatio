@@ -46,7 +46,14 @@ async function bootstrap() {
   });
 
   await app.register(fastifyMultipart, {
-    limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+    limits: {
+      fileSize: MAX_UPLOAD_BYTES,
+      files: 1,
+      fields: 0,
+      fieldSize: 0,
+      parts: 1,
+      headerPairs: 20,
+    },
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());
