@@ -73,7 +73,7 @@ const Input = ({
       </div>
       <p
         id={descriptionId}
-        aria-hidden={message ? undefined : true}
+        aria-live="polite"
         className={cn(
           "mt-1.5 min-h-4.5 text-[12.5px] leading-snug",
           error ? "text-destructive" : "text-text-tertiary",

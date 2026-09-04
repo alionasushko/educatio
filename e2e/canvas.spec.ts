@@ -29,9 +29,7 @@ const awaitStorage = (page: Page, tool = "Pen (P)") =>
 
 const openCanvas = async (page: Page) => {
   await page.goto(`/lesson/${lesson.lessonId}`);
-  await expect(
-    page.getByRole("toolbar", { name: "Canvas tools" }),
-  ).toBeVisible();
+  await expect(page.getByRole("group", { name: "Canvas tools" })).toBeVisible();
   const canvas = page.locator("canvas").first();
   await expect(canvas).toBeVisible();
   await awaitStorage(page);
@@ -624,9 +622,7 @@ test("the canvas tells you it is read-only on a phone", async ({
   await expect(
     page.getByText(/works best on a laptop or tablet/),
   ).toBeVisible();
-  await expect(
-    page.getByRole("toolbar", { name: "Canvas tools" }),
-  ).toBeHidden();
+  await expect(page.getByRole("group", { name: "Canvas tools" })).toBeHidden();
 });
 
 test("leaving the lesson persists the canvas", async ({ page, context }) => {

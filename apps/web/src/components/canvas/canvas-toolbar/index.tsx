@@ -59,9 +59,8 @@ const CanvasToolbar = ({
 
   return (
     <div
-      role="toolbar"
+      role="group"
       aria-label="Canvas tools"
-      aria-orientation="horizontal"
       className={cn(
         "border-border-subtle bg-surface absolute bottom-5 left-1/2 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-wrap items-center justify-center gap-1 rounded-[14px] border p-1.5 shadow-(--shadow-medium)",
         className,

@@ -19,23 +19,28 @@ const SetPasswordForm = ({ hasPassword, needsCurrent, next }: Props) => {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
-  const [error, setError] = useState<string>();
+  const [errors, setErrors] = useState<{
+    password?: string;
+    currentPassword?: string;
+  }>({});
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    setError(undefined);
+    setErrors({});
 
     const parsed = setPasswordSchema.safeParse({ password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Choose a valid password.");
+      setErrors({
+        password: parsed.error.issues[0]?.message ?? "Choose a valid password.",
+      });
       return;
     }
 
     startTransition(async () => {
       const result = await setPasswordAction(password, currentPassword);
       if (!result.ok) {
-        setError(result.fieldErrors?.password ?? result.error);
+        setErrors(result.fieldErrors ?? { password: result.error });
         return;
       }
       toast.success(hasPassword ? "Password changed" : "Password set");
@@ -55,6 +60,7 @@ const SetPasswordForm = ({ hasPassword, needsCurrent, next }: Props) => {
           onChange={(event) => {
             setCurrentPassword(event.target.value);
           }}
+          error={errors.currentPassword}
         />
       )}
 
@@ -68,7 +74,7 @@ const SetPasswordForm = ({ hasPassword, needsCurrent, next }: Props) => {
         onChange={(event) => {
           setPassword(event.target.value);
         }}
-        error={error}
+        error={errors.password}
       />
 
       <Button

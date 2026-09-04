@@ -35,13 +35,16 @@ const PresenceStack = () => {
 
   const shown = others.slice(0, MAX_AVATARS);
   const extra = others.length - shown.length;
+  const names = others
+    .map(({ presence }) => presence.name)
+    .filter(Boolean)
+    .join(", ");
+  const label = names
+    ? `In this lesson with you: ${names}`
+    : `${others.length} ${others.length === 1 ? "person" : "people"} in this lesson with you`;
 
   return (
-    <div
-      className="flex items-center"
-      role="group"
-      aria-label={`${others.length} other in the lesson`}
-    >
+    <div className="flex items-center" role="group" aria-label={label}>
       {shown.map(({ connectionId, presence }) => (
         <span
           key={connectionId}

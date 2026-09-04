@@ -385,9 +385,13 @@ const CanvasStage = ({
 
       {dragging && <DropOverlay />}
 
+      <div role="status" aria-live="polite" className="sr-only">
+        {uploading ? "Adding image…" : ""}
+      </div>
+
       {uploading && (
         <div
-          role="status"
+          aria-hidden="true"
           className="border-border-subtle bg-surface text-text-secondary absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full border px-3 py-1.5 text-xs shadow-(--shadow-medium)"
         >
           Adding image…

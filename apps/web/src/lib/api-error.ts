@@ -108,16 +108,27 @@ export const validated = <T>(
  * ERROR_COPY keyed on the api's stable `code`; `byCode` overrides it only where
  * a code reads differently in context.
  */
+export type CodeCopy = string | { message: string; field: string };
+
+const asResult = (copy: CodeCopy): ActionResult<never> =>
+  typeof copy === "string"
+    ? { ok: false, error: copy }
+    : {
+        ok: false,
+        error: copy.message,
+        fieldErrors: { [copy.field]: copy.message },
+      };
+
 export const actionError = (
   err: unknown,
-  byCode: Partial<Record<ErrorCode, string>> = {},
+  byCode: Partial<Record<ErrorCode, CodeCopy>> = {},
 ): ActionResult<never> => {
   unstable_rethrow(err);
 
   if (err instanceof ApiClientError) {
     const { code } = err.body;
     if (code === "internal_error") console.error(err);
-    return { ok: false, error: byCode[code] ?? ERROR_COPY[code] };
+    return asResult(byCode[code] ?? ERROR_COPY[code]);
   }
 
   console.error(err);

@@ -22,7 +22,10 @@ export const setPasswordAction = async (
     ({ sessionJwt } = await setPassword(parsed.data));
   } catch (err) {
     return actionError(err, {
-      invalid_credentials: "That current password is not right.",
+      invalid_credentials: {
+        message: "Your current password is incorrect.",
+        field: "currentPassword",
+      },
     });
   }
 
