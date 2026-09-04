@@ -33,18 +33,18 @@ const passwordSchema = z
 
 export const signupSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  email: z.string().email().max(EMAIL_MAX),
+  email: z.email().max(EMAIL_MAX),
   teaches: z.string().max(200).optional(),
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
 export const signinSchema = z.object({
-  email: z.string().email().max(EMAIL_MAX),
+  email: z.email().max(EMAIL_MAX),
 });
 export type SigninInput = z.infer<typeof signinSchema>;
 
 export const passwordSigninSchema = z.object({
-  email: z.string().email().max(EMAIL_MAX),
+  email: z.email().max(EMAIL_MAX),
   password: z.string().min(1).max(72),
 });
 export type PasswordSigninInput = z.infer<typeof passwordSigninSchema>;

@@ -7,6 +7,7 @@ import Input from "@/components/ui/input";
 import { studentSessionSchema } from "@educatio/shared/api/sessions";
 import { joinLessonAction } from "@/app/join/[inviteCode]/actions";
 import TutorNotice from "./components/tutor-notice";
+import { z } from "zod";
 
 interface Props {
   inviteCode: string;
@@ -32,7 +33,7 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
       email: email.trim(),
     });
     if (!parsed.success) {
-      const fields = parsed.error.flatten().fieldErrors;
+      const fields = z.flattenError(parsed.error).fieldErrors;
       setNameError(
         fields.name
           ? "Add your name so your tutor knows who joined."

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { signupSchema } from "@educatio/shared/api/auth";
 import type { Errors, Field } from "./types";
 
@@ -9,7 +10,7 @@ export const validate = (values: Record<Field, string>): Errors => {
   });
   if (result.success) return {};
 
-  const flat = result.error.flatten().fieldErrors;
+  const flat = z.flattenError(result.error).fieldErrors;
   const errors: Errors = {};
   if (flat.name) errors.name = "Please enter your name.";
   if (flat.email) errors.email = "Enter a valid email address.";

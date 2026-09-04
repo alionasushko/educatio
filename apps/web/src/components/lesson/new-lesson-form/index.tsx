@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { createLessonSchema } from "@educatio/shared/api/lessons";
 import { createLessonAction } from "@/app/lesson/new/actions";
+import { z } from "zod";
 
 interface Props {
   onCancel?: () => void;
@@ -43,7 +44,7 @@ const NewLessonForm = ({ onCancel }: Props) => {
       videoCallUrl: videoCallUrl.trim() || undefined,
     });
     if (!parsed.success) {
-      const flat = parsed.error.flatten().fieldErrors;
+      const flat = z.flattenError(parsed.error).fieldErrors;
       setTitleError(flat.title ? "Give your lesson a title." : undefined);
       setVideoError(
         flat.videoCallUrl

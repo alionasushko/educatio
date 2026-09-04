@@ -6,6 +6,7 @@ import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
+import { z } from "zod";
 
 interface Props {
   callbackUrl?: string;
@@ -38,7 +39,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
       password,
     });
     if (!parsed.success) {
-      const flat = parsed.error.flatten().fieldErrors;
+      const flat = z.flattenError(parsed.error).fieldErrors;
       setEmailError(flat.email ? "Enter a valid email address." : undefined);
       setPasswordError(flat.password ? "Enter your password." : undefined);
       focusField(flat.email ? "email" : "password");

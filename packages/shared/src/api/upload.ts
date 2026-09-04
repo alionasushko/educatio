@@ -3,7 +3,7 @@ import { z } from "zod";
 export const UPLOAD_SEGMENT = "upload";
 export const UPLOAD_PATH = `/${UPLOAD_SEGMENT}`;
 
-export const uploadResponseSchema = z.object({ url: z.string().url() });
+export const uploadResponseSchema = z.object({ url: z.url() });
 export type UploadResponse = z.infer<typeof uploadResponseSchema>;
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
