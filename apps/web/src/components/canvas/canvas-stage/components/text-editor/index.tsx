@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { useHistory, useStorage } from "@liveblocks/react";
 import { MAX_ELEMENT_CONTENT } from "@educatio/shared/api/canvas-element";
 import {
@@ -53,14 +53,20 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
         : 0;
 
   const minHeight = editable ? MIN_TEXT_HEIGHT[element.type] : 0;
+  const openedHeight = useRef(editable ? element.height : 0);
+
+  const measure = useCallback(
+    (node: HTMLTextAreaElement) =>
+      Math.ceil(contentHeight(node) / viewport.scale + padding * 2),
+    [padding, viewport.scale],
+  );
 
   const fit = useCallback(
     (node: HTMLTextAreaElement) => {
       if (!editable) return;
-      const needed = contentHeight(node) / viewport.scale + padding * 2;
-      updateText(elementId, node.value, Math.max(minHeight, Math.ceil(needed)));
+      updateText(elementId, node.value, Math.max(minHeight, measure(node)));
     },
-    [editable, elementId, minHeight, padding, updateText, viewport.scale],
+    [editable, elementId, measure, minHeight, updateText],
   );
 
   const onMount = useCallback(
@@ -68,9 +74,9 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
       if (!node) return;
       node.focus();
       node.setSelectionRange(node.value.length, node.value.length);
-      fit(node);
+      if (measure(node) > openedHeight.current) fit(node);
     },
-    [fit],
+    [fit, measure],
   );
 
   if (!editable) return null;

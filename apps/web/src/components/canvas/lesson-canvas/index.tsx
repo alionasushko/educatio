@@ -13,6 +13,7 @@ import {
 import CanvasToolbar from "../canvas-toolbar";
 import CanvasSnapshot from "../canvas-snapshot";
 import { useViewport } from "../canvas-stage/helpers/use-viewport";
+import { useCanEdit } from "../canvas-stage/helpers/use-can-edit";
 import {
   useRecolorElement,
   type ColorTarget,
@@ -24,6 +25,8 @@ const CanvasStage = dynamic(() => import("../canvas-stage"), {
   ssr: false,
   loading: () => <div className="bg-bg h-full w-full" />,
 });
+
+const noop = () => undefined;
 
 interface Props {
   lessonId: string;
@@ -40,6 +43,7 @@ const LessonCanvas = ({ lessonId }: Props) => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [selection, setSelection] = useState<ColorTarget | null>(null);
   const recolor = useRecolorElement();
+  const canEdit = useCanEdit();
   const {
     viewport,
     panning,
@@ -85,13 +89,15 @@ const LessonCanvas = ({ lessonId }: Props) => {
         className="hidden md:flex"
         settings={settings}
         onChange={change}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
+        onUndo={canEdit ? undo : noop}
+        onRedo={canEdit ? redo : noop}
+        canUndo={canEdit && canUndo}
+        canRedo={canEdit && canRedo}
         ready={storageRoot !== null}
         selection={selection}
-        onRecolor={(value) => selection && recolor(selection.id, value)}
+        onRecolor={(value) => {
+          if (canEdit && selection) recolor(selection.id, value);
+        }}
         scale={viewport.scale}
         onZoom={zoomStep}
         onResetZoom={resetZoom}

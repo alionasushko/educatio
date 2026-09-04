@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type DragEvent,
@@ -11,6 +10,7 @@ import {
 import type Konva from "konva";
 import { Layer, Stage } from "react-konva";
 import {
+  shallow,
   useRedo,
   useStorage,
   useStorageRoot,
@@ -18,6 +18,7 @@ import {
   useUpdateMyPresence,
 } from "@liveblocks/react";
 import { ALLOWED_UPLOAD_TYPES } from "@educatio/shared/api/upload";
+import type { CanvasTool } from "@/lib/liveblocks.config";
 import type { CanvasSettings } from "../helpers/types";
 import { GRID_SIZE } from "./helpers/constants";
 import { useStageSize } from "./helpers/use-stage-size";
@@ -153,11 +154,11 @@ const CanvasStage = ({
 
   const handleDragOver = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
-      if (!storageReady || !event.dataTransfer.types.includes("Files")) return;
+      if (!event.dataTransfer.types.includes("Files")) return;
       event.preventDefault();
-      setDragging(true);
+      if (storageReady && canEdit) setDragging(true);
     },
-    [storageReady],
+    [storageReady, canEdit],
   );
 
   const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
@@ -170,7 +171,7 @@ const CanvasStage = ({
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       setDragging(false);
-      if (!storageReady) return;
+      if (!storageReady || !canEdit) return;
       const file = event.dataTransfer.files[0];
       if (!file) return;
       const point = toCanvasPoint(
@@ -182,7 +183,7 @@ const CanvasStage = ({
       if (!point) return;
       void upload(file, point.x, point.y);
     },
-    [storageReady, upload, viewport, container],
+    [storageReady, canEdit, upload, viewport, container],
   );
 
   const handleStageClick = useCallback(
@@ -194,7 +195,7 @@ const CanvasStage = ({
 
       if (tool === "image") {
         const spot = stage?.getRelativePointerPosition();
-        if (storageReady && spot) pickImage(spot.x, spot.y);
+        if (storageReady && canEdit && spot) pickImage(spot.x, spot.y);
         return;
       }
 
@@ -225,12 +226,9 @@ const CanvasStage = ({
     ],
   );
 
-  const selectedElement = useStorage((root) =>
-    selectedId ? root.elements[selectedId] : undefined,
-  );
-  const colorTarget = useMemo(
-    () => colorTargetOf(selectedElement),
-    [selectedElement],
+  const colorTarget = useStorage(
+    (root) => colorTargetOf(selectedId ? root.elements[selectedId] : undefined),
+    shallow,
   );
 
   useEffect(() => {
@@ -238,10 +236,10 @@ const CanvasStage = ({
   }, [colorTarget, onSelectionChange]);
 
   const handleDelete = useCallback(() => {
-    if (!selectedId || editingId) return;
+    if (!selectedId || editingId || !canEdit) return;
     deleteElement(selectedId);
     select(null);
-  }, [selectedId, editingId, deleteElement, select]);
+  }, [selectedId, editingId, canEdit, deleteElement, select]);
 
   const commitStroke = useCallback(
     (x: number, y: number, points: number[]) => {
@@ -304,12 +302,18 @@ const CanvasStage = ({
       .forEach((node) => node.stopDrag());
   }, [pinching, cancelPen]);
 
+  const handleTool = useCallback(
+    (next: CanvasTool) => onChange({ tool: next }),
+    [onChange],
+  );
+
   useCanvasShortcuts({
+    canEdit,
     onDelete: handleDelete,
     onDeselect: handleDeselect,
     onUndo: undo,
     onRedo: redo,
-    onTool: (next) => onChange({ tool: next }),
+    onTool: handleTool,
   });
 
   const dot = GRID_SIZE * viewport.scale;
@@ -398,7 +402,7 @@ const CanvasStage = ({
         onChange={handleFileChosen}
       />
 
-      {editingId && (
+      {canEdit && editingId && (
         <TextEditor
           key={editingId}
           elementId={editingId}

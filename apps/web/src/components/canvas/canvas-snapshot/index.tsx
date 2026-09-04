@@ -5,6 +5,7 @@ import { useEventListener, useStorageRoot } from "@liveblocks/react";
 import { toast } from "sonner";
 import { persistCanvas } from "@/app/lesson/[lessonId]/actions";
 import { useReadCanvas } from "./helpers/use-read-canvas";
+import { isLessonClosed } from "./helpers/closed-lessons";
 import {
   SNAPSHOT_INTERVAL_MS,
   SNAPSHOT_SAVE_FAILED,
@@ -36,6 +37,7 @@ const CanvasSnapshot = ({ lessonId }: Props) => {
 
   const save = useCallback(async () => {
     if (saving.current || !loaded.current) return;
+    if (closed.current || isLessonClosed(lessonId)) return;
     saving.current = true;
     try {
       const snapshot = readCanvas();
@@ -63,7 +65,7 @@ const CanvasSnapshot = ({ lessonId }: Props) => {
     const timer = setInterval(() => void save(), SNAPSHOT_INTERVAL_MS);
     return () => {
       clearInterval(timer);
-      if (!closed.current) void save();
+      void save();
     };
   }, [save]);
 

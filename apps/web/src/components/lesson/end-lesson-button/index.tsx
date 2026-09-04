@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useBroadcastEvent } from "@liveblocks/react";
 import { useCanvasFlush } from "@/components/canvas/canvas-snapshot/helpers/use-canvas-flush";
+import { markLessonClosed } from "@/components/canvas/canvas-snapshot/helpers/closed-lessons";
 import { SquareIcon } from "lucide-react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import Button from "@/components/ui/button";
@@ -36,6 +37,7 @@ const EndLessonButton = ({ lessonId }: Props) => {
         setError(result.error);
         return;
       }
+      markLessonClosed(lessonId);
       broadcast({ type: "lesson-ended" });
       router.push(lessonSummaryHref(lessonId));
     });

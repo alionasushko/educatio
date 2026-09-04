@@ -33,21 +33,23 @@ interface Props {
 
 const CanvasElementNode = ({ id, onSelect, onEdit, canEdit }: Props) => {
   const element = useStorage((root) => root.elements[id]);
-  const peerTransforms = useOthersMapped(
-    (other) =>
-      other.presence.transforming?.id === id
-        ? other.presence.transforming
+  const peers = useOthersMapped(
+    (other) => ({
+      transforming:
+        other.presence.transforming?.id === id
+          ? other.presence.transforming
+          : null,
+      selectedBy: other.presence.selection?.includes(id)
+        ? other.presence.color
         : null,
+    }),
     shallow,
   );
-  const live = peerTransforms.find(([, value]) => value !== null)?.[1] ?? null;
-  const peerSelections = useOthersMapped(
-    (other) =>
-      other.presence.selection?.includes(id) ? other.presence.color : null,
-    shallow,
-  );
+  const live =
+    peers.find(([, value]) => value.transforming)?.[1].transforming ?? null;
   const selectedByPeer =
-    peerSelections.find(([, value]) => value !== null)?.[1] ?? null;
+    peers.find(([, value]) => value.selectedBy !== null)?.[1].selectedBy ??
+    null;
   const moveElement = useMoveElement();
   const transformElement = useTransformElement();
   const history = useHistory();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useOthers } from "@liveblocks/react";
+import { shallow, useOthersMapped } from "@liveblocks/react";
 import type { Viewport } from "../canvas-stage/helpers/types";
 import RemoteCursor from "./components/remote-cursor";
 
@@ -9,22 +9,34 @@ interface Props {
 }
 
 const CursorLayer = ({ viewport }: Props) => {
-  const others = useOthers();
+  const cursors = useOthersMapped(
+    (other) =>
+      other.presence.cursor
+        ? {
+            x: other.presence.cursor.x,
+            y: other.presence.cursor.y,
+            name: other.presence.name,
+            role: other.presence.role,
+            color: other.presence.color,
+          }
+        : null,
+    shallow,
+  );
 
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 overflow-hidden"
     >
-      {others.map(({ connectionId, presence }) =>
-        presence.cursor ? (
+      {cursors.map(([connectionId, cursor]) =>
+        cursor ? (
           <RemoteCursor
             key={connectionId}
-            x={presence.cursor.x * viewport.scale + viewport.x}
-            y={presence.cursor.y * viewport.scale + viewport.y}
-            name={presence.name}
-            role={presence.role}
-            color={presence.color}
+            x={cursor.x * viewport.scale + viewport.x}
+            y={cursor.y * viewport.scale + viewport.y}
+            name={cursor.name}
+            role={cursor.role}
+            color={cursor.color}
           />
         ) : null,
       )}
