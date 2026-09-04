@@ -21,6 +21,7 @@ export const MIN_ELEMENT_SIDE = 12;
 export const MIN_FONT_SIZE = 1;
 
 export const PEN_MIN_DISTANCE = 2;
+export const PEN_POINT_PRECISION = 10;
 
 export const MAX_IMAGE_SIDE = 420;
 

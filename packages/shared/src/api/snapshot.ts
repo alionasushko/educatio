@@ -7,6 +7,7 @@ export const lessonSnapshotPath = (lessonId: string) =>
   `${lessonPath(lessonId)}/${SNAPSHOT_SEGMENT}`;
 
 export const MAX_SNAPSHOT_ELEMENTS = 2000;
+export const MAX_SNAPSHOT_BYTES = 4 * 1024 * 1024;
 
 const elementLimit = {
   check: (state: Record<string, unknown>) =>

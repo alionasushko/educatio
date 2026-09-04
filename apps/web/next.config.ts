@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { MAX_SNAPSHOT_BYTES } from "@educatio/shared/api/snapshot";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -50,6 +51,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   headers: async () => [{ source: "/(.*)", headers: securityHeaders }],
+  experimental: {
+    serverActions: { bodySizeLimit: MAX_SNAPSHOT_BYTES },
+  },
 };
 
 export default withSentryConfig(nextConfig, { silent: true });

@@ -25,7 +25,11 @@ const EndLessonButton = ({ lessonId }: Props) => {
   const handleConfirm = () => {
     setError(undefined);
     startTransition(async () => {
-      await flushCanvas();
+      const flushed = await flushCanvas();
+      if (!flushed.ok) {
+        setError(flushed.error);
+        return;
+      }
 
       const result = await endLessonAction(lessonId);
       if (!result.ok) {

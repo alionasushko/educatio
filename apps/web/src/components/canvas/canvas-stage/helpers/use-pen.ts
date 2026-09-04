@@ -1,9 +1,12 @@
 import { useCallback, useRef, useState } from "react";
 import { useUpdateMyPresence } from "@liveblocks/react";
 import type { CanvasTool } from "@/lib/liveblocks.config";
-import { PEN_MIN_DISTANCE } from "./constants";
+import { PEN_MIN_DISTANCE, PEN_POINT_PRECISION } from "./constants";
 import { toCanvasPoint } from "./helpers";
 import type { Viewport } from "./types";
+
+const roundPoint = (value: number) =>
+  Math.round(value * PEN_POINT_PRECISION) / PEN_POINT_PRECISION;
 
 interface Draft {
   x: number;
@@ -77,7 +80,10 @@ export const usePen = ({
       const dy = y - (points[points.length - 1] ?? 0);
       if (Math.hypot(dx, dy) * viewport.scale < PEN_MIN_DISTANCE) return;
 
-      const next = { ...inProgress, points: [...points, x, y] };
+      const next = {
+        ...inProgress,
+        points: [...points, roundPoint(x), roundPoint(y)],
+      };
       current.current = next;
       setDraft(next);
       broadcast(next);

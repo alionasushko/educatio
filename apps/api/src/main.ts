@@ -14,7 +14,7 @@ import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter";
 import type { Env } from "./config/env";
 import { TRUSTED_PROXIES } from "./config/env.schema";
-import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
+import { MULTIPART_LIMITS, applyRouteBodyLimits } from "./config/server";
 
 const parseTrustProxy = (raw: string | undefined): boolean | string => {
   const v = raw?.trim();
@@ -33,6 +33,8 @@ async function bootstrap() {
     { bufferLogs: true },
   );
 
+  applyRouteBodyLimits(app.getHttpAdapter().getInstance());
+
   const config = app.get<ConfigService<Env, true>>(ConfigService);
   const port = config.get("PORT", { infer: true });
   const webOrigin = config.get("WEB_ORIGIN", { infer: true });
@@ -45,16 +47,7 @@ async function bootstrap() {
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   });
 
-  await app.register(fastifyMultipart, {
-    limits: {
-      fileSize: MAX_UPLOAD_BYTES,
-      files: 1,
-      fields: 0,
-      fieldSize: 0,
-      parts: 1,
-      headerPairs: 20,
-    },
-  });
+  await app.register(fastifyMultipart, { limits: MULTIPART_LIMITS });
 
   app.useGlobalFilters(new AllExceptionsFilter());
 

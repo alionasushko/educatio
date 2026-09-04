@@ -7,7 +7,7 @@ import { Types } from "mongoose";
 import type { Connection, Model } from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import fastifyMultipart from "@fastify/multipart";
-import { MAX_UPLOAD_BYTES } from "@educatio/shared/api/upload";
+import { MULTIPART_LIMITS, applyRouteBodyLimits } from "../src/config/server";
 import { AllExceptionsFilter } from "../src/common/all-exceptions.filter";
 import { AuthService } from "../src/auth/auth.service";
 import { User } from "../src/schemas/user.schema";
@@ -56,9 +56,8 @@ export const startApi = async (): Promise<Harness> => {
   const app = moduleRef.createNestApplication<NestFastifyApplication>(
     new FastifyAdapter(),
   );
-  await app.register(fastifyMultipart, {
-    limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
-  });
+  applyRouteBodyLimits(app.getHttpAdapter().getInstance());
+  await app.register(fastifyMultipart, { limits: MULTIPART_LIMITS });
   app.useGlobalFilters(new AllExceptionsFilter());
   await app.init();
   await app.listen(0, "127.0.0.1");
