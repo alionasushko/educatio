@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { lessonPath } from "./lessons";
+import { MAX_ELEMENT_ID, canvasElementSchema } from "./canvas-element";
 
 export const SNAPSHOT_SEGMENT = "snapshot";
 export const lessonSnapshotPath = (lessonId: string) =>
@@ -7,11 +8,19 @@ export const lessonSnapshotPath = (lessonId: string) =>
 
 export const MAX_SNAPSHOT_ELEMENTS = 2000;
 
-const canvasStateSchema = z
+const elementLimit = {
+  check: (state: Record<string, unknown>) =>
+    Object.keys(state).length <= MAX_SNAPSHOT_ELEMENTS,
+  message: `A canvas can hold at most ${MAX_SNAPSHOT_ELEMENTS} elements.`,
+};
+
+const storedCanvasStateSchema = z
   .record(z.string(), z.unknown())
-  .refine((state) => Object.keys(state).length <= MAX_SNAPSHOT_ELEMENTS, {
-    message: `A canvas can hold at most ${MAX_SNAPSHOT_ELEMENTS} elements.`,
-  });
+  .refine(elementLimit.check, { message: elementLimit.message });
+
+const canvasStateSchema = z
+  .record(z.string().min(1).max(MAX_ELEMENT_ID), canvasElementSchema)
+  .refine(elementLimit.check, { message: elementLimit.message });
 
 export const snapshotSchema = z.object({
   canvasState: canvasStateSchema,
@@ -21,7 +30,7 @@ export type SnapshotInput = z.infer<typeof snapshotSchema>;
 export const latestSnapshotResponseSchema = z.object({
   snapshot: z
     .object({
-      canvasState: canvasStateSchema,
+      canvasState: storedCanvasStateSchema,
       snapshotAt: z.iso.datetime(),
     })
     .nullable(),

@@ -44,7 +44,9 @@ export const generateSummaryAction = async (
   try {
     await generateSummary(lessonId);
   } catch (err) {
-    return actionError(err);
+    return actionError(err, {
+      limit_reached: "You've used today's summaries. Try again tomorrow.",
+    });
   }
 
   revalidatePath(lessonSummaryHref(lessonId));

@@ -1,4 +1,5 @@
 import type { CanvasElement } from "@educatio/shared";
+import { rangeOf } from "@/lib/range";
 import type { StageSize } from "./types";
 
 export const localBounds = (
@@ -14,13 +15,13 @@ export const localBounds = (
     return { x: 0, y: 0, width: 0, height: 0 };
   }
 
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
+  const x = rangeOf(xs);
+  const y = rangeOf(ys);
   const pad = element.strokeWidth / 2;
   return {
-    x: minX - pad,
-    y: minY - pad,
-    width: Math.max(...xs) - minX + element.strokeWidth,
-    height: Math.max(...ys) - minY + element.strokeWidth,
+    x: x.min - pad,
+    y: y.min - pad,
+    width: x.max - x.min + element.strokeWidth,
+    height: y.max - y.min + element.strokeWidth,
   };
 };

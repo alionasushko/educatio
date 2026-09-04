@@ -18,6 +18,7 @@ export const CODE_PADDING = 12;
 export const DRAG_SYNC_MS = 50;
 export const SELECTION_PADDING = 6;
 export const MIN_ELEMENT_SIDE = 12;
+export const MIN_FONT_SIZE = 1;
 
 export const PEN_MIN_DISTANCE = 2;
 

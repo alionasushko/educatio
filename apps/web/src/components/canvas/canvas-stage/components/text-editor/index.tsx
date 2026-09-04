@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, type CSSProperties } from "react";
 import { useHistory, useStorage } from "@liveblocks/react";
+import { MAX_ELEMENT_CONTENT } from "@educatio/shared/api/canvas-element";
 import {
   CANVAS_FONT,
   CANVAS_MONO_FONT,
@@ -108,6 +109,7 @@ const TextEditor = ({ elementId, viewport, onClose }: Props) => {
     <textarea
       ref={onMount}
       defaultValue={element.content}
+      maxLength={MAX_ELEMENT_CONTENT}
       aria-label="Edit canvas text"
       spellCheck={false}
       onPointerDown={(event) => event.stopPropagation()}

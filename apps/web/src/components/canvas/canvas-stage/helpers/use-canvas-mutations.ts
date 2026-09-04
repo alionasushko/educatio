@@ -2,9 +2,13 @@ import { useMutation } from "@liveblocks/react";
 import { nanoid } from "nanoid";
 import type { LiveMap } from "@liveblocks/client";
 import type { CanvasElement, StickyColor } from "@educatio/shared";
+import { MAX_ELEMENT_FONT_SIZE } from "@educatio/shared/api/canvas-element";
 import type { CanvasSettings } from "../../helpers/types";
-import { MIN_ELEMENT_SIDE } from "./constants";
+import { MIN_ELEMENT_SIDE, MIN_FONT_SIZE } from "./constants";
 import { createElement, type CreatableTool } from "./element-factory";
+
+const clampFontSize = (size: number): number =>
+  Math.min(MAX_ELEMENT_FONT_SIZE, Math.max(MIN_FONT_SIZE, Math.abs(size)));
 
 const nextZIndex = (elements: LiveMap<string, CanvasElement>): number =>
   Array.from(elements.values()).reduce(
@@ -209,7 +213,7 @@ export const useTransformElement = () =>
               next.height ?? element.height * next.scaleY,
             ),
             ...(element.type === "text" && next.fontSize
-              ? { fontSize: next.fontSize }
+              ? { fontSize: clampFontSize(next.fontSize) }
               : {}),
           };
 

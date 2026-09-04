@@ -1,4 +1,5 @@
 import type { CanvasElement } from "@educatio/shared";
+import { rangeOf } from "@/lib/range";
 
 export interface Box {
   x: number;
@@ -21,15 +22,13 @@ export const extentOf = (element: CanvasElement): Box => {
   }
 
   if (element.type === "path" && element.points.length >= 2) {
-    const xs = element.points.filter((_, index) => index % 2 === 0);
-    const ys = element.points.filter((_, index) => index % 2 === 1);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
+    const x = rangeOf(element.points.filter((_, index) => index % 2 === 0));
+    const y = rangeOf(element.points.filter((_, index) => index % 2 === 1));
     return {
-      x: element.x + minX,
-      y: element.y + minY,
-      width: Math.max(...xs) - minX,
-      height: Math.max(...ys) - minY,
+      x: element.x + x.min,
+      y: element.y + y.min,
+      width: x.max - x.min,
+      height: y.max - y.min,
     };
   }
 
@@ -37,17 +36,21 @@ export const extentOf = (element: CanvasElement): Box => {
 };
 
 export const boundsOf = (elements: CanvasElement[], padding: number): Box => {
-  const extents = elements.map(extentOf);
-  const minX = Math.min(...extents.map((box) => box.x));
-  const minY = Math.min(...extents.map((box) => box.y));
-  const maxX = Math.max(...extents.map((box) => box.x + box.width));
-  const maxY = Math.max(...extents.map((box) => box.y + box.height));
+  const span = elements.map(extentOf).reduce(
+    (bounds, box) => ({
+      minX: Math.min(bounds.minX, box.x),
+      minY: Math.min(bounds.minY, box.y),
+      maxX: Math.max(bounds.maxX, box.x + box.width),
+      maxY: Math.max(bounds.maxY, box.y + box.height),
+    }),
+    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
+  );
 
   return {
-    x: minX - padding,
-    y: minY - padding,
-    width: Math.max(maxX - minX + padding * 2, 1),
-    height: Math.max(maxY - minY + padding * 2, 1),
+    x: span.minX - padding,
+    y: span.minY - padding,
+    width: Math.max(span.maxX - span.minX + padding * 2, 1),
+    height: Math.max(span.maxY - span.minY + padding * 2, 1),
   };
 };
 
@@ -74,11 +77,13 @@ export const wrapLines = (
   maxWidth: number,
   fontSize: number,
   ratio = SANS_RATIO,
+  maxLines = Infinity,
 ): string[] => {
   const perLine = Math.max(1, Math.floor(maxWidth / (fontSize * ratio)));
   const lines: string[] = [];
 
   for (const paragraph of content.split("\n")) {
+    if (lines.length >= maxLines) return lines;
     if (paragraph.trim().length === 0) {
       lines.push("");
       continue;
@@ -92,10 +97,12 @@ export const wrapLines = (
         continue;
       }
       if (line) lines.push(line);
+      if (lines.length >= maxLines) return lines;
 
       let rest = word;
       while (rest.length > perLine) {
         lines.push(rest.slice(0, perLine));
+        if (lines.length >= maxLines) return lines;
         rest = rest.slice(perLine);
       }
       line = rest;
@@ -121,11 +128,13 @@ export const fitLines = (
   height: number,
   fontSize: number,
   ratio = SANS_RATIO,
-): string[] =>
-  clampLines(
-    wrapLines(content, width, fontSize, ratio),
-    Math.floor(height / (fontSize * LINE_HEIGHT)),
+): string[] => {
+  const maxLines = Math.floor(height / (fontSize * LINE_HEIGHT));
+  return clampLines(
+    wrapLines(content, width, fontSize, ratio, maxLines + 1),
+    maxLines,
   );
+};
 
 export const arrowHead = (
   x1: number,
