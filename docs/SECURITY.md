@@ -32,7 +32,7 @@ The deferrals are all justified by the deployment being a portfolio demo: per-vi
 
 ## Reviewed and consciously accepted
 
-**`'unsafe-inline'` in the production `script-src`.** Real, and it means CSP is not an XSS control here. Accepted because there is no HTML-injection sink: no `rehype-raw`, no `dangerouslySetInnerHTML` anywhere in the app, and `remark-gfm` is installed but deliberately unwired so bare URLs stay inert text. Recheck the first time anything renders raw HTML.
+**`'unsafe-inline'` in the production `script-src`.** Real, and it means CSP is not an XSS control here. Accepted because there is no HTML-injection sink: no `rehype-raw`, no `dangerouslySetInnerHTML` anywhere in the app, and `remark-gfm` is not installed at all, so bare URLs stay inert text. Recheck the first time anything renders raw HTML.
 
 **Dependency findings.** `bcrypt`'s install script, the nested `postcss`, `sharp`, and the `shadcn` production dependency were each examined and refused on today's reachability. That is a statement about today, not next month — re-run `npm audit` before each deploy.
 

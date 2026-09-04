@@ -48,10 +48,6 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^22.10.10",
     "mongodb-memory-server": "^11.2.0",
-    "source-map-support": "^0.5.21",
-    "ts-loader": "^9.5.2",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5",
     "unplugin-swc": "^1.5.10",
     "vitest": "^4.1.10"
