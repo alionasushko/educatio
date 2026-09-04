@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useCopyToClipboard } from "@/components/lesson/helpers/use-copy-to-clipboard";
 import { CheckIcon, CopyIcon, Share2Icon } from "lucide-react";
 import Dialog from "@/components/ui/dialog";
 import Button from "@/components/ui/button";
@@ -11,21 +12,15 @@ interface Props {
 
 const ShareLessonButton = ({ inviteCode }: Props) => {
   const [link, setLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText, reset } = useCopyToClipboard();
 
   const open = () => {
-    setCopied(false);
+    reset();
     setLink(`${window.location.origin}/join/${inviteCode}`);
   };
 
   const copy = async () => {
-    if (!link) return;
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
+    if (link) await copyText(link);
   };
 
   return (

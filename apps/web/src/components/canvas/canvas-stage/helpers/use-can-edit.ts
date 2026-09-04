@@ -1,18 +1,7 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 const QUERY = "(min-width: 768px)";
 
-const subscribe = (callback: () => void): (() => void) => {
-  const mql = window.matchMedia(QUERY);
-  mql.addEventListener("change", callback);
-  return () => mql.removeEventListener("change", callback);
-};
-
-export const useCanEdit = (): boolean =>
-  useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(QUERY).matches,
-    () => true,
-  );
+export const useCanEdit = (): boolean => useMediaQuery(QUERY, true);

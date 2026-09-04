@@ -6,8 +6,8 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { createLessonSchema } from "@educatio/shared/api/lessons";
+import { checkForm, focusField } from "@/lib/form-validation";
 import { createLessonAction } from "@/app/lesson/new/actions";
-import { z } from "zod";
 
 interface Props {
   onCancel?: () => void;
@@ -29,36 +29,32 @@ const NewLessonForm = ({ onCancel }: Props) => {
     else router.push("/dashboard");
   };
 
-  const focusField = (name: string) =>
-    formRef.current
-      ?.querySelector<HTMLInputElement>(`[name="${name}"]`)
-      ?.focus();
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setFormError(undefined);
 
-    const parsed = createLessonSchema.safeParse({
-      title: title.trim(),
-      studentName: studentName.trim() || undefined,
-      videoCallUrl: videoCallUrl.trim() || undefined,
-    });
-    if (!parsed.success) {
-      const flat = z.flattenError(parsed.error).fieldErrors;
-      setTitleError(flat.title ? "Give your lesson a title." : undefined);
-      setVideoError(
-        flat.videoCallUrl
-          ? "Enter a valid link, including https://."
-          : undefined,
-      );
-      focusField(flat.title ? "title" : "videoCallUrl");
+    const checked = checkForm(
+      createLessonSchema,
+      {
+        title: title.trim(),
+        studentName: studentName.trim() || undefined,
+        videoCallUrl: videoCallUrl.trim() || undefined,
+      },
+      {
+        title: "Give your lesson a title.",
+        videoCallUrl: "Enter a valid link, including https://.",
+      },
+    );
+    setTitleError(checked.ok ? undefined : checked.errors.title);
+    setVideoError(checked.ok ? undefined : checked.errors.videoCallUrl);
+    if (!checked.ok) {
+      if (checked.firstInvalid)
+        focusField(formRef.current, checked.firstInvalid);
       return;
     }
-    setTitleError(undefined);
-    setVideoError(undefined);
 
     startTransition(async () => {
-      const result = await createLessonAction(parsed.data);
+      const result = await createLessonAction(checked.data);
       if (!result.ok) setFormError(result.error);
     });
   };

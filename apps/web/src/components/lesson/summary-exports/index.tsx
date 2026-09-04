@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon, FileTextIcon, DownloadIcon } from "lucide-react";
 import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import { parseSummaryBlocks, toPlainText } from "@/lib/summary-markdown";
+import { useCopyToClipboard } from "@/components/lesson/helpers/use-copy-to-clipboard";
 
 interface Props {
   lessonTitle: string;
@@ -32,8 +33,8 @@ const control = "h-9 gap-1.5 px-3 text-sm";
 
 const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string>();
+  const { copied, copy: copyText } = useCopyToClipboard();
 
   const downloadPdf = async () => {
     setBusy(true);
@@ -70,13 +71,8 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
   };
 
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(toPlainText(summary));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setError("Your browser blocked the clipboard.");
-    }
+    const ok = await copyText(toPlainText(summary));
+    if (!ok) setError("Your browser blocked the clipboard.");
   };
 
   return (

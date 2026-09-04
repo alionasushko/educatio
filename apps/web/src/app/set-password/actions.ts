@@ -1,11 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { setPasswordSchema } from "@educatio/shared/api/auth";
 import { setPassword } from "@/lib/api-auth";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
-import { SESSION_COOKIE, sessionCookieOptionsFor } from "@/lib/session";
-import { ownSession } from "@/lib/session-server";
+import { ERROR_COPY } from "@/lib/error-messages";
+import { issueSessionCookie } from "@/lib/issue-session";
 
 export const setPasswordAction = async (
   password: string,
@@ -29,14 +28,8 @@ export const setPasswordAction = async (
     });
   }
 
-  const claims = await ownSession(sessionJwt);
-  if (claims) {
-    (await cookies()).set(
-      SESSION_COOKIE,
-      sessionJwt,
-      sessionCookieOptionsFor(claims.exp),
-    );
-  }
+  const claims = await issueSessionCookie(sessionJwt, "tutor");
+  if (!claims) return { ok: false, error: ERROR_COPY.internal_error };
 
   return { ok: true, data: undefined };
 };

@@ -3,16 +3,9 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useOthers, useOthersListener } from "@liveblocks/react";
+import { initials } from "@/lib/initials";
 
 const MAX_AVATARS = 5;
-
-const initials = (name: string) =>
-  name
-    .split(/[\s@._-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "?";
 
 const PresenceStack = () => {
   const others = useOthers();
@@ -52,7 +45,7 @@ const PresenceStack = () => {
           className="ring-surface -ml-1.5 flex size-7 items-center justify-center rounded-full text-[10.5px] font-semibold text-white ring-2 first:ml-0"
           style={{ background: `var(${presence.color})` }}
         >
-          {initials(presence.name)}
+          {initials(presence.name) || "?"}
         </span>
       ))}
       {extra > 0 && (

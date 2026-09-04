@@ -8,16 +8,10 @@ import {
   type SessionResponse,
 } from "@educatio/shared/api/auth";
 import { requestMagicLink, signinWithPassword } from "@/lib/api-auth";
-import { LINK_BINDING_COOKIE, linkBindingCookieOptions } from "@/lib/session";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
-import {
-  SESSION_COOKIE,
-  sessionCookieOptionsFor,
-  POST_LOGIN_COOKIE,
-  postLoginCookieOptions,
-} from "@/lib/session";
-import { ownSession } from "@/lib/session-server";
+import { POST_LOGIN_COOKIE, postLoginCookieOptions } from "@/lib/session";
+import { bindMagicLink, issueSessionCookie } from "@/lib/issue-session";
 import { safeInternalPath } from "@/lib/request";
 
 export const signinAction = async (
@@ -29,11 +23,7 @@ export const signinAction = async (
 
   try {
     const { binding } = await requestMagicLink(parsed.data);
-    (await cookies()).set(
-      LINK_BINDING_COOKIE,
-      binding,
-      linkBindingCookieOptions,
-    );
+    await bindMagicLink(binding);
   } catch (err) {
     return actionError(err);
   }
@@ -63,15 +53,8 @@ export const signinPasswordAction = async (
     return actionError(err, { unauthorized: ERROR_COPY.invalid_credentials });
   }
 
-  const claims = await ownSession(session.sessionJwt);
+  const claims = await issueSessionCookie(session.sessionJwt, "tutor");
   if (!claims) return { ok: false, error: ERROR_COPY.internal_error };
-
-  const store = await cookies();
-  store.set(
-    SESSION_COOKIE,
-    session.sessionJwt,
-    sessionCookieOptionsFor(claims.exp),
-  );
 
   redirect(safeInternalPath(callbackUrl) ?? "/dashboard");
 };

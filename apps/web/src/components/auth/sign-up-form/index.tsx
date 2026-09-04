@@ -5,6 +5,7 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signupAction } from "@/app/sign-up/actions";
+import { focusField } from "@/lib/form-validation";
 import { validate } from "./helpers/helpers";
 import { FIELD_ORDER } from "./helpers/constants";
 import type { Errors, Field } from "./helpers/types";
@@ -39,9 +40,7 @@ const SignUpForm = () => {
     setErrors(next);
     const firstInvalid = FIELD_ORDER.find((field) => next[field]);
     if (firstInvalid) {
-      formRef.current
-        ?.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)
-        ?.focus();
+      focusField(formRef.current, firstInvalid);
       return;
     }
 

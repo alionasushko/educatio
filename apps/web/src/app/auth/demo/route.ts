@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, sessionCookieOptionsFor } from "@/lib/session";
 import { demoLogin } from "@/lib/api-auth";
 import { query } from "@/lib/api-error";
-import { ownSession } from "@/lib/session-server";
+import { attachSessionCookie } from "@/lib/issue-session";
 import { isCrossSiteRequest } from "@/lib/request";
 
 export async function POST(req: NextRequest) {
@@ -11,23 +10,20 @@ export async function POST(req: NextRequest) {
   }
 
   const issued = await query(demoLogin);
-  const claims = issued.data ? await ownSession(issued.data.sessionJwt) : null;
+  const response = NextResponse.redirect(
+    new URL("/dashboard", req.nextUrl.origin),
+    { status: 303 },
+  );
+  const claims = issued.data
+    ? await attachSessionCookie(response, issued.data.sessionJwt, "tutor")
+    : null;
 
-  if (!issued.data || !claims) {
+  if (!claims) {
     return NextResponse.redirect(
       new URL("/sign-up?error=demo-unavailable", req.nextUrl.origin),
       { status: 303 },
     );
   }
 
-  const response = NextResponse.redirect(
-    new URL("/dashboard", req.nextUrl.origin),
-    { status: 303 },
-  );
-  response.cookies.set(
-    SESSION_COOKIE,
-    issued.data.sessionJwt,
-    sessionCookieOptionsFor(claims.exp),
-  );
   return response;
 }

@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   studentSessionSchema,
@@ -9,8 +8,7 @@ import {
 import { createStudentSession } from "@/lib/api-sessions";
 import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
-import { SESSION_COOKIE, sessionCookieOptionsFor } from "@/lib/session";
-import { ownSession } from "@/lib/session-server";
+import { issueSessionCookie } from "@/lib/issue-session";
 
 export const joinLessonAction = async (
   input: StudentSessionInput,
@@ -25,15 +23,10 @@ export const joinLessonAction = async (
     return actionError(err);
   }
 
-  const claims = await ownSession(sessionJwt);
-  if (claims?.kind !== "student") {
+  const claims = await issueSessionCookie(sessionJwt, "student");
+  if (!claims) {
     return { ok: false, error: ERROR_COPY.malformed_response };
   }
 
-  (await cookies()).set(
-    SESSION_COOKIE,
-    sessionJwt,
-    sessionCookieOptionsFor(claims.exp),
-  );
   redirect(`/lesson/${encodeURIComponent(claims.lessonId)}`);
 };

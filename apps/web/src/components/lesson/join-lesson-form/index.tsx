@@ -5,9 +5,9 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { studentSessionSchema } from "@educatio/shared/api/sessions";
+import { checkForm } from "@/lib/form-validation";
 import { joinLessonAction } from "@/app/join/[inviteCode]/actions";
 import TutorNotice from "./components/tutor-notice";
-import { z } from "zod";
 
 interface Props {
   inviteCode: string;
@@ -27,26 +27,20 @@ const JoinLessonForm = ({ inviteCode, tutorEmail }: Props) => {
     event.preventDefault();
     setFormError(undefined);
 
-    const parsed = studentSessionSchema.safeParse({
-      inviteCode,
-      name: name.trim(),
-      email: email.trim(),
-    });
-    if (!parsed.success) {
-      const fields = z.flattenError(parsed.error).fieldErrors;
-      setNameError(
-        fields.name
-          ? "Add your name so your tutor knows who joined."
-          : undefined,
-      );
-      setEmailError(fields.email ? "Enter a valid email address." : undefined);
-      return;
-    }
-    setNameError(undefined);
-    setEmailError(undefined);
+    const checked = checkForm(
+      studentSessionSchema,
+      { inviteCode, name: name.trim(), email: email.trim() },
+      {
+        name: "Add your name so your tutor knows who joined.",
+        email: "Enter a valid email address.",
+      },
+    );
+    setNameError(checked.ok ? undefined : checked.errors.name);
+    setEmailError(checked.ok ? undefined : checked.errors.email);
+    if (!checked.ok) return;
 
     startTransition(async () => {
-      const result = await joinLessonAction(parsed.data);
+      const result = await joinLessonAction(checked.data);
       if (!result.ok) setFormError(result.error);
     });
   };

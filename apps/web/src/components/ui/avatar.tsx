@@ -1,4 +1,5 @@
 import { UserIcon } from "lucide-react";
+import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -22,15 +23,6 @@ const colorFromName = (name: string): string => {
   for (const char of name) h = (h * 31 + char.charCodeAt(0)) & 0xffff;
   return PALETTE[h % PALETTE.length];
 };
-
-const initialsFromName = (name: string): string =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 
 const Avatar = ({ name, color, size = 28, className }: Props) => {
   const trimmed = name?.trim();
@@ -65,7 +57,7 @@ const Avatar = ({ name, color, size = 28, className }: Props) => {
       }}
       aria-hidden="true"
     >
-      {initialsFromName(trimmed)}
+      {initials(trimmed)}
     </span>
   );
 };

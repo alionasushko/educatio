@@ -5,8 +5,8 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
+import { checkForm, focusField } from "@/lib/form-validation";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
-import { z } from "zod";
 
 interface Props {
   callbackUrl?: string;
@@ -25,28 +25,25 @@ const SignInForm = ({ callbackUrl }: Props) => {
   const isEmailValid = () =>
     signinSchema.safeParse({ email: email.trim() }).success;
 
-  const focusField = (name: string) =>
-    formRef.current
-      ?.querySelector<HTMLInputElement>(`[name="${name}"]`)
-      ?.focus();
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setFormError(undefined);
 
-    const parsed = passwordSigninSchema.safeParse({
-      email: email.trim(),
-      password,
-    });
-    if (!parsed.success) {
-      const flat = z.flattenError(parsed.error).fieldErrors;
-      setEmailError(flat.email ? "Enter a valid email address." : undefined);
-      setPasswordError(flat.password ? "Enter your password." : undefined);
-      focusField(flat.email ? "email" : "password");
+    const checked = checkForm(
+      passwordSigninSchema,
+      { email: email.trim(), password },
+      {
+        email: "Enter a valid email address.",
+        password: "Enter your password.",
+      },
+    );
+    setEmailError(checked.ok ? undefined : checked.errors.email);
+    setPasswordError(checked.ok ? undefined : checked.errors.password);
+    if (!checked.ok) {
+      if (checked.firstInvalid)
+        focusField(formRef.current, checked.firstInvalid);
       return;
     }
-    setEmailError(undefined);
-    setPasswordError(undefined);
 
     startTransition(async () => {
       const result = await signinPasswordAction(
@@ -63,7 +60,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
     setPasswordError(undefined);
     if (!isEmailValid()) {
       setEmailError("Enter a valid email address.");
-      focusField("email");
+      focusField(formRef.current, "email");
       return;
     }
     setEmailError(undefined);

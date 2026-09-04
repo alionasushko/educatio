@@ -31,15 +31,3 @@ export const requireTutor = async (
   if (!tutor) redirect(signInRoute(callbackUrl));
   return tutor;
 };
-
-export const ownSession = async (
-  sessionJwt: string,
-): Promise<SessionClaims | null> => {
-  const claims = await verifySessionToken(sessionJwt);
-  if (!claims) {
-    console.error(
-      "session token failed verification — does web AUTH_JWT_SECRET match the api?",
-    );
-  }
-  return claims;
-};

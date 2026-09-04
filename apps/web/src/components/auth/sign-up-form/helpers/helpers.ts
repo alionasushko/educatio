@@ -1,19 +1,22 @@
-import { z } from "zod";
 import { signupSchema } from "@educatio/shared/api/auth";
+import { checkForm } from "@/lib/form-validation";
 import type { Errors, Field } from "./types";
 
-export const validate = (values: Record<Field, string>): Errors => {
-  const result = signupSchema.safeParse({
-    name: values.name.trim(),
-    email: values.email.trim(),
-    teaches: values.teaches.trim() || undefined,
-  });
-  if (result.success) return {};
+const COPY = {
+  name: "Please enter your name.",
+  email: "Enter a valid email address.",
+  teaches: "Keep this under 200 characters.",
+};
 
-  const flat = z.flattenError(result.error).fieldErrors;
-  const errors: Errors = {};
-  if (flat.name) errors.name = "Please enter your name.";
-  if (flat.email) errors.email = "Enter a valid email address.";
-  if (flat.teaches) errors.teaches = "Keep this under 200 characters.";
-  return errors;
+export const validate = (values: Record<Field, string>): Errors => {
+  const checked = checkForm(
+    signupSchema,
+    {
+      name: values.name.trim(),
+      email: values.email.trim(),
+      teaches: values.teaches.trim() || undefined,
+    },
+    COPY,
+  );
+  return checked.ok ? {} : checked.errors;
 };
