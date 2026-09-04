@@ -360,6 +360,34 @@ describe("api errors match the shared envelope", () => {
     );
   });
 
+  it("refuses a title that is only whitespace, and trims the rest", async () => {
+    const blank = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "   " },
+    });
+    expect(blank.status).toBe(400);
+    expect(expectShape(apiErrorSchema, blank.data).code).toBe(
+      "validation_error",
+    );
+
+    const padded = await call(LESSONS_PATH, {
+      method: "POST",
+      body: { title: "  Fractions  ", studentName: "  Sam  " },
+    });
+    const { id } = expectShape(createLessonResponseSchema, padded.data);
+
+    const read = await call(lessonPath(id));
+    const lesson = expectShape(lessonSchema, read.data);
+    expect(lesson.title).toBe("Fractions");
+    expect(lesson.studentName).toBe("Sam");
+
+    const renamed = await call(lessonPath(id), {
+      method: "PATCH",
+      body: { title: "  " },
+    });
+    expect(renamed.status).toBe(400);
+  });
+
   it("answers an upload that is not multipart with a 4xx, not a 500", async () => {
     const created = await call(LESSONS_PATH, {
       method: "POST",

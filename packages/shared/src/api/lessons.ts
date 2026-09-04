@@ -10,16 +10,16 @@ export const lessonPath = (id: string) =>
 const videoCallUrlSchema = z.url({ protocol: /^https?$/ });
 
 export const createLessonSchema = z.object({
-  title: z.string().min(1).max(200),
-  studentName: z.string().max(120).optional(),
+  title: z.string().trim().min(1).max(200),
+  studentName: z.string().trim().max(120).optional(),
   videoCallUrl: videoCallUrlSchema.optional(),
 });
 export type CreateLessonInput = z.infer<typeof createLessonSchema>;
 
 export const updateLessonSchema = z
   .object({
-    title: z.string().min(1).max(200).optional(),
-    studentName: z.string().max(120).optional(),
+    title: z.string().trim().min(1).max(200).optional(),
+    studentName: z.string().trim().max(120).optional(),
     videoCallUrl: videoCallUrlSchema.optional(),
     status: z.enum(["active", "ended"]).optional(),
   })
