@@ -77,6 +77,7 @@
   --text-primary: #1c1917;
   --text-secondary: #57534e;
   --text-tertiary: #78716c;
+  --surface-sunken: #f5f5f4;
 
   --accent-brand: #4338ca; /* Indigo */
   --accent-soft: color-mix(in oklab, var(--accent-brand) 10%, var(--bg));
@@ -153,6 +154,7 @@
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-tertiary: #909099;
+  --surface-sunken: #1f1f23;
   --border-subtle: rgba(255, 255, 255, 0.1);
   --border-medium: rgba(255, 255, 255, 0.18);
   --accent-brand: #818cf8;

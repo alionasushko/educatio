@@ -10,10 +10,10 @@ const Card = ({ children, padding = 24, className }: Props) => {
   return (
     <div
       className={cn(
-        "border-border-subtle bg-surface rounded-md border",
+        "border-border-subtle bg-surface rounded-md border shadow-(--shadow-subtle)",
         className,
       )}
-      style={{ padding, boxShadow: "var(--shadow-subtle)" }}
+      style={{ padding }}
     >
       {children}
     </div>

@@ -4,10 +4,7 @@ import FadeUp from "@/components/motion/fade-up";
 const CreateIllo = () => {
   return (
     <div className="absolute inset-0 p-5">
-      <div
-        className="border-border-subtle bg-surface h-full rounded-lg border p-3.5"
-        style={{ boxShadow: "var(--shadow-subtle)" }}
-      >
+      <div className="border-border-subtle bg-surface h-full rounded-lg border p-3.5 shadow-(--shadow-subtle)">
         <div className="text-text-tertiary text-[10px] font-semibold tracking-[0.08em] uppercase">
           Lesson title
         </div>
@@ -24,10 +21,7 @@ const CreateIllo = () => {
 const ShareIllo = () => {
   return (
     <div className="absolute inset-0 flex items-center justify-center p-6">
-      <div
-        className="border-border-subtle bg-surface w-full rounded-lg border p-3"
-        style={{ boxShadow: "var(--shadow-subtle)" }}
-      >
+      <div className="border-border-subtle bg-surface w-full rounded-lg border p-3 shadow-(--shadow-subtle)">
         <div className="flex items-center gap-2">
           <div className="border-border-subtle bg-bg text-text-primary flex h-7 flex-1 items-center rounded-[5px] border px-2.5 font-mono text-[11px]">
             educatio.app/join/k7v-z9q

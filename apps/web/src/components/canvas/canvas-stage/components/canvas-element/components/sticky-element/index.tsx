@@ -17,10 +17,10 @@ const StickyElement = ({ element }: Props) => (
       height={element.height}
       fill={cssToken(STICKY_TOKEN[element.color])}
       cornerRadius={4}
-      shadowColor="rgba(28, 25, 23, 0.18)"
+      shadowColor={cssToken("--text-primary")}
       shadowBlur={10}
       shadowOffsetY={2}
-      shadowOpacity={1}
+      shadowOpacity={0.18}
     />
     <Text
       x={STICKY_PADDING}

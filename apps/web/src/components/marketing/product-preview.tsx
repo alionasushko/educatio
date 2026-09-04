@@ -177,10 +177,7 @@ const ProductPreview = () => {
           </div>
 
           {/* Mini toolbar */}
-          <div
-            className="border-border-subtle bg-surface absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-0.5 rounded-lg border p-1"
-            style={{ boxShadow: "var(--shadow-medium)" }}
-          >
+          <div className="border-border-subtle bg-surface absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-0.5 rounded-lg border p-1 shadow-(--shadow-medium)">
             {Array.from({ length: 7 }).map((_, i) => (
               <span
                 key={i}
