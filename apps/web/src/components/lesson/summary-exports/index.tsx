@@ -46,7 +46,7 @@ const SummaryExports = ({ lessonTitle, meta, summary }: Props) => {
     try {
       const [{ pdf }, { default: SummaryDocument }] = await Promise.all([
         import("@react-pdf/renderer"),
-        import("./helpers/summary-document"),
+        import("./components/summary-document"),
       ]);
       const blob = await pdf(
         <SummaryDocument

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import AuthShell from "@/components/auth/auth-shell";
+import AuthLayout from "@/components/auth/auth-layout";
 import Card from "@/components/ui/card";
 import SetPasswordForm from "@/components/auth/set-password-form";
 import { fetchCurrentUser } from "@/lib/api-auth";
@@ -29,7 +29,7 @@ const SetPasswordPage = async ({ searchParams }: Props) => {
   const needsCurrent = me.data?.user.requiresCurrentPassword ?? false;
 
   return (
-    <AuthShell>
+    <AuthLayout>
       <Card padding={32}>
         <h1 className="text-text-primary text-[22px] font-semibold tracking-[-0.02em]">
           {hasPassword ? "Change your password" : "Set password"}
@@ -56,7 +56,7 @@ const SetPasswordPage = async ({ searchParams }: Props) => {
           </Link>
         </p>
       </Card>
-    </AuthShell>
+    </AuthLayout>
   );
 };
 

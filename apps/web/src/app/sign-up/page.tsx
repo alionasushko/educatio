@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CheckIcon } from "lucide-react";
-import AuthShell from "@/components/auth/auth-shell";
+import AuthLayout from "@/components/auth/auth-layout";
 import SignUpForm from "@/components/auth/sign-up-form";
 import TryDemoButton from "@/components/auth/try-demo-button";
 import AuthErrorBanner from "@/components/auth/auth-error-banner";
@@ -18,7 +18,7 @@ const SignUpPage = async () => {
   await redirectSignedInTutor();
 
   return (
-    <AuthShell
+    <AuthLayout
       footer={
         <>
           Already have an account? <Link href="/sign-in">Sign in</Link>
@@ -67,7 +67,7 @@ const SignUpPage = async () => {
           You don’t need an account — just open the lesson link your tutor sent.
         </p>
       </div>
-    </AuthShell>
+    </AuthLayout>
   );
 };
 

@@ -1,4 +1,4 @@
-import type { LessonFilter } from "@/components/dashboard/lessons-view/helpers/constants";
+import type { LessonFilter } from "@/components/dashboard/lesson-list/helpers/constants";
 
 const STATUS_VALUES: LessonFilter[] = ["all", "active", "ended"];
 

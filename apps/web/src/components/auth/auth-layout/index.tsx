@@ -6,7 +6,7 @@ interface Props {
   footer?: React.ReactNode;
 }
 
-const AuthShell = ({ children, footer }: Props) => {
+const AuthLayout = ({ children, footer }: Props) => {
   return (
     <div className="bg-bg flex min-h-dvh w-full flex-col items-center">
       <header className="flex w-full shrink-0 items-center px-6 pt-8 md:px-12">
@@ -34,4 +34,4 @@ const AuthShell = ({ children, footer }: Props) => {
   );
 };
 
-export default AuthShell;
+export default AuthLayout;

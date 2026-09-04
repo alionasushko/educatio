@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import AuthShell from "@/components/auth/auth-shell";
+import AuthLayout from "@/components/auth/auth-layout";
 import SignInForm from "@/components/auth/sign-in-form";
 import TryDemoButton from "@/components/auth/try-demo-button";
 import AuthErrorBanner from "@/components/auth/auth-error-banner";
@@ -23,7 +23,7 @@ const SignInPage = async ({ searchParams }: Props) => {
   await redirectSignedInTutor(safeInternalPath(target) ?? "/dashboard");
 
   return (
-    <AuthShell>
+    <AuthLayout>
       <Card padding={32}>
         <h1 className="text-text-primary text-[22px] font-semibold tracking-[-0.02em]">
           Sign in to Educatio
@@ -50,7 +50,7 @@ const SignInPage = async ({ searchParams }: Props) => {
           New to Educatio? <Link href="/sign-up">Create a tutor account</Link>
         </p>
       </Card>
-    </AuthShell>
+    </AuthLayout>
   );
 };
 

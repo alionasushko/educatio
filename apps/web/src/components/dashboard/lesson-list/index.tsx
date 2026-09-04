@@ -18,7 +18,7 @@ interface Props {
   timeZone?: string;
 }
 
-const LessonsView = async ({
+const LessonList = async ({
   lessons,
   total,
   page,
@@ -98,4 +98,4 @@ const LessonsView = async ({
   );
 };
 
-export default LessonsView;
+export default LessonList;

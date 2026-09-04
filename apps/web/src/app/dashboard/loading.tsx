@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/dashboard/dashboard-layout";
 import { SIDEBAR_FRAME } from "@/components/dashboard/dashboard-sidebar/helpers/constants";
-import { LESSON_GRID } from "@/components/dashboard/lessons-view/helpers/constants";
+import { LESSON_GRID } from "@/components/dashboard/lesson-list/helpers/constants";
 
 const ROWS = 6;
 

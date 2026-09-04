@@ -49,7 +49,7 @@ Single centered card. Logo. Heading "Sign in to Educatio". Subtext: "Welcome bac
 
 ### 2b. Tutor sign-up (`/sign-up`)
 
-Layout follows the shared `AuthShell`: wordmark top-left, single centered card (width 400), footer link below. Mount-time `CascadeUp` (delay 60, y 18).
+Layout follows the shared `AuthLayout`: wordmark top-left, single centered card (width 400), footer link below. Mount-time `CascadeUp` (delay 60, y 18).
 
 **Card** (`Card padding={32}`, accent-tint not used inside the card):
 
@@ -71,7 +71,7 @@ Layout follows the shared `AuthShell`: wordmark top-left, single centered card (
 - 32px circular indigo badge (`--accent` fill, white check icon).
 - Text (13, text-secondary, line-height 1.5): **"Are you a student?"** (text-primary, weight 500) _"You don't need an account — just open the lesson link your tutor sent."_
 
-**Footer link** (AuthShell footer, replacing the default Privacy · Terms): _"Already have an account?"_ + indigo **Sign in** link → `/sign-in`.
+**Footer link** (AuthLayout footer, replacing the default Privacy · Terms): _"Already have an account?"_ + indigo **Sign in** link → `/sign-in`.
 
 The sibling `/sign-in` screen's footer reciprocates with "New to Educatio? Create a tutor account" → `/sign-up`.
 

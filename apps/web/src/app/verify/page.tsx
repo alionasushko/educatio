@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MailIcon } from "lucide-react";
-import AuthShell from "@/components/auth/auth-shell";
+import AuthLayout from "@/components/auth/auth-layout";
 import Card from "@/components/ui/card";
 import ResendLink from "@/components/auth/resend-link";
 import SessionWatcher from "@/components/auth/session-watcher";
@@ -18,7 +18,7 @@ const VerifyPage = async ({ searchParams }: Props) => {
   const { email } = await searchParams;
 
   return (
-    <AuthShell>
+    <AuthLayout>
       <SessionWatcher />
       <Card padding={32}>
         <div
@@ -59,7 +59,7 @@ const VerifyPage = async ({ searchParams }: Props) => {
           New to Educatio? <Link href="/sign-up">Create a tutor account</Link>
         </p>
       </Card>
-    </AuthShell>
+    </AuthLayout>
   );
 };
 

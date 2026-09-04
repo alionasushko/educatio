@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import DashboardLayout from "@/components/dashboard/dashboard-layout";
-import LessonsView from "@/components/dashboard/lessons-view";
+import LessonList from "@/components/dashboard/lesson-list";
 import DashboardEmptyState from "@/components/dashboard/dashboard-empty-state";
 import NewLessonButton from "@/components/lesson/new-lesson-button";
 import LoadFailure from "@/components/ui/load-failure";
@@ -82,7 +82,7 @@ const DashboardPage = async ({ searchParams }: Props) => {
         ) : isEmpty ? (
           <DashboardEmptyState />
         ) : (
-          <LessonsView
+          <LessonList
             lessons={data.lessons}
             total={data.total}
             page={data.page}
