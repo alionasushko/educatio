@@ -9,6 +9,7 @@ import { generateSummaryAction } from "@/app/lesson/[lessonId]/actions";
 
 const POLL_MS = 4_000;
 const POLL_GIVE_UP_MS = 5 * 60_000;
+const DISALLOWED_ELEMENTS = ["a", "img"];
 
 interface Props {
   lessonId: string;
@@ -56,7 +57,9 @@ const LessonSummary = ({ lessonId, text, canGenerate }: Props) => {
   if (text) {
     return (
       <div className="prose-summary text-text-primary text-[14.5px] leading-relaxed">
-        <Markdown>{text}</Markdown>
+        <Markdown disallowedElements={DISALLOWED_ELEMENTS} unwrapDisallowed>
+          {text}
+        </Markdown>
       </div>
     );
   }
