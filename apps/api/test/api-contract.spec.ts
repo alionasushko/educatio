@@ -499,3 +499,26 @@ describe("signing out ends the session everywhere", () => {
     expect(lesson.status).toBe(201);
   });
 });
+
+describe("what the api will not accept in a request string", () => {
+  it("refuses an email past the bound, and a padded invite code still joins", async () => {
+    const long = `${"a".repeat(200)}@example.com`;
+    const res = await call(authPath(AUTH_ACTIONS.signin), {
+      method: "POST",
+      body: { email: long },
+      auth: false,
+    });
+    expect(res.status).toBe(400);
+    expect(expectShape(apiErrorSchema, res.data).code).toBe("validation_error");
+  });
+
+  it("refuses an oversized magic-link token instead of querying with it", async () => {
+    const res = await call(authPath(AUTH_ACTIONS.callback), {
+      method: "POST",
+      body: { token: "t".repeat(65), binding: "b" },
+      auth: false,
+    });
+    expect(res.status).toBe(400);
+    expect(expectShape(apiErrorSchema, res.data).code).toBe("validation_error");
+  });
+});

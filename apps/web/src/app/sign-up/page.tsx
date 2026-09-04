@@ -51,14 +51,8 @@ const SignUpPage = async () => {
 
         <p className="text-text-tertiary mt-4 text-center text-xs leading-snug">
           By creating an account you agree to our{" "}
-          <a href="#" className="text-text-secondary">
-            Terms
-          </a>{" "}
-          and{" "}
-          <a href="#" className="text-text-secondary">
-            Privacy Policy
-          </a>
-          .
+          <span className="text-text-secondary">Terms</span> and{" "}
+          <span className="text-text-secondary">Privacy Policy</span>.
         </p>
       </Card>
 

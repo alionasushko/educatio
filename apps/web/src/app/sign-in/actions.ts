@@ -13,11 +13,11 @@ import { actionError, validated, type ActionResult } from "@/lib/api-error";
 import { ERROR_COPY } from "@/lib/error-messages";
 import {
   SESSION_COOKIE,
-  sessionCookieOptions,
+  sessionCookieOptionsFor,
   POST_LOGIN_COOKIE,
   postLoginCookieOptions,
-  verifySessionToken,
 } from "@/lib/session";
+import { ownSession } from "@/lib/session-server";
 import { safeInternalPath } from "@/lib/request";
 
 export const signinAction = async (
@@ -63,15 +63,15 @@ export const signinPasswordAction = async (
     return actionError(err, { unauthorized: ERROR_COPY.invalid_credentials });
   }
 
-  if (!(await verifySessionToken(session.sessionJwt))) {
-    console.error(
-      "password signin: session token failed verification — does web AUTH_JWT_SECRET match the api?",
-    );
-    return { ok: false, error: ERROR_COPY.internal_error };
-  }
+  const claims = await ownSession(session.sessionJwt);
+  if (!claims) return { ok: false, error: ERROR_COPY.internal_error };
 
   const store = await cookies();
-  store.set(SESSION_COOKIE, session.sessionJwt, sessionCookieOptions);
+  store.set(
+    SESSION_COOKIE,
+    session.sessionJwt,
+    sessionCookieOptionsFor(claims.exp),
+  );
 
   redirect(safeInternalPath(callbackUrl) ?? "/dashboard");
 };

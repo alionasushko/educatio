@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const EMAIL_MAX = 200;
+export const OPAQUE_MAX = 64;
+
 export const AUTH_SEGMENT = "auth";
 
 export const AUTH_ACTIONS = {
@@ -30,18 +33,18 @@ const passwordSchema = z
 
 export const signupSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  email: z.string().email(),
+  email: z.string().email().max(EMAIL_MAX),
   teaches: z.string().max(200).optional(),
 });
 export type SignupInput = z.infer<typeof signupSchema>;
 
 export const signinSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().max(EMAIL_MAX),
 });
 export type SigninInput = z.infer<typeof signinSchema>;
 
 export const passwordSigninSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().max(EMAIL_MAX),
   password: z.string().min(1).max(72),
 });
 export type PasswordSigninInput = z.infer<typeof passwordSigninSchema>;
@@ -64,8 +67,8 @@ export const updateProfileSchema = z.object({
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 export const callbackSchema = z.object({
-  token: z.string().min(1),
-  binding: z.string().min(1),
+  token: z.string().min(1).max(OPAQUE_MAX),
+  binding: z.string().min(1).max(OPAQUE_MAX),
 });
 export type CallbackInput = z.infer<typeof callbackSchema>;
 
