@@ -2,6 +2,8 @@ import type { ListLessonsQuery } from "@educatio/shared/api/lessons";
 
 export type LessonFilter = ListLessonsQuery["status"];
 
+export const AWAITING_STUDENT = "Awaiting student";
+
 export const LESSON_GRID =
   "grid grid-cols-[minmax(0,2.4fr)_1fr_1fr_110px_44px] items-center gap-4";
 

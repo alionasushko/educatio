@@ -24,7 +24,7 @@ const ShareIllo = () => {
       <div className="border-border-subtle bg-surface w-full rounded-lg border p-3 shadow-(--shadow-subtle)">
         <div className="flex items-center gap-2">
           <div className="border-border-subtle bg-bg text-text-primary flex h-7 flex-1 items-center rounded-[5px] border px-2.5 font-mono text-[11px]">
-            educatio.app/join/k7v-z9q
+            educatio.app/join/K7VZ9QM2XB
           </div>
           <div className="bg-accent-brand flex h-7 items-center rounded-[5px] px-2.5 text-[11px] font-medium text-white">
             Copy

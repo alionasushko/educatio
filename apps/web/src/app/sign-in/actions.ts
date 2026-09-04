@@ -13,13 +13,14 @@ import { ERROR_COPY } from "@/lib/error-messages";
 import { POST_LOGIN_COOKIE, postLoginCookieOptions } from "@/lib/session";
 import { bindMagicLink, issueSessionCookie } from "@/lib/issue-session";
 import { safeInternalPath } from "@/lib/request";
+import { INVALID_EMAIL } from "@/lib/form-validation";
 
 export const signinAction = async (
   email: string,
   callbackUrl?: string,
 ): Promise<ActionResult> => {
   const parsed = validated(signinSchema, { email });
-  if (!parsed.ok) return { ...parsed, error: "Enter a valid email address." };
+  if (!parsed.ok) return { ...parsed, error: INVALID_EMAIL };
 
   try {
     const { binding } = await requestMagicLink(parsed.data);

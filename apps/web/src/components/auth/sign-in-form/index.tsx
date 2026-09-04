@@ -5,7 +5,7 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
-import { checkForm, focusField } from "@/lib/form-validation";
+import { INVALID_EMAIL, checkForm, focusField } from "@/lib/form-validation";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
 
 interface Props {
@@ -33,7 +33,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
       passwordSigninSchema,
       { email: email.trim(), password },
       {
-        email: "Enter a valid email address.",
+        email: INVALID_EMAIL,
         password: "Enter your password.",
       },
     );
@@ -59,7 +59,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
     setFormError(undefined);
     setPasswordError(undefined);
     if (!isEmailValid()) {
-      setEmailError("Enter a valid email address.");
+      setEmailError(INVALID_EMAIL);
       focusField(formRef.current, "email");
       return;
     }
@@ -86,9 +86,7 @@ const SignInForm = ({ callbackUrl }: Props) => {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           onBlur={() =>
-            setEmailError(
-              isEmailValid() ? undefined : "Enter a valid email address.",
-            )
+            setEmailError(isEmailValid() ? undefined : INVALID_EMAIL)
           }
           error={emailError}
         />

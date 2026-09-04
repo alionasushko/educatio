@@ -49,9 +49,8 @@ const SignUpPage = async () => {
         <TryDemoButton />
 
         <p className="text-text-tertiary mt-4 text-center text-xs leading-snug">
-          By creating an account you agree to our{" "}
-          <span className="text-text-secondary">Terms</span> and{" "}
-          <span className="text-text-secondary">Privacy Policy</span>.
+          You can delete your account, and everything in it, from Settings at
+          any time.
         </p>
       </Card>
 

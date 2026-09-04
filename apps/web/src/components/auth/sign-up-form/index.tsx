@@ -84,7 +84,7 @@ const SignUpForm = () => {
           label="What do you teach?"
           name="teaches"
           placeholder="Spanish, GCSE Maths, piano…"
-          helper="Optional. Helps us tailor your lesson templates."
+          helper="Optional — it just helps us understand who Educatio is for."
           value={teaches}
           onChange={(event) => setTeaches(event.target.value)}
           onBlur={() => handleBlur("teaches")}

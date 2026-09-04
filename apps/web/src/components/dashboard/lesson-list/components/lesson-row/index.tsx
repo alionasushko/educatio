@@ -3,7 +3,7 @@ import type { Lesson } from "@educatio/shared";
 import Avatar from "@/components/ui/avatar";
 import Badge from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { LESSON_GRID } from "../../helpers/constants";
+import { LESSON_GRID, AWAITING_STUDENT } from "../../helpers/constants";
 import { formatCreated, statusMeta } from "../../helpers/helpers";
 import DeleteLessonButton from "../delete-lesson-button";
 import { lessonHref } from "@/lib/routes";
@@ -45,7 +45,7 @@ const LessonRow = ({ lesson, last, timeZone }: Props) => {
             lesson.studentName ? "text-text-secondary" : "text-text-tertiary",
           )}
         >
-          {lesson.studentName ?? "Awaiting student"}
+          {lesson.studentName ?? AWAITING_STUDENT}
         </span>
       </div>
 

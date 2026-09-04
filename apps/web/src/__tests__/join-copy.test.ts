@@ -3,6 +3,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { studentSessionSchema } from "@educatio/shared/api/sessions";
 
 const read = (path: string): string =>
   readFileSync(join(process.cwd(), path), "utf8");
@@ -34,7 +35,10 @@ describe("what we tell people a student needs to join", () => {
     const form = joinFormSources();
     expect(form).toContain('name="email"');
     expect(form).toContain('type="email"');
-    expect(form).toContain("Enter a valid email address.");
+    expect(
+      studentSessionSchema.safeParse({ inviteCode: "K7VZ9QM2XB", name: "Sam" })
+        .success,
+    ).toBe(false);
   });
 
   it.each(DESCRIBES_JOINING)("%s says so too", (path) => {

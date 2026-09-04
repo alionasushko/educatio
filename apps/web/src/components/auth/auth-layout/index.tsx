@@ -21,15 +21,11 @@ const AuthLayout = ({ children, footer }: Props) => {
         </div>
       </main>
 
-      <footer className="text-text-tertiary px-6 pt-6 pb-8 text-center text-[12.5px] md:px-12">
-        {footer ?? (
-          <>
-            <span>Privacy</span>
-            <span className="mx-2 opacity-50">·</span>
-            <span>Terms</span>
-          </>
-        )}
-      </footer>
+      {footer && (
+        <footer className="text-text-tertiary px-6 pt-6 pb-8 text-center text-[12.5px] md:px-12">
+          {footer}
+        </footer>
+      )}
     </div>
   );
 };

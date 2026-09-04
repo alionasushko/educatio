@@ -1,10 +1,10 @@
 import { signupSchema } from "@educatio/shared/api/auth";
-import { checkForm } from "@/lib/form-validation";
+import { INVALID_EMAIL, checkForm } from "@/lib/form-validation";
 import type { Errors, Field } from "./types";
 
 const COPY = {
   name: "Please enter your name.",
-  email: "Enter a valid email address.",
+  email: INVALID_EMAIL,
   teaches: "Keep this under 200 characters.",
 };
 

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatCreated, statusMeta } from "../../helpers/helpers";
 import DeleteLessonButton from "../delete-lesson-button";
 import { lessonHref } from "@/lib/routes";
+import { AWAITING_STUDENT } from "../../helpers/constants";
 
 interface Props {
   lesson: Lesson;
@@ -41,7 +42,7 @@ const LessonCard = ({ lesson, timeZone }: Props) => {
             lesson.studentName ? "text-text-secondary" : "text-text-tertiary",
           )}
         >
-          {lesson.studentName ?? "Awaiting student"}
+          {lesson.studentName ?? AWAITING_STUDENT}
         </span>
       </div>
 

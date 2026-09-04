@@ -59,19 +59,19 @@ Layout follows the shared `AuthLayout`: wordmark top-left, single centered card 
 - Three stacked inputs (gap 14, margin-bottom 18):
   1. **Your name** — placeholder `Sara Martínez`, `autoFocus`
   2. **Email** (type=email) — placeholder `you@school.com`, helper _"We'll send a link to confirm it's you."_
-  3. **What do you teach?** — placeholder `Spanish, GCSE Maths, piano…`, helper _"Optional. Helps us tailor your lesson templates."_
+  3. **What do you teach?** — placeholder `Spanish, GCSE Maths, piano…`, helper _"Optional — it just helps us understand who Educatio is for."_
 
 (No password field — sign-up is passwordless; a password is set after verification on `/set-password`.)
 
 - Primary button, full-width, size `lg`: **"Create account"**
-- Fine print (12, text-tertiary, centered, margin-top 16): "By creating an account you agree to our [Terms] and [Privacy Policy]."
+- Fine print (12, text-tertiary, centered, margin-top 16): "You can delete your account, and everything in it, from Settings at any time." There are no Terms or Privacy Policy documents to link to, so the screen does not claim otherwise.
 
 **Reassurance callout** (sits _outside_ the card, margin-top 18, padding `14px 16px`, `--accent-tint` background, `--accent-soft-border`, radius 10, flex row gap 12):
 
 - 32px circular indigo badge (`--accent` fill, white check icon).
 - Text (13, text-secondary, line-height 1.5): **"Are you a student?"** (text-primary, weight 500) _"You don't need an account — just open the lesson link your tutor sent."_
 
-**Footer link** (AuthLayout footer, replacing the default Privacy · Terms): _"Already have an account?"_ + indigo **Sign in** link → `/sign-in`.
+**Footer link** (AuthLayout renders a footer only when a screen passes one; there is no default): _"Already have an account?"_ + indigo **Sign in** link → `/sign-in`.
 
 The sibling `/sign-in` screen's footer reciprocates with "New to Educatio? Create a tutor account" → `/sign-up`.
 
