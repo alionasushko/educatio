@@ -5,7 +5,12 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signinSchema, passwordSigninSchema } from "@educatio/shared/api/auth";
-import { INVALID_EMAIL, checkForm, focusField } from "@/lib/form-validation";
+import {
+  INVALID_EMAIL,
+  checkForm,
+  focusField,
+  isUnfilled,
+} from "@/lib/form-validation";
 import { signinAction, signinPasswordAction } from "@/app/sign-in/actions";
 import FormError from "@/components/ui/form-error";
 
@@ -86,9 +91,10 @@ const SignInForm = ({ callbackUrl }: Props) => {
           placeholder="you@school.com"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          onBlur={() =>
-            setEmailError(isEmailValid() ? undefined : INVALID_EMAIL)
-          }
+          onBlur={() => {
+            if (isUnfilled(email)) return;
+            setEmailError(isEmailValid() ? undefined : INVALID_EMAIL);
+          }}
           error={emailError}
         />
         <Input

@@ -5,7 +5,7 @@ import Button from "@/components/ui/button";
 import Spinner from "@/components/ui/spinner";
 import Input from "@/components/ui/input";
 import { signupAction } from "@/app/sign-up/actions";
-import { focusField } from "@/lib/form-validation";
+import { focusField, isUnfilled } from "@/lib/form-validation";
 import { validate } from "./helpers/helpers";
 import { FIELD_ORDER } from "./helpers/constants";
 import type { Errors, Field } from "./helpers/types";
@@ -28,6 +28,7 @@ const SignUpForm = () => {
     submitted || touched[field] ? errors[field] : undefined;
 
   const handleBlur = (field: Field) => {
+    if (isUnfilled(values[field])) return;
     setTouched((prev) => ({ ...prev, [field]: true }));
     setErrors(validate(values));
   };

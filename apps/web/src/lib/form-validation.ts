@@ -2,6 +2,8 @@ import { z, type ZodType } from "zod";
 
 export const INVALID_EMAIL = "Enter a valid email address.";
 
+export const isUnfilled = (value: string): boolean => value.trim().length === 0;
+
 type FieldName<T> = Extract<keyof T, string>;
 
 export type FieldCopy<T> = Partial<Record<FieldName<T>, string>>;
