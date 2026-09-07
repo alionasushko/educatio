@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
+import EmailAddress from "@/components/ui/email-address";
 import Button from "@/components/ui/button";
 import { deleteAccountAction } from "@/app/settings/actions";
 
@@ -43,7 +44,13 @@ const DeleteAccountButton = ({ email }: Props) => {
       {open && (
         <ConfirmDialog
           title="Delete your account?"
-          description={`Everything under ${email} — every lesson, canvas and summary — will be permanently deleted. This can't be undone.`}
+          description={
+            <>
+              Everything under <EmailAddress>{email}</EmailAddress>&nbsp;— every
+              lesson, canvas and summary — will be permanently deleted. This
+              can&apos;t be undone.
+            </>
+          }
           confirmLabel="Delete account"
           pendingLabel="Deleting…"
           pending={isPending}

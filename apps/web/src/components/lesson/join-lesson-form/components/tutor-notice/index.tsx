@@ -1,6 +1,7 @@
 "use client";
 
 import Button, { ButtonLink } from "@/components/ui/button";
+import EmailAddress from "@/components/ui/email-address";
 
 interface Props {
   email: string;
@@ -13,9 +14,9 @@ const TutorNotice = ({ email, onContinue }: Props) => (
       You&apos;re already signed in
     </h1>
     <p className="text-text-secondary mt-1.5 text-[13.5px] leading-normal">
-      This device is signed in as <span className="font-medium">{email}</span>.
-      Joining as a student signs you out of that account here — your own lessons
-      stay safe, you&apos;d just sign back in to reach them.
+      This device is signed in as <EmailAddress>{email}</EmailAddress>. Joining
+      as a student signs you out of that account here — your own lessons stay
+      safe, you&apos;d just sign back in to reach them.
     </p>
 
     <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">

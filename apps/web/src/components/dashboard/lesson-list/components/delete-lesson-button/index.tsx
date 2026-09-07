@@ -47,7 +47,12 @@ const DeleteLessonButton = ({ lessonId, lessonTitle }: Props) => {
       {open && (
         <ConfirmDialog
           title="Delete this lesson?"
-          description={`“${lessonTitle}” and its canvas will be permanently deleted. This can't be undone.`}
+          description={
+            <>
+              <span className="wrap-anywhere">“{lessonTitle}”</span> and its
+              canvas will be permanently deleted. This can&apos;t be undone.
+            </>
+          }
           confirmLabel="Delete lesson"
           pendingLabel="Deleting…"
           pending={isPending}

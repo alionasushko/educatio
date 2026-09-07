@@ -7,7 +7,7 @@ import FormError from "@/components/ui/form-error";
 
 interface Props {
   title: string;
-  description: string;
+  description: React.ReactNode;
   confirmLabel: string;
   pendingLabel: string;
   onConfirm: () => void;
