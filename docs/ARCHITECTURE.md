@@ -188,7 +188,7 @@ Paths live beside the schema they belong to in `@educatio/shared/api/*`, consume
 
 ## Status
 
-The api implements every endpoint listed in `docs/SPEC.md` §API routes, and every screen in §Features is built (see `docs/implementation-plan.md` §7 for per-screen status). The remaining work is the deploy itself plus a Lighthouse pass.
+The api implements every endpoint listed in `docs/SPEC.md` §API routes, and every screen in §Features is built (see `docs/implementation-plan.md` §7 for per-screen status). Both halves are deployed — web on Vercel, api on Cloud Run.
 
 A whole-app security review ran before deploy; its confirmed findings are fixed and the deliberate deferrals are recorded in `docs/SECURITY.md`. Everything compiles, builds and passes `npm run check`. Still unverified against live services: Resend and Gemini have never been exercised, and Liveblocks only locally — so the first deploy is also the first real test of the summary and realtime paths.
 
