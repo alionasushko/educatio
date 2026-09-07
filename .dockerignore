@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+.git
+.github
+.next
+**/dist
+apps/web
+e2e
+test-results
+playwright-report
+docs
+*.md
+.env
+.env.*

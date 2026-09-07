@@ -27,6 +27,8 @@ import { SummaryModule } from "./summary/summary.module";
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => ({
         uri: config.get("MONGODB_URI", { infer: true }),
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 10_000,
       }),
     }),
     CommonModule,
