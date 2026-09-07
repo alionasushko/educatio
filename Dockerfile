@@ -25,10 +25,7 @@ RUN npm run build -w @educatio/api
 FROM node:22.22.2-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package*.json ./
-COPY packages/shared/package.json packages/shared/
-COPY apps/api/package.json apps/api/
-COPY --from=deps /app/node_modules node_modules
+COPY --from=deps /app ./
 COPY --from=build /app/packages/shared/dist packages/shared/dist
 COPY --from=build /app/apps/api/dist apps/api/dist
 USER node
